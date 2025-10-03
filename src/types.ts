@@ -80,7 +80,7 @@ export interface CustomQuestion {
   id: string;
   question: string;
   type: 'text' | 'form_group' | 'choice' | 'fieldset' | 'selection' | 'checkbox';
-  options?: string[];
+  options?: string[] | undefined;
   answer: string | string[];
 }
 
