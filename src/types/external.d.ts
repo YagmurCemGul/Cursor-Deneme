@@ -1,3 +1,8 @@
+<<<<<<< HEAD
+declare module 'mammoth' {
+  export function extractRawText(opts: { arrayBuffer: ArrayBuffer | Uint8Array }): Promise<{ value: string }>;
+}
+=======
 // Type definitions for external libraries and Chrome APIs
 
 // Storage types
@@ -58,3 +63,4 @@ export interface ParsedSection<T = any> {
   endIndex: number;
   data: T[];
 }
+>>>>>>> main
