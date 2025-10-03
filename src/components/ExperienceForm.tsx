@@ -268,13 +268,11 @@ export const ExperienceForm: React.FC<ExperienceFormProps> = ({ experiences, onC
                 )}
               </div>
             </div>
-            {/* Add button also below each experience card for UX */}
-            <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-              {index === experiences.length - 1 && (
-                <button className="btn btn-primary btn-icon" onClick={handleAdd}>+ Add Experience</button>
-              )}
-            </div>
           ))}
+          {/* Add button at the bottom of all experiences */}
+          <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '1rem' }}>
+            <button className="btn btn-primary btn-icon" onClick={handleAdd}>+ Add Experience</button>
+          </div>
         </div>
       )}
     </div>

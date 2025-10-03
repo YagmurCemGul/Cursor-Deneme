@@ -244,12 +244,11 @@ export const EducationForm: React.FC<EducationFormProps> = ({ education, onChang
                 )}
               </div>
             </div>
-            {index === education.length - 1 && (
-              <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-                <button className="btn btn-primary btn-icon" onClick={handleAdd}>+ Add Education</button>
-              </div>
-            )}
           ))}
+          {/* Add button at the bottom of all education */}
+          <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '1rem' }}>
+            <button className="btn btn-primary btn-icon" onClick={handleAdd}>+ Add Education</button>
+          </div>
         </div>
       )}
     </div>
