@@ -1,6 +1,8 @@
 import React from 'react';
 import { CVData, ATSOptimization } from '../types';
 import { DocumentGenerator } from '../utils/documentGenerator';
+import { notifyError, notifyInfo } from '../utils/notify';
+import { t } from '../i18n';
 
 interface CVPreviewProps {
   cvData: CVData;
@@ -44,12 +46,12 @@ export const CVPreview: React.FC<CVPreviewProps> = ({ cvData, optimizations }) =
       }
     } catch (error) {
       console.error('Error generating document:', error);
-      alert('Error generating document. Please try again.');
+      notifyError(t((document.body.dataset.lang as any) || 'en', 'msg.docGenError'));
     }
   };
 
   const handleGoogleDoc = () => {
-    alert('Google Docs export: This feature requires Google Docs API integration. The DOCX file can be uploaded to Google Drive and opened with Google Docs.');
+    notifyInfo(t((document.body.dataset.lang as any) || 'en', 'msg.docGoogleInfo'));
   };
 
   return (

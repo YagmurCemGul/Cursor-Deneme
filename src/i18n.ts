@@ -92,6 +92,19 @@ const dict: Record<string, Record<Lang, string>> = {
   'opt.optimizeBtn': { en: 'Optimize CV with AI', tr: 'CV’yi YZ ile Optimize Et' }
 };
 
+// Translatable notifications and messages
+Object.assign(dict, {
+  'msg.enterJobDescription': { en: 'Please enter a job description first!', tr: 'Lütfen önce bir iş ilanı girin!' },
+  'msg.optimizeError': { en: 'Error optimizing CV. Please try again.', tr: 'CV optimize edilirken hata oluştu. Lütfen tekrar deneyin.' },
+  'msg.coverLetterError': { en: 'Error generating cover letter. Please try again.', tr: 'Niyet mektubu oluşturulurken hata oluştu. Lütfen tekrar deneyin.' },
+  'msg.profileSaved': { en: 'Profile saved successfully!', tr: 'Profil başarıyla kaydedildi!' },
+  'msg.profileLoaded': { en: 'Profile loaded successfully!', tr: 'Profil başarıyla yüklendi!' },
+  'msg.docGenError': { en: 'Error generating document. Please try again.', tr: 'Belge oluşturulurken hata oluştu. Lütfen tekrar deneyin.' },
+  'msg.docGoogleInfo': { en: 'Google Docs export requires Google Docs API. You can upload the DOCX to Drive and open with Google Docs.', tr: 'Google Docs dışa aktarma, Google Docs API gerektirir. DOCX dosyasını Drive’a yükleyip Google Docs ile açabilirsiniz.' },
+  'msg.cvParsingError': { en: "Error parsing file. Please make sure it's a valid PDF or DOCX file.", tr: 'Dosya ayrıştırılırken hata oluştu. Lütfen geçerli bir PDF veya DOCX dosyası olduğundan emin olun.' },
+  'msg.copied': { en: 'Copied to clipboard!', tr: 'Panoya kopyalandı!' }
+});
+
 export function t(lang: Lang, key: string): string {
   return dict[key]?.[lang] ?? dict[key]?.en ?? key;
 }

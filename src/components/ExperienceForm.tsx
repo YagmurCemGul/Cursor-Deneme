@@ -1,4 +1,5 @@
 import React, { useMemo, useState } from 'react';
+import { v4 as uuidv4 } from 'uuid';
 import { Experience } from '../types';
 import { countries, citiesByCountry } from '../data/locations';
 
@@ -12,7 +13,7 @@ export const ExperienceForm: React.FC<ExperienceFormProps> = ({ experiences, onC
 
   const handleAdd = () => {
     const newExperience: Experience = {
-      id: Date.now().toString(),
+      id: uuidv4(),
       title: '',
       employmentType: '',
       company: '',

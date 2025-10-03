@@ -1,4 +1,5 @@
 import React from 'react';
+import { v4 as uuidv4 } from 'uuid';
 import { Education } from '../types';
 import { degrees } from '../data/degrees';
 
@@ -10,7 +11,7 @@ interface EducationFormProps {
 export const EducationForm: React.FC<EducationFormProps> = ({ education, onChange }) => {
   const handleAdd = () => {
     const newEducation: Education = {
-      id: Date.now().toString(),
+      id: uuidv4(),
       school: '',
       degree: '',
       fieldOfStudy: '',

@@ -14,8 +14,11 @@ import { ATSOptimizations } from './components/ATSOptimizations';
 import { CVPreview } from './components/CVPreview';
 import { CoverLetter } from './components/CoverLetter';
 import { ProfileManager } from './components/ProfileManager';
+import { Notifications } from './components/Notifications';
 import AIService from './utils/aiService';
 import { StorageService } from './utils/storage';
+import { notifyError, notifySuccess, notifyWarning } from './utils/notify';
+import { v4 as uuidv4 } from 'uuid';
 import { t } from './i18n';
 import './styles.css';
 
@@ -126,7 +129,7 @@ const App: React.FC = () => {
 
   const handleOptimizeCV = async () => {
     if (!jobDescription.trim()) {
-      alert('Please enter a job description first!');
+      notifyWarning(t(language, 'msg.enterJobDescription'));
       return;
     }
 
@@ -139,7 +142,7 @@ const App: React.FC = () => {
       setActiveTab('optimize');
     } catch (error) {
       console.error('Error optimizing CV:', error);
-      alert('Error optimizing CV. Please try again.');
+      notifyError(t(language, 'msg.optimizeError'));
     } finally {
       setIsOptimizing(false);
     }
@@ -147,7 +150,7 @@ const App: React.FC = () => {
 
   const handleGenerateCoverLetter = async (extraPrompt: string) => {
     if (!jobDescription.trim()) {
-      alert('Please enter a job description first!');
+      notifyWarning(t(language, 'msg.enterJobDescription'));
       return;
     }
 
@@ -158,7 +161,7 @@ const App: React.FC = () => {
       setCoverLetter(letter);
     } catch (error) {
       console.error('Error generating cover letter:', error);
-      alert('Error generating cover letter. Please try again.');
+      notifyError(t(language, 'msg.coverLetterError'));
     } finally {
       setIsGeneratingCoverLetter(false);
     }
@@ -166,7 +169,7 @@ const App: React.FC = () => {
 
   const handleSaveProfile = async (name: string) => {
     const profile: CVProfile = {
-      id: Date.now().toString(),
+      id: uuidv4(),
       name,
       data: cvData,
       createdAt: new Date().toISOString(),
@@ -175,14 +178,14 @@ const App: React.FC = () => {
     
     await StorageService.saveProfile(profile);
     setProfileName(name);
-    alert('Profile saved successfully!');
+    notifySuccess(t(language, 'msg.profileSaved'));
   };
 
   const handleLoadProfile = (profile: CVProfile) => {
     setCVData(profile.data);
     setProfileName(profile.name);
     setActiveTab('cv-info');
-    alert('Profile loaded successfully!');
+    notifySuccess(t(language, 'msg.profileLoaded'));
   };
 
   const appliedTheme: Theme = theme === 'system' ? (systemPrefersDark ? 'dark' : 'light') : theme;
@@ -323,6 +326,7 @@ const App: React.FC = () => {
           />
         )}
       </div>
+      <Notifications />
     </div>
   );
 };

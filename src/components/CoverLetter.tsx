@@ -1,7 +1,10 @@
 import React, { useState } from 'react';
 import { CVData, SavedPrompt } from '../types';
+import { v4 as uuidv4 } from 'uuid';
 import { DocumentGenerator } from '../utils/documentGenerator';
 import { StorageService } from '../utils/storage';
+import { notifyError, notifyInfo } from '../utils/notify';
+import { t } from '../i18n';
 
 interface CoverLetterProps {
   cvData: CVData;
@@ -38,7 +41,7 @@ export const CoverLetter: React.FC<CoverLetterProps> = ({
     if (!newPromptName.trim() || !extraPrompt.trim()) return;
     
     const newPrompt: SavedPrompt = {
-      id: Date.now().toString(),
+      id: uuidv4(),
       name: newPromptName,
       folder: newPromptFolder,
       content: extraPrompt,
@@ -62,7 +65,8 @@ export const CoverLetter: React.FC<CoverLetterProps> = ({
 
   const handleCopy = () => {
     navigator.clipboard.writeText(coverLetter);
-    alert('Cover letter copied to clipboard!');
+    // Use "copied" generic message for i18n simplicity
+    notifyInfo(t((document.body.dataset.lang as any) || 'en', 'msg.copied'));
   };
 
   const handleDownload = async (format: 'docx' | 'pdf') => {
@@ -77,12 +81,12 @@ export const CoverLetter: React.FC<CoverLetterProps> = ({
       }
     } catch (error) {
       console.error('Error generating document:', error);
-      alert('Error generating document. Please try again.');
+      notifyError(t((document.body.dataset.lang as any) || 'en', 'msg.docGenError'));
     }
   };
 
   const handleGoogleDoc = () => {
-    alert('Google Docs export: This feature requires Google Docs API integration. The DOCX file can be uploaded to Google Drive and opened with Google Docs.');
+    notifyInfo(t((document.body.dataset.lang as any) || 'en', 'msg.docGoogleInfo'));
   };
 
   const folders = ['All', ...new Set(savedPrompts.map(p => p.folder))];

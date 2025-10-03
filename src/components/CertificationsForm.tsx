@@ -1,4 +1,5 @@
 import React from 'react';
+import { v4 as uuidv4 } from 'uuid';
 import { Certification } from '../types';
 
 interface CertificationsFormProps {
@@ -9,7 +10,7 @@ interface CertificationsFormProps {
 export const CertificationsForm: React.FC<CertificationsFormProps> = ({ certifications, onChange }) => {
   const handleAdd = () => {
     const newCert: Certification = {
-      id: Date.now().toString(),
+      id: uuidv4(),
       name: '',
       issuingOrganization: '',
       issueDate: '',

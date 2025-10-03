@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { v4 as uuidv4 } from 'uuid';
 import { CustomQuestion } from '../types';
 
 interface CustomQuestionsFormProps {
@@ -15,7 +16,7 @@ export const CustomQuestionsForm: React.FC<CustomQuestionsFormProps> = ({ questi
     if (!newQuestionText.trim()) return;
     
     const newQuestion: CustomQuestion = {
-      id: Date.now().toString(),
+      id: uuidv4(),
       question: newQuestionText,
       type: newQuestionType,
       options: newQuestionType === 'choice' || newQuestionType === 'checkbox' ? [] : undefined,

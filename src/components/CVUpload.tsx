@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { FileParser } from '../utils/fileParser';
 import { CVData } from '../types';
+import { notifyError } from '../utils/notify';
+import { t } from '../i18n';
 
 interface CVUploadProps {
   onCVParsed: (data: Partial<CVData>) => void;
@@ -46,7 +48,7 @@ export const CVUpload: React.FC<CVUploadProps> = ({ onCVParsed }) => {
       onCVParsed(parsedData);
     } catch (error) {
       console.error('Error parsing file:', error);
-      alert('Error parsing file. Please make sure it\'s a valid PDF or DOCX file.');
+      notifyError(t((document.body.dataset.lang as any) || 'en', 'msg.cvParsingError'));
     } finally {
       setIsLoading(false);
     }

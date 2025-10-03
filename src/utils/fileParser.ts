@@ -9,6 +9,7 @@ import pdfjsWorker from 'pdfjs-dist/build/pdf.worker.min.js';
 // This avoids "Setting up fake worker failed" errors.
 (pdfjsLib as any).GlobalWorkerOptions.workerSrc = pdfjsWorker as unknown as string;
 import { CVData } from '../types';
+import { v4 as uuidv4 } from 'uuid';
 
 export class FileParser {
   // Ensure pdf.js worker is resolved from bundled assets, not a CDN
@@ -269,7 +270,7 @@ export class FileParser {
           experiences.push(currentExp);
         }
         currentExp = {
-          id: Date.now().toString() + Math.random(),
+          id: uuidv4(),
           title: line,
           employmentType: '',
           company: '',
@@ -341,7 +342,7 @@ export class FileParser {
           education.push(currentEdu);
         }
         currentEdu = {
-          id: Date.now().toString() + Math.random(),
+          id: uuidv4(),
           school: line,
           degree: '',
           fieldOfStudy: '',
@@ -407,7 +408,7 @@ export class FileParser {
         const parts = line.split(' - ');
         if (parts.length >= 2) {
           certifications.push({
-            id: Date.now().toString() + Math.random(),
+            id: uuidv4(),
             name: parts[0].trim(),
             issuingOrganization: parts[1].trim(),
             issueDate: '',
@@ -457,7 +458,7 @@ export class FileParser {
           projects.push(currentProj);
         }
         currentProj = {
-          id: Date.now().toString() + Math.random(),
+          id: uuidv4(),
           name: line,
           description: '',
           skills: [],

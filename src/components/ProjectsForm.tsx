@@ -1,4 +1,5 @@
 import React from 'react';
+import { v4 as uuidv4 } from 'uuid';
 import { Project } from '../types';
 
 interface ProjectsFormProps {
@@ -9,7 +10,7 @@ interface ProjectsFormProps {
 export const ProjectsForm: React.FC<ProjectsFormProps> = ({ projects, onChange }) => {
   const handleAdd = () => {
     const newProject: Project = {
-      id: Date.now().toString(),
+      id: uuidv4(),
       name: '',
       description: '',
       skills: [],
