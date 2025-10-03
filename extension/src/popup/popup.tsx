@@ -1,206 +1,381 @@
-import React, { useEffect, useMemo, useState } from 'react';
-import { ResumeProfile, JobPost, AtsOptimization } from '../lib/types';
-import { getActiveProfile, loadOptimizations, saveJobPost, saveOptimizations, saveOrUpdateProfile } from '../lib/storage';
-import { generateAtsResume, generateCoverLetter } from '../lib/ai';
+import React, { useState, useEffect, useMemo } from 'react';
+import ReactDOM from 'react-dom/client';
+import { CVData, ATSOptimization, CVProfile } from '../types';
+import { CVUpload } from '../components/CVUpload';
+import { JobDescriptionInput } from '../components/JobDescriptionInput';
+import { PersonalInfoForm } from '../components/PersonalInfoForm';
+import { SkillsForm } from '../components/SkillsForm';
+import { ExperienceForm } from '../components/ExperienceForm';
+import { EducationForm } from '../components/EducationForm';
+import { CertificationsForm } from '../components/CertificationsForm';
+import { ProjectsForm } from '../components/ProjectsForm';
+import { CustomQuestionsForm } from '../components/CustomQuestionsForm';
+import { ATSOptimizations } from '../components/ATSOptimizations';
+import { CVPreview } from '../components/CVPreview';
+import { CoverLetter } from '../components/CoverLetter';
+import { ProfileManager } from '../components/ProfileManager';
+import AIService from '../utils/aiService';
+import { StorageService } from '../utils/storage';
+import { t } from '../i18n';
+import '../styles.css';
 
-function TabButton({ id, active, setActive, children }: { id: string; active: string; setActive: (id: string) => void; children: React.ReactNode }) {
-  return (
-    <button className={"tab" + (active === id ? " active" : "")} onClick={() => setActive(id)}>{children}</button>
-  );
-}
+type TabType = 'cv-info' | 'optimize' | 'cover-letter' | 'profiles';
+type Theme = 'light' | 'dark' | 'system';
+type Language = 'en' | 'tr';
 
-function TextRow({ label, value, onChange, placeholder }: { label: string; value: string; onChange: (v: string) => void; placeholder?: string }) {
-  return (
-    <label className="col" style={{ minWidth: 220, flex: 1 }}>
-      <span className="label">{label}</span>
-      <input className="text-input" value={value} onChange={(e) => onChange(e.target.value)} placeholder={placeholder} />
-    </label>
-  );
-}
-
-function SectionHeader({ title, actions }: { title: string; actions?: React.ReactNode }) {
-  return (
-    <div className="row" style={{ alignItems: 'center', justifyContent: 'space-between' }}>
-      <h3 style={{ margin: '12px 0 6px' }}>{title}</h3>
-      <div className="row">{actions}</div>
-    </div>
-  );
-}
-
-function Pill({ text, onRemove }: { text: string; onRemove?: () => void }) {
-  return (
-    <span className="pill">
-      {text}
-      <span className="close" onClick={onRemove}>×</span>
-    </span>
-  );
-}
-
-export function Popup() {
-  const [active, setActive] = useState<'cv' | 'job' | 'preview' | 'downloads' | 'cover'>('cv');
-  const [profile, setProfile] = useState<ResumeProfile | undefined>();
-  const [job, setJob] = useState<JobPost>({ id: crypto.randomUUID(), pastedText: '' });
-  const [resumeMd, setResumeMd] = useState<string>('');
-  const [coverMd, setCoverMd] = useState<string>('');
-  const [optimizations, setOptimizations] = useState<AtsOptimization[]>([]);
-  const [extraPrompt, setExtraPrompt] = useState<string>('');
+export const App: React.FC = () => {
+  const [activeTab, setActiveTab] = useState<TabType>('cv-info');
+  const [jobDescription, setJobDescription] = useState('');
+  const [cvData, setCVData] = useState<CVData>({
+    personalInfo: {
+      firstName: '',
+      middleName: '',
+      lastName: '',
+      email: '',
+      linkedInUsername: '',
+      portfolioUrl: '',
+      githubUsername: '',
+      whatsappLink: '',
+      phoneNumber: '',
+      countryCode: '',
+      summary: ''
+    },
+    skills: [],
+    experience: [],
+    education: [],
+    certifications: [],
+    projects: [],
+    customQuestions: []
+  });
+  const [optimizations, setOptimizations] = useState<ATSOptimization[]>([]);
+  const [coverLetter, setCoverLetter] = useState('');
+  const [isOptimizing, setIsOptimizing] = useState(false);
+  const [isGeneratingCoverLetter, setIsGeneratingCoverLetter] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
+  const [profileName, setProfileName] = useState('');
+  const [apiKey, setApiKey] = useState('');
+  const [theme, setTheme] = useState<Theme>('light');
+  const [language, setLanguage] = useState<Language>('en');
+  const [systemPrefersDark, setSystemPrefersDark] = useState(false);
 
   useEffect(() => {
-    (async () => {
-      const p = await getActiveProfile();
-      setProfile(p);
-      const opt = await loadOptimizations();
-      setOptimizations(opt);
-    })();
+    loadInitial();
   }, []);
 
-  const linkedInUrl = useMemo(() => profile?.personal.linkedin ? `https://www.linkedin.com/in/${profile.personal.linkedin}` : '', [profile]);
-  const githubUrl = useMemo(() => profile?.personal.github ? `https://github.com/${profile.personal.github}` : '', [profile]);
+  useEffect(() => {
+    const mq = window.matchMedia('(prefers-color-scheme: dark)');
+    const update = () => setSystemPrefersDark(mq.matches);
+    update();
+    mq.addEventListener ? mq.addEventListener('change', update) : mq.addListener(update);
+    return () => {
+      mq.removeEventListener ? mq.removeEventListener('change', update) : mq.removeListener(update);
+    };
+  }, []);
 
-  async function handleGenerateResume() {
-    if (!profile || !job.pastedText) return;
-    const result = await generateAtsResume(profile, job);
-    setResumeMd(result.text);
-    setOptimizations(result.optimizations);
-    await saveOptimizations(result.optimizations);
-    setActive('preview');
-  }
+  const loadInitial = async () => {
+    const key = await StorageService.getAPIKey();
+    if (key) setApiKey(key);
+    // Restore settings
+    const settings = await StorageService.getSettings<{ theme?: Theme; language?: Language }>();
+    if (settings?.theme) setTheme(settings.theme);
+    if (settings?.language) setLanguage(settings.language);
+    // Restore draft
+    const draft = await StorageService.getDraft<{
+      activeTab: TabType;
+      jobDescription: string;
+      cvData: CVData;
+      optimizations: ATSOptimization[];
+      coverLetter: string;
+      profileName: string;
+    }>();
+    if (draft) {
+      setActiveTab(draft.activeTab || 'cv-info');
+      setJobDescription(draft.jobDescription || '');
+      setCVData(draft.cvData || cvData);
+      setOptimizations(draft.optimizations || []);
+      setCoverLetter(draft.coverLetter || '');
+      setProfileName(draft.profileName || '');
+    }
+  };
 
-  async function handleGenerateCoverLetter() {
-    if (!profile || !job.pastedText) return;
-    const result = await generateCoverLetter(profile, job, extraPrompt);
-    setCoverMd(result.text);
-    setActive('cover');
-  }
+  // Autosave draft when critical state changes
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      StorageService.saveDraft({ activeTab, jobDescription, cvData, optimizations, coverLetter, profileName });
+    }, 400);
+    return () => clearTimeout(timeout);
+  }, [activeTab, jobDescription, cvData, optimizations, coverLetter, profileName]);
 
-  async function handleRemoveOptimization(id: string) {
-    const updated = optimizations.filter(o => o.id !== id);
-    setOptimizations(updated);
-    await saveOptimizations(updated);
-  }
+  // Persist settings
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      StorageService.saveSettings({ theme, language });
+    }, 200);
+    return () => clearTimeout(timeout);
+  }, [theme, language]);
 
-  function downloadText(filename: string, mime: string, content: string) {
-    const blob = new Blob([content], { type: mime });
-    const url = URL.createObjectURL(blob);
-    chrome.downloads.download({ url, filename });
-  }
+  // Auto-clear messages after 5 seconds
+  useEffect(() => {
+    if (error || success) {
+      const timeout = setTimeout(() => {
+        setError(null);
+        setSuccess(null);
+      }, 5000);
+      return () => clearTimeout(timeout);
+    }
+  }, [error, success]);
 
-  function sanitizeFileBase(): string {
-    const name = `${profile?.personal.firstName ?? 'Name'}_${profile?.personal.lastName ?? 'Surname'}_${job.title ?? 'Resume'}`;
-    return name.replace(/\s+/g, '_').replace(/[^a-zA-Z0-9_\-\.]/g, '');
-  }
+  const handleCVParsed = (parsedData: Partial<CVData>) => {
+    setCVData(prev => ({
+      ...prev,
+      ...parsedData,
+      personalInfo: {
+        ...prev.personalInfo,
+        ...parsedData.personalInfo
+      }
+    }));
+  };
 
-  async function saveProfile(updated: ResumeProfile) {
-    setProfile(updated);
-    await saveOrUpdateProfile(updated);
-  }
+  const handleOptimizeCV = async () => {
+    if (!jobDescription.trim()) {
+      setError(t(language, 'job.error'));
+      return;
+    }
+
+    setIsOptimizing(true);
+    setError(null);
+    setSuccess(null);
+
+    try {
+      const aiService = new AIService(apiKey || 'demo-key');
+      const result = await aiService.optimizeCV(cvData, jobDescription);
+      setCVData(result.optimizedCV);
+      setOptimizations(result.optimizations);
+      setActiveTab('optimize');
+      setSuccess(t(language, 'opt.success'));
+    } catch (error) {
+      console.error('Error optimizing CV:', error);
+      const errorMessage = error instanceof Error ? error.message : t(language, 'opt.error');
+      setError(errorMessage);
+    } finally {
+      setIsOptimizing(false);
+    }
+  };
+
+  const handleGenerateCoverLetter = async (extraPrompt: string) => {
+    if (!jobDescription.trim()) {
+      setError(t(language, 'job.error'));
+      return;
+    }
+
+    setIsGeneratingCoverLetter(true);
+    setError(null);
+    setSuccess(null);
+
+    try {
+      const aiService = new AIService(apiKey || 'demo-key');
+      const letter = await aiService.generateCoverLetter(cvData, jobDescription, extraPrompt);
+      setCoverLetter(letter);
+      setSuccess(t(language, 'cover.success'));
+    } catch (error) {
+      console.error('Error generating cover letter:', error);
+      const errorMessage = error instanceof Error ? error.message : t(language, 'cover.error');
+      setError(errorMessage);
+    } finally {
+      setIsGeneratingCoverLetter(false);
+    }
+  };
+
+  const handleSaveProfile = async (name: string) => {
+    const profile: CVProfile = {
+      id: Date.now().toString(),
+      name,
+      data: cvData,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    };
+
+    await StorageService.saveProfile(profile);
+    setProfileName(name);
+    alert('Profile saved successfully!');
+  };
+
+  const handleLoadProfile = (profile: CVProfile) => {
+    setCVData(profile.data);
+    setProfileName(profile.name);
+    setActiveTab('cv-info');
+    alert('Profile loaded successfully!');
+  };
+
+  const appliedTheme: Theme = theme === 'system' ? (systemPrefersDark ? 'dark' : 'light') : theme;
 
   return (
-    <div className="container">
-      <div className="tabbar">
-        <TabButton id="cv" active={active} setActive={id => setActive(id as any)}>CV</TabButton>
-        <TabButton id="job" active={active} setActive={id => setActive(id as any)}>Job</TabButton>
-        <TabButton id="preview" active={active} setActive={id => setActive(id as any)}>Preview</TabButton>
-        <TabButton id="cover" active={active} setActive={id => setActive(id as any)}>Cover Letter</TabButton>
-        <TabButton id="downloads" active={active} setActive={id => setActive(id as any)}>Downloads</TabButton>
+    <div className={`app-container ${appliedTheme}`} data-lang={language}>
+      <div className="header">
+        <h1>🤖 {t(language, 'app.title')}</h1>
+        <p>{t(language, 'app.subtitle')}</p>
+        <div style={{ display: 'flex', gap: 10, justifyContent: 'center', marginTop: 10 }}>
+          <select className="form-select" value={language} onChange={(e) => setLanguage(e.target.value as Language)} style={{ width: 150 }}>
+            <option value="en">English</option>
+            <option value="tr">Türkçe</option>
+          </select>
+          <select className="form-select" value={theme} onChange={(e) => setTheme(e.target.value as Theme)} style={{ width: 150 }}>
+            <option value="light">Light</option>
+            <option value="dark">Dark</option>
+            <option value="system">System</option>
+          </select>
+        </div>
+
+        {/* Error and Success Messages */}
+        {error && (
+          <div style={{
+            background: '#fee2e2',
+            color: '#dc2626',
+            padding: '10px',
+            borderRadius: '6px',
+            margin: '10px 0',
+            border: '1px solid #fecaca'
+          }}>
+            ❌ {error}
+          </div>
+        )}
+
+        {success && (
+          <div style={{
+            background: '#dcfce7',
+            color: '#16a34a',
+            padding: '10px',
+            borderRadius: '6px',
+            margin: '10px 0',
+            border: '1px solid #bbf7d0'
+          }}>
+            ✅ {success}
+          </div>
+        )}
       </div>
 
-      {active === 'cv' && (
-        <div className="col" style={{ gap: 10 }}>
-          <SectionHeader title="Personal" />
-          <div className="row">
-            <TextRow label="First name" value={profile?.personal.firstName ?? ''} onChange={(v) => profile && saveProfile({ ...profile, personal: { ...profile.personal, firstName: v } })} />
-            <TextRow label="Middle name" value={profile?.personal.middleName ?? ''} onChange={(v) => profile && saveProfile({ ...profile, personal: { ...profile.personal, middleName: v } })} />
-            <TextRow label="Last name" value={profile?.personal.lastName ?? ''} onChange={(v) => profile && saveProfile({ ...profile, personal: { ...profile.personal, lastName: v } })} />
-          </div>
-          <div className="row">
-            <TextRow label="Email" value={profile?.personal.email ?? ''} onChange={(v) => profile && saveProfile({ ...profile, personal: { ...profile.personal, email: v } })} placeholder="name@domain.com" />
-            <TextRow label="LinkedIn" value={profile?.personal.linkedin ?? ''} onChange={(v) => profile && saveProfile({ ...profile, personal: { ...profile.personal, linkedin: v.replace('https://www.linkedin.com/in/', '') } })} placeholder="username" />
-            <TextRow label="GitHub" value={profile?.personal.github ?? ''} onChange={(v) => profile && saveProfile({ ...profile, personal: { ...profile.personal, github: v.replace('https://github.com/', '') } })} placeholder="username" />
-          </div>
-          <div className="row">
-            <TextRow label="Portfolio" value={profile?.personal.portfolio ?? ''} onChange={(v) => profile && saveProfile({ ...profile, personal: { ...profile.personal, portfolio: v } })} placeholder="https://..." />
-            <TextRow label="WhatsApp" value={profile?.personal.whatsapp ?? ''} onChange={(v) => profile && saveProfile({ ...profile, personal: { ...profile.personal, whatsapp: v } })} placeholder="https://wa.me/...." />
-            <TextRow label="Phone" value={profile?.personal.phone ?? ''} onChange={(v) => profile && saveProfile({ ...profile, personal: { ...profile.personal, phone: v } })} placeholder="+90 ..." />
-          </div>
-          <div className="col">
-            <span className="label">Summary</span>
-            <textarea className="textarea" value={profile?.personal.summary ?? ''} onChange={(e) => profile && saveProfile({ ...profile, personal: { ...profile.personal, summary: e.target.value } })} />
-          </div>
-          <SectionHeader title="Skills" actions={<button className="btn secondary" onClick={() => profile && saveProfile({ ...profile, skills: [...(profile.skills ?? []), ''] })}>Add</button>} />
-          <div className="col">
-            {(profile?.skills ?? []).map((s, i) => (
-              <div className="row" key={i}>
-                <input className="text-input" value={s} onChange={(e) => profile && saveProfile({ ...profile, skills: profile.skills.map((x, idx) => idx === i ? e.target.value : x) })} />
-                <button className="btn ghost" onClick={() => profile && saveProfile({ ...profile, skills: profile.skills.filter((_, idx) => idx !== i) })}>Remove</button>
-              </div>
-            ))}
-          </div>
-          <div className="row" style={{ justifyContent: 'flex-end', marginTop: 10 }}>
-            <button className="btn" onClick={handleGenerateResume}>Generate ATS Resume</button>
-          </div>
-          <div className="row" style={{ gap: 12 }}>
-            {optimizations.map((o) => (
-              <Pill key={o.id} text={`${o.kind} in ${o.section}`} onRemove={() => handleRemoveOptimization(o.id)} />
-            ))}
-          </div>
-        </div>
-      )}
+      <div className="tabs">
+        <button
+          className={`tab ${activeTab === 'cv-info' ? 'active' : ''}`}
+          onClick={() => setActiveTab('cv-info')}
+        >
+          📝 {t(language, 'tabs.cvinfo')}
+        </button>
+        <button
+          className={`tab ${activeTab === 'optimize' ? 'active' : ''}`}
+          onClick={() => setActiveTab('optimize')}
+        >
+          ✨ {t(language, 'tabs.optimize')}
+        </button>
+        <button
+          className={`tab ${activeTab === 'cover-letter' ? 'active' : ''}`}
+          onClick={() => setActiveTab('cover-letter')}
+        >
+          ✉️ {t(language, 'tabs.cover')}
+        </button>
+        <button
+          className={`tab ${activeTab === 'profiles' ? 'active' : ''}`}
+          onClick={() => setActiveTab('profiles')}
+        >
+          💾 {t(language, 'tabs.profiles')}
+        </button>
+      </div>
 
-      {active === 'job' && (
-        <div className="col" style={{ gap: 10 }}>
-          <SectionHeader title="Paste Job Description" />
-          <textarea className="textarea" value={job.pastedText} onChange={(e) => setJob({ ...job, pastedText: e.target.value })} placeholder="Paste job listing here" />
-          <div className="row" style={{ justifyContent: 'space-between' }}>
-            <button className="btn" onClick={() => saveJobPost(job)}>Save Job</button>
-            <button className="btn" onClick={handleGenerateResume}>Generate ATS Resume</button>
-          </div>
-          <SectionHeader title="Cover Letter Extras" />
-          <textarea className="textarea" value={extraPrompt} onChange={(e) => setExtraPrompt(e.target.value)} placeholder="Ekstra talimatlar (opsiyonel)" />
-          <div className="row" style={{ justifyContent: 'flex-end' }}>
-            <button className="btn" onClick={handleGenerateCoverLetter}>Generate Cover Letter</button>
-          </div>
-        </div>
-      )}
+      <div className="content">
+        {activeTab === 'cv-info' && (
+          <>
+            <CVUpload onCVParsed={handleCVParsed} />
 
-      {active === 'preview' && (
-        <div className="col">
-          <SectionHeader title="Resume Preview" />
-          <div className="preview" id="resume-preview">
-            <pre style={{ whiteSpace: 'pre-wrap' }}>{resumeMd}</pre>
-          </div>
-        </div>
-      )}
+            <JobDescriptionInput
+              value={jobDescription}
+              onChange={setJobDescription}
+            />
 
-      {active === 'cover' && (
-        <div className="col">
-          <SectionHeader title="Cover Letter Preview" />
-          <div className="preview" id="cover-preview">
-            <pre style={{ whiteSpace: 'pre-wrap' }}>{coverMd}</pre>
-          </div>
-          <div className="row" style={{ justifyContent: 'flex-end' }}>
-            <button className="btn" onClick={() => navigator.clipboard.writeText(coverMd)}>Copy as Text</button>
-          </div>
-        </div>
-      )}
+            <PersonalInfoForm
+              data={cvData.personalInfo}
+              onChange={(personalInfo) => setCVData({ ...cvData, personalInfo })}
+            />
 
-      {active === 'downloads' && (
-        <div className="col" style={{ gap: 10 }}>
-          <SectionHeader title="Downloads" />
-          <div className="row">
-            <button className="btn" onClick={() => downloadText(`${sanitizeFileBase()}.md`, 'text/markdown', resumeMd)}>Download Resume as .md</button>
-            <button className="btn" onClick={() => downloadText(`${sanitizeFileBase()}_cover.md`, 'text/markdown', coverMd)}>Download Cover as .md</button>
-          </div>
-          <div className="row">
-            <button className="btn secondary" onClick={() => window.print()}>Print to PDF</button>
-          </div>
-        </div>
-      )}
+            <SkillsForm
+              skills={cvData.skills}
+              onChange={(skills) => setCVData({ ...cvData, skills })}
+            />
 
-      <div className="row" style={{ marginTop: 14, fontSize: 12, color: '#64748b' }}>
-        <span>LinkedIn: {linkedInUrl}</span>
-        <span>GitHub: {githubUrl}</span>
+            <ExperienceForm
+              experiences={cvData.experience}
+              onChange={(experience) => setCVData({ ...cvData, experience })}
+            />
+
+            <EducationForm
+              education={cvData.education}
+              onChange={(education) => setCVData({ ...cvData, education })}
+            />
+
+            <CertificationsForm
+              certifications={cvData.certifications}
+              onChange={(certifications) => setCVData({ ...cvData, certifications })}
+            />
+
+            <ProjectsForm
+              projects={cvData.projects}
+              onChange={(projects) => setCVData({ ...cvData, projects })}
+            />
+
+            <CustomQuestionsForm
+              questions={cvData.customQuestions}
+              onChange={(customQuestions) => setCVData({ ...cvData, customQuestions })}
+            />
+
+            <div style={{ position: 'sticky', bottom: 0, background: 'white', padding: '20px', borderTop: '2px solid #e2e8f0' }}>
+              <button
+                className="btn btn-primary"
+                onClick={handleOptimizeCV}
+                disabled={isOptimizing}
+                style={{ width: '100%', fontSize: '16px', padding: '15px' }}
+              >
+                {isOptimizing ? '⏳ Optimizing...' : `✨ ${t(language, 'opt.optimizeBtn')}`}
+              </button>
+            </div>
+          </>
+        )}
+
+        {activeTab === 'optimize' && (
+          <>
+            <ATSOptimizations
+              optimizations={optimizations}
+              onChange={setOptimizations}
+            />
+
+            <CVPreview
+              cvData={cvData}
+              optimizations={optimizations}
+            />
+          </>
+        )}
+
+        {activeTab === 'cover-letter' && (
+          <CoverLetter
+            cvData={cvData}
+            jobDescription={jobDescription}
+            coverLetter={coverLetter}
+            onGenerate={handleGenerateCoverLetter}
+            isGenerating={isGeneratingCoverLetter}
+          />
+        )}
+
+        {activeTab === 'profiles' && (
+          <ProfileManager
+            onLoadProfile={handleLoadProfile}
+            onSaveProfile={handleSaveProfile}
+            currentProfileName={profileName}
+            onProfileNameChange={setProfileName}
+          />
+        )}
       </div>
     </div>
   );
-}
+};
+
+const root = ReactDOM.createRoot(document.getElementById('root')!);
+root.render(<App />);

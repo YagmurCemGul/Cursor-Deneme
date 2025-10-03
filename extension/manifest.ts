@@ -1,8 +1,8 @@
 const manifest: chrome.runtime.ManifestV3 = {
   manifest_version: 3,
   name: "AI CV & Cover Letter Optimizer",
-  version: "0.1.0",
-  description: "Upload a CV, paste a job description, generate ATS-optimized resume and cover letter. Download as PDF/DOCX or export.",
+  version: "1.0.0",
+  description: "AI-powered CV and Cover Letter optimization with ATS compatibility",
   action: {
     default_title: "AI CV Optimizer",
     default_popup: "src/popup/index.html"
@@ -12,11 +12,17 @@ const manifest: chrome.runtime.ManifestV3 = {
     service_worker: "src/background/index.ts",
     type: "module"
   },
-  permissions: ["storage", "activeTab", "scripting", "downloads"],
+  permissions: [
+    "storage",
+    "activeTab",
+    "downloads",
+    "scripting"
+  ],
   host_permissions: [
     "https://api.openai.com/*",
     "https://*.openai.azure.com/*",
-    "http://localhost/*"
+    "https://cdn.jsdelivr.net/*",
+    "http://localhost:3000/*"
   ],
   web_accessible_resources: [
     {
@@ -26,7 +32,10 @@ const manifest: chrome.runtime.ManifestV3 = {
       ],
       matches: ["<all_urls>"]
     }
-  ]
+  ],
+  content_security_policy: {
+    extension_pages: "script-src 'self'; object-src 'self'"
+  }
 };
 
 export default manifest;

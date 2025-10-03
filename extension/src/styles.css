@@ -10,10 +10,38 @@ body {
 }
 
 .app-container {
-  width: 800px;
+  width: 100%;
+  max-width: 800px;
+  min-height: 100vh;
   max-height: 600px;
   overflow-y: auto;
   background: white;
+  margin: 0 auto;
+}
+
+/* Mobile responsiveness */
+@media (max-width: 768px) {
+  .app-container {
+    max-width: 100%;
+    max-height: none;
+    min-height: 100vh;
+  }
+
+  .tabs {
+    flex-direction: column;
+  }
+
+  .tab {
+    flex: none;
+  }
+
+  .row {
+    flex-direction: column;
+  }
+
+  .col {
+    gap: 8px;
+  }
 }
 
 /* Theme support */

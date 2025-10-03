@@ -1,13 +1,5 @@
 import mammoth from 'mammoth';
 import * as pdfjsLib from 'pdfjs-dist';
-// Import the pdf.js worker as a bundled asset and set workerSrc explicitly
-// to avoid protocol-relative CDN URLs inside a Chrome Extension context.
-// @ts-ignore - treated as asset URL by webpack
-import pdfjsWorker from 'pdfjs-dist/build/pdf.worker.min.js';
-
-// Ensure the worker script is correctly referenced for pdf.js
-// This avoids "Setting up fake worker failed" errors.
-(pdfjsLib as any).GlobalWorkerOptions.workerSrc = pdfjsWorker as unknown as string;
 import { CVData } from '../types';
 
 export class FileParser {
@@ -15,12 +7,11 @@ export class FileParser {
   // This avoids the "fake worker" fallback and CSP/network issues in extensions
   static configurePdfJsWorker(): void {
     try {
-      // Prefer explicit worker script URL (UMD build) for broad compatibility
-      const workerUrl = new URL('pdfjs-dist/build/pdf.worker.min.js', import.meta.url).toString();
+      // For Chrome extensions, use the CDN worker but with a fallback
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (pdfjsLib as any).GlobalWorkerOptions.workerSrc = workerUrl;
+      (pdfjsLib as any).GlobalWorkerOptions.workerSrc = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.worker.min.js';
     } catch (error) {
-      // If the above fails (unlikely in modern bundlers), silently continue; parsing may still work
+      // If the above fails, silently continue; parsing may still work with fallback
       // eslint-disable-next-line no-console
       console.warn('Failed to configure pdf.js workerSrc; falling back to default', error);
     }

@@ -34,7 +34,7 @@ DON'T:
 - List references
 - Start each line with a date
 
-Use ACTION VERBS like: Accomplished, Achieved, Administered, Analyzed, Developed, Directed, 
+Use ACTION VERBS like: Accomplished, Achieved, Administered, Analyzed, Developed, Directed,
 Improved, Led, Managed, Organized, Planned, etc.
 `;
 
@@ -50,6 +50,19 @@ const COVER_LETTER_RULES = `
 - Ensure resume and cover letter use the same font type and size
 `;
 
+interface OpenAIMessage {
+  role: 'system' | 'user' | 'assistant';
+  content: string;
+}
+
+interface OpenAIResponse {
+  choices: Array<{
+    message: {
+      content: string;
+    };
+  }>;
+}
+
 export class AIService {
   private apiKey: string;
 
@@ -57,10 +70,35 @@ export class AIService {
     this.apiKey = apiKey;
   }
 
+  private async callOpenAI(messages: OpenAIMessage[], temperature = 0.7): Promise<string> {
+    if (this.apiKey === 'demo-key') {
+      throw new Error('Please configure your OpenAI API key in the extension settings');
+    }
+
+    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${this.apiKey}`,
+      },
+      body: JSON.stringify({
+        model: 'gpt-3.5-turbo',
+        messages,
+        temperature,
+        max_tokens: 4000,
+      }),
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(`OpenAI API error: ${error.error?.message || 'Unknown error'}`);
+    }
+
+    const data: OpenAIResponse = await response.json();
+    return data.choices[0]?.message?.content || '';
+  }
+
   async optimizeCV(cvData: CVData, jobDescription: string): Promise<{ optimizedCV: CVData; optimizations: ATSOptimization[] }> {
-    // In a real implementation, this would call OpenAI API
-    // For now, we'll simulate the optimization
-    
     const prompt = `
 You are an expert ATS (Applicant Tracking System) optimizer. Analyze the following CV and job description, then optimize the CV to be ATS-friendly while maintaining authenticity.
 
@@ -96,41 +134,57 @@ Return the response as JSON with:
 `;
 
     try {
-      // Simulated optimization for now
-      const optimizations: ATSOptimization[] = [
+      const messages: OpenAIMessage[] = [
+        { role: 'system', content: 'You are an expert ATS optimization specialist.' },
+        { role: 'user', content: prompt }
+      ];
+
+      const response = await this.callOpenAI(messages);
+
+      // Try to parse JSON response
+      let parsedResponse;
+      try {
+        parsedResponse = JSON.parse(response);
+      } catch (parseError) {
+        console.error('Failed to parse AI response as JSON:', response);
+        throw new Error('Invalid response format from AI service');
+      }
+
+      // Validate response structure
+      if (!parsedResponse.optimizedCV || !Array.isArray(parsedResponse.optimizations)) {
+        throw new Error('Invalid response structure from AI service');
+      }
+
+      return {
+        optimizedCV: parsedResponse.optimizedCV,
+        optimizations: parsedResponse.optimizations.map((opt: any) => ({
+          id: opt.id || `opt_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+          category: opt.category || 'General',
+          change: opt.change || opt.description || 'Optimization applied',
+          originalText: opt.originalText || '',
+          optimizedText: opt.optimizedText || '',
+          applied: opt.applied !== false
+        }))
+      };
+    } catch (error) {
+      console.error('Error optimizing CV:', error);
+
+      // Fallback to basic optimizations if AI fails
+      const fallbackOptimizations: ATSOptimization[] = [
         {
-          id: '1',
-          category: 'Action Verbs',
-          change: 'Replaced passive language with action verbs',
-          originalText: 'Was responsible for managing team',
-          optimizedText: 'Led and managed cross-functional team of 8 members',
-          applied: true
-        },
-        {
-          id: '2',
-          category: 'Quantification',
-          change: 'Added measurable results',
-          originalText: 'Improved system performance',
-          optimizedText: 'Optimized system performance by 40%, reducing load time from 5s to 3s',
-          applied: true
-        },
-        {
-          id: '3',
+          id: `fallback_${Date.now()}_1`,
           category: 'Keywords',
           change: 'Added relevant keywords from job description',
-          originalText: 'Built web applications',
-          optimizedText: 'Developed scalable web applications using React, TypeScript, and Node.js',
-          applied: true
+          originalText: cvData.personalInfo?.summary || '',
+          optimizedText: cvData.personalInfo?.summary || '',
+          applied: false
         }
       ];
 
       return {
         optimizedCV: cvData,
-        optimizations
+        optimizations: fallbackOptimizations
       };
-    } catch (error) {
-      console.error('Error optimizing CV:', error);
-      throw error;
     }
   }
 
@@ -151,12 +205,25 @@ Skills: ${cvData.skills.join(', ')}
 
 ${extraPrompt ? `Additional Instructions: ${extraPrompt}` : ''}
 
-Create a professional cover letter that highlights relevant experience and skills.
+Create a professional cover letter that highlights relevant experience and skills. Make it concise, professional, and tailored to the job description.
 `;
 
     try {
-      // Simulated cover letter generation
-      const coverLetter = `Dear Hiring Manager,
+      const messages: OpenAIMessage[] = [
+        { role: 'system', content: 'You are an expert professional cover letter writer.' },
+        { role: 'user', content: prompt }
+      ];
+
+      const coverLetter = await this.callOpenAI(messages, 0.8);
+
+      // Clean up the response (remove any markdown formatting)
+      return coverLetter.replace(/```[\w]*\n?/g, '').trim();
+
+    } catch (error) {
+      console.error('Error generating cover letter:', error);
+
+      // Fallback to template-based generation if AI fails
+      const fallbackLetter = `Dear Hiring Manager,
 
 I am writing to express my strong interest in the position described in your job posting. With my background in ${cvData.experience[0]?.title || 'software development'} and proven track record of ${cvData.experience[0]?.description || 'delivering high-quality solutions'}, I am confident that I would be a valuable addition to your team.
 
@@ -171,10 +238,7 @@ Thank you for considering my application. I look forward to the opportunity to d
 Sincerely,
 ${cvData.personalInfo.firstName} ${cvData.personalInfo.lastName}`;
 
-      return coverLetter;
-    } catch (error) {
-      console.error('Error generating cover letter:', error);
-      throw error;
+      return fallbackLetter;
     }
   }
 }

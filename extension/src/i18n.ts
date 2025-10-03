@@ -39,6 +39,7 @@ const dict: Record<string, Record<Lang, string>> = {
 
   'job.section': { en: 'Job Description', tr: 'İş İlanı' },
   'job.tip': { en: 'Tip: AI will analyze this to optimize your CV.', tr: 'İpucu: YZ CV’nizi optimize etmek için bunu analiz eder.' },
+  'job.error': { en: 'Please enter a job description first!', tr: 'Lütfen önce iş ilanını girin!' },
 
   'experience.section': { en: 'Experience', tr: 'Deneyim' },
   'experience.add': { en: 'Add Experience', tr: 'Deneyim Ekle' },
@@ -89,7 +90,12 @@ const dict: Record<string, Record<Lang, string>> = {
 
   'opt.section': { en: 'ATS Optimization Details', tr: 'ATS Optimizasyon Detayları' },
   'opt.preview': { en: 'CV Preview', tr: 'CV Önizleme' },
-  'opt.optimizeBtn': { en: 'Optimize CV with AI', tr: 'CV’yi YZ ile Optimize Et' }
+  'opt.optimizeBtn': { en: 'Optimize CV with AI', tr: 'CV’yi YZ ile Optimize Et' },
+  'opt.success': { en: 'CV optimized successfully!', tr: 'CV başarıyla optimize edildi!' },
+  'opt.error': { en: 'Error optimizing CV. Please try again.', tr: 'CV optimize edilirken hata oluştu. Lütfen tekrar deneyin.' },
+
+  'cover.success': { en: 'Cover letter generated successfully!', tr: 'Niyet mektubu başarıyla oluşturuldu!' },
+  'cover.error': { en: 'Error generating cover letter. Please try again.', tr: 'Niyet mektubu oluşturulurken hata oluştu. Lütfen tekrar deneyin.' }
 };
 
 export function t(lang: Lang, key: string): string {
