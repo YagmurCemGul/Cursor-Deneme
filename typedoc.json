@@ -1,0 +1,6 @@
+{
+  "entryPoints": ["src"],
+  "exclude": ["**/*.test.ts", "**/node_modules/**"],
+  "out": "docs/api",
+  "plugin": ["typedoc-plugin-markdown"]
+}
