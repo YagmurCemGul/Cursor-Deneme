@@ -1,5 +1,6 @@
 import React from 'react';
 import { Education } from '../types';
+import { degrees } from '../data/degrees';
 
 interface EducationFormProps {
   education: Education[];
@@ -15,6 +16,7 @@ export const EducationForm: React.FC<EducationFormProps> = ({ education, onChang
       fieldOfStudy: '',
       startDate: '',
       endDate: '',
+      currentlyStudying: false,
       grade: '',
       activities: '',
       description: '',
@@ -92,13 +94,16 @@ export const EducationForm: React.FC<EducationFormProps> = ({ education, onChang
               <div className="form-row">
                 <div className="form-group">
                   <label className="form-label">Degree *</label>
-                  <input
-                    type="text"
-                    className="form-input"
+                  <select
+                    className="form-select"
                     value={edu.degree}
                     onChange={(e) => handleUpdate(edu.id, 'degree', e.target.value)}
-                    placeholder="Bachelor's Degree"
-                  />
+                  >
+                    <option value="">Select Degree</option>
+                    {degrees.map((d) => (
+                      <option key={d} value={d}>{d}</option>
+                    ))}
+                  </select>
                 </div>
                 
                 <div className="form-group">
@@ -131,7 +136,20 @@ export const EducationForm: React.FC<EducationFormProps> = ({ education, onChang
                     className="form-input"
                     value={edu.endDate}
                     onChange={(e) => handleUpdate(edu.id, 'endDate', e.target.value)}
+                    disabled={edu.currentlyStudying}
                   />
+                </div>
+              </div>
+
+              <div className="form-group">
+                <div className="checkbox-item">
+                  <input
+                    type="checkbox"
+                    id={`current-${edu.id}`}
+                    checked={!!edu.currentlyStudying}
+                    onChange={(e) => handleUpdate(edu.id, 'currentlyStudying', e.target.checked)}
+                  />
+                  <label htmlFor={`current-${edu.id}`}>I am currently studying</label>
                 </div>
               </div>
               
@@ -165,8 +183,24 @@ export const EducationForm: React.FC<EducationFormProps> = ({ education, onChang
                   className="form-textarea"
                   value={edu.description}
                   onChange={(e) => handleUpdate(edu.id, 'description', e.target.value)}
-                  placeholder="Relevant coursework, projects, or achievements..."
+                  placeholder={'Use bullets like:\n• Coursework: ...\n• Achievement: ...'}
+                  onPaste={(e) => {
+                    const text = e.clipboardData.getData('text');
+                    if (text.includes('•') || text.includes('\n- ') || text.includes('\n* ')) {
+                      e.preventDefault();
+                      const normalized = text
+                        .split(/\n|•|^-\s|^\*\s/m)
+                        .map(s => s.trim())
+                        .filter(Boolean)
+                        .map(s => `• ${s}`)
+                        .join('\n');
+                      handleUpdate(edu.id, 'description', (edu.description ? edu.description + '\n' : '') + normalized);
+                    }
+                  }}
                 />
+                <div>
+                  <button className="btn btn-secondary" onClick={(e) => { e.preventDefault(); handleUpdate(edu.id, 'description', (edu.description ? edu.description + '\n' : '') + '• '); }}>+ Add Bullet</button>
+                </div>
               </div>
               
               <div className="form-group">
@@ -175,12 +209,19 @@ export const EducationForm: React.FC<EducationFormProps> = ({ education, onChang
                   <input
                     type="text"
                     className="form-input"
-                    placeholder="Add a skill"
+                    placeholder="Add a skill or paste: skill1, skill2"
                     onKeyPress={(e) => {
                       if (e.key === 'Enter') {
                         e.preventDefault();
                         handleAddSkill(edu.id, (e.target as HTMLInputElement).value);
                         (e.target as HTMLInputElement).value = '';
+                      }
+                    }}
+                    onPaste={(e) => {
+                      const text = e.clipboardData.getData('text');
+                      if (text.includes(',')) {
+                        e.preventDefault();
+                        text.split(',').map(s => s.trim()).filter(Boolean).forEach(s => handleAddSkill(edu.id, s));
                       }
                     }}
                     style={{ flex: 1 }}
@@ -203,6 +244,11 @@ export const EducationForm: React.FC<EducationFormProps> = ({ education, onChang
                 )}
               </div>
             </div>
+            {index === education.length - 1 && (
+              <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+                <button className="btn btn-primary btn-icon" onClick={handleAdd}>+ Add Education</button>
+              </div>
+            )}
           ))}
         </div>
       )}

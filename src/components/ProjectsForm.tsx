@@ -93,8 +93,24 @@ export const ProjectsForm: React.FC<ProjectsFormProps> = ({ projects, onChange }
                   className="form-textarea"
                   value={proj.description}
                   onChange={(e) => handleUpdate(proj.id, 'description', e.target.value)}
-                  placeholder="Describe the project, your role, and achievements..."
+                  placeholder={'Use bullets like:\n• Built ...\n• Improved ...'}
+                  onPaste={(e) => {
+                    const text = e.clipboardData.getData('text');
+                    if (text.includes('•') || text.includes('\n- ') || text.includes('\n* ')) {
+                      e.preventDefault();
+                      const normalized = text
+                        .split(/\n|•|^-\s|^\*\s/m)
+                        .map(s => s.trim())
+                        .filter(Boolean)
+                        .map(s => `• ${s}`)
+                        .join('\n');
+                      handleUpdate(proj.id, 'description', (proj.description ? proj.description + '\n' : '') + normalized);
+                    }
+                  }}
                 />
+                <div>
+                  <button className="btn btn-secondary" onClick={(e) => { e.preventDefault(); handleUpdate(proj.id, 'description', (proj.description ? proj.description + '\n' : '') + '• '); }}>+ Add Bullet</button>
+                </div>
               </div>
               
               <div className="form-row">
@@ -151,12 +167,19 @@ export const ProjectsForm: React.FC<ProjectsFormProps> = ({ projects, onChange }
                   <input
                     type="text"
                     className="form-input"
-                    placeholder="Add a skill"
+                    placeholder="Add a skill or paste: skill1, skill2"
                     onKeyPress={(e) => {
                       if (e.key === 'Enter') {
                         e.preventDefault();
                         handleAddSkill(proj.id, (e.target as HTMLInputElement).value);
                         (e.target as HTMLInputElement).value = '';
+                      }
+                    }}
+                    onPaste={(e) => {
+                      const text = e.clipboardData.getData('text');
+                      if (text.includes(',')) {
+                        e.preventDefault();
+                        text.split(',').map(s => s.trim()).filter(Boolean).forEach(s => handleAddSkill(proj.id, s));
                       }
                     }}
                     style={{ flex: 1 }}
@@ -179,6 +202,11 @@ export const ProjectsForm: React.FC<ProjectsFormProps> = ({ projects, onChange }
                 )}
               </div>
             </div>
+            {index === projects.length - 1 && (
+              <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+                <button className="btn btn-primary btn-icon" onClick={handleAdd}>+ Add Project</button>
+              </div>
+            )}
           ))}
         </div>
       )}
