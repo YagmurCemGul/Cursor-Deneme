@@ -25,7 +25,7 @@ export const EducationForm: React.FC<EducationFormProps> = ({ education, onChang
     onChange([...education, newEducation]);
   };
 
-  const handleUpdate = (id: string, field: keyof Education, value: any) => {
+  const handleUpdate = (id: string, field: keyof Education, value: string | string[] | boolean) => {
     onChange(education.map(edu => 
       edu.id === id ? { ...edu, [field]: value } : edu
     ));

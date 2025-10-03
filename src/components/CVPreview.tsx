@@ -220,7 +220,7 @@ export const CVPreview: React.FC<CVPreviewProps> = ({ cvData, optimizations }) =
           📥 Download DOCX
         </button>
         {/* Template selector */}
-        <select className="form-select" style={{ minWidth: 180 }} title="Template" value={template} onChange={(e) => setTemplate(e.target.value as any)}>
+        <select className="form-select" style={{ minWidth: 180 }} title="Template" value={template} onChange={(e) => setTemplate(e.target.value as 'Classic' | 'Modern' | 'Compact')}>
           <option value="Classic">Classic</option>
           <option value="Modern">Modern</option>
           <option value="Compact">Compact</option>

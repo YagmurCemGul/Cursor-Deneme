@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect } from 'react';
 import ReactDOM from 'react-dom/client';
 import { CVData, ATSOptimization, CVProfile } from './types';
 import { CVUpload } from './components/CVUpload';
@@ -14,7 +14,7 @@ import { ATSOptimizations } from './components/ATSOptimizations';
 import { CVPreview } from './components/CVPreview';
 import { CoverLetter } from './components/CoverLetter';
 import { ProfileManager } from './components/ProfileManager';
-import AIService from './utils/aiService';
+import { aiService } from './utils/aiService';
 import { StorageService } from './utils/storage';
 import { t } from './i18n';
 import './styles.css';
@@ -52,7 +52,7 @@ const App: React.FC = () => {
   const [isOptimizing, setIsOptimizing] = useState(false);
   const [isGeneratingCoverLetter, setIsGeneratingCoverLetter] = useState(false);
   const [profileName, setProfileName] = useState('');
-  const [apiKey, setApiKey] = useState('');
+  const [, setApiKey] = useState('');
   const [theme, setTheme] = useState<Theme>('light');
   const [language, setLanguage] = useState<Language>('en');
   const [systemPrefersDark, setSystemPrefersDark] = useState(false);
@@ -132,7 +132,6 @@ const App: React.FC = () => {
 
     setIsOptimizing(true);
     try {
-      const aiService = new AIService(apiKey || 'demo-key');
       const result = await aiService.optimizeCV(cvData, jobDescription);
       setCVData(result.optimizedCV);
       setOptimizations(result.optimizations);
@@ -153,7 +152,6 @@ const App: React.FC = () => {
 
     setIsGeneratingCoverLetter(true);
     try {
-      const aiService = new AIService(apiKey || 'demo-key');
       const letter = await aiService.generateCoverLetter(cvData, jobDescription, extraPrompt);
       setCoverLetter(letter);
     } catch (error) {
