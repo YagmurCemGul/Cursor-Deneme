@@ -23,7 +23,7 @@ export const CertificationsForm: React.FC<CertificationsFormProps> = ({ certific
     onChange([...certifications, newCert]);
   };
 
-  const handleUpdate = (id: string, field: keyof Certification, value: any) => {
+  const handleUpdate = (id: string, field: keyof Certification, value: string | string[] | boolean) => {
     onChange(certifications.map(cert => 
       cert.id === id ? { ...cert, [field]: value } : cert
     ));

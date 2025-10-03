@@ -18,7 +18,7 @@ export const CustomQuestionsForm: React.FC<CustomQuestionsFormProps> = ({ questi
       id: Date.now().toString(),
       question: newQuestionText,
       type: newQuestionType,
-      options: newQuestionType === 'choice' || newQuestionType === 'checkbox' ? [] : undefined,
+      options: (newQuestionType === 'choice' || newQuestionType === 'selection' || newQuestionType === 'checkbox') ? [] : undefined,
       answer: newQuestionType === 'checkbox' ? [] : ''
     };
     
@@ -28,7 +28,7 @@ export const CustomQuestionsForm: React.FC<CustomQuestionsFormProps> = ({ questi
     setIsAdding(false);
   };
 
-  const handleUpdate = (id: string, field: keyof CustomQuestion, value: any) => {
+  const handleUpdate = (id: string, field: keyof CustomQuestion, value: string | string[]) => {
     onChange(questions.map(q => 
       q.id === id ? { ...q, [field]: value } : q
     ));
@@ -150,7 +150,7 @@ export const CustomQuestionsForm: React.FC<CustomQuestionsFormProps> = ({ questi
         </div>
       ) : (
         <div className="card-list">
-          {questions.map((question, index) => (
+            {questions.map((question) => (
             <div key={question.id} className="card">
               <div className="card-header">
                 <div>

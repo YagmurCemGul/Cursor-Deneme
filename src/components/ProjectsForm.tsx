@@ -21,7 +21,7 @@ export const ProjectsForm: React.FC<ProjectsFormProps> = ({ projects, onChange }
     onChange([...projects, newProject]);
   };
 
-  const handleUpdate = (id: string, field: keyof Project, value: any) => {
+  const handleUpdate = (id: string, field: keyof Project, value: string | string[] | boolean) => {
     onChange(projects.map(proj => 
       proj.id === id ? { ...proj, [field]: value } : proj
     ));

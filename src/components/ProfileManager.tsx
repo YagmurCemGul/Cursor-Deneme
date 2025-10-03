@@ -16,8 +16,8 @@ export const ProfileManager: React.FC<ProfileManagerProps> = ({
   onProfileNameChange
 }) => {
   const [profiles, setProfiles] = useState<CVProfile[]>([]);
-  const [templates, setTemplates] = useState<CVTemplate[]>([]);
-  const [isEditingName, setIsEditingName] = useState(false);
+  const [, setTemplates] = useState<CVTemplate[]>([]);
+  const [, setIsEditingName] = useState(false);
 
   useEffect(() => {
     loadData();
