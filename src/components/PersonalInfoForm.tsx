@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import { PersonalInfo } from '../types';
 
 interface PersonalInfoFormProps {
@@ -9,6 +9,19 @@ interface PersonalInfoFormProps {
 export const PersonalInfoForm: React.FC<PersonalInfoFormProps> = ({ data, onChange }) => {
   const handleChange = (field: keyof PersonalInfo, value: string) => {
     onChange({ ...data, [field]: value });
+  };
+
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+
+  const handlePhotoSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      const result = reader.result as string;
+      onChange({ ...data, photoDataUrl: result });
+    };
+    reader.readAsDataURL(file);
   };
 
   return (
@@ -61,6 +74,16 @@ export const PersonalInfoForm: React.FC<PersonalInfoFormProps> = ({ data, onChan
             value={data.email}
             onChange={(e) => handleChange('email', e.target.value)}
             placeholder="john.doe@email.com"
+            autoComplete="email"
+            onBlur={(e) => {
+              const value = e.target.value.trim();
+              const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(value);
+              if (!emailOk && value) {
+                e.currentTarget.setCustomValidity('Invalid email address');
+              } else {
+                e.currentTarget.setCustomValidity('');
+              }
+            }}
           />
         </div>
         
@@ -99,6 +122,24 @@ export const PersonalInfoForm: React.FC<PersonalInfoFormProps> = ({ data, onChan
           />
         </div>
       </div>
+
+      <div className="form-group">
+        <label className="form-label">Profile Photo</label>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          {data.photoDataUrl ? (
+            <img src={data.photoDataUrl} alt="Profile" style={{ width: 64, height: 64, borderRadius: '50%', objectFit: 'cover', border: '1px solid #e2e8f0' }} />
+          ) : (
+            <div style={{ width: 64, height: 64, borderRadius: '50%', background: '#f1f5f9', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#94a3b8', border: '1px solid #e2e8f0' }}>📷</div>
+          )}
+          <div>
+            <button className="btn btn-secondary" onClick={(e) => { e.preventDefault(); fileInputRef.current?.click(); }}>Upload</button>
+            {data.photoDataUrl && (
+              <button className="btn btn-danger" style={{ marginLeft: 8 }} onClick={(e) => { e.preventDefault(); onChange({ ...data, photoDataUrl: undefined }); }}>Remove</button>
+            )}
+            <input ref={fileInputRef} type="file" accept="image/*" onChange={handlePhotoSelect} style={{ display: 'none' }} />
+          </div>
+        </div>
+      </div>
       
       <div className="form-group">
         <label className="form-label">GitHub Profile</label>
@@ -134,6 +175,21 @@ export const PersonalInfoForm: React.FC<PersonalInfoFormProps> = ({ data, onChan
             onChange={(e) => handleChange('whatsappLink', e.target.value)}
             placeholder="https://wa.me/..."
           />
+          <div style={{ marginTop: 6 }}>
+            <button
+              className="btn btn-secondary"
+              onClick={(e) => {
+                e.preventDefault();
+                const digits = (data.phoneNumber || '').replace(/\D/g, '');
+                const cc = (data.countryCode || '').replace(/\D/g, '');
+                if (cc && digits) {
+                  handleChange('whatsappLink', `https://wa.me/${cc}${digits}`);
+                }
+              }}
+            >
+              Build from phone
+            </button>
+          </div>
         </div>
       </div>
       

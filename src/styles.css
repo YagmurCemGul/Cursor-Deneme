@@ -16,6 +16,45 @@ body {
   background: white;
 }
 
+/* Theme support */
+.app-container.dark {
+  background: #0b1220;
+  color: #e2e8f0;
+}
+.app-container.dark .header {
+  background: linear-gradient(135deg, #1f2937 0%, #0f172a 100%);
+}
+.app-container.dark .content,
+.app-container.dark .section,
+.app-container.dark .card,
+.app-container.dark .experience-item,
+.app-container.dark .preview-container {
+  background: #0f172a;
+  color: #e2e8f0;
+  border-color: #1f2a44;
+}
+.app-container.dark .form-input,
+.app-container.dark .form-textarea,
+.app-container.dark .form-select {
+  background: #0b1220;
+  color: #e2e8f0;
+  border-color: #1f2a44;
+}
+.app-container.dark .tab {
+  color: #cbd5e1;
+}
+.app-container.dark .tab.active {
+  color: #93c5fd;
+  border-bottom-color: #93c5fd;
+}
+.app-container.dark .input-prefix-text {
+  background: #0b1220;
+  color: #cbd5e1;
+  border-right-color: #1f2a44;
+}
+.app-container.dark .pill { background: #11203a; color: #93c5fd; border-color: #1f2a44; }
+.app-container.dark .pill:hover { background: #2a0f0f; color: #fecaca; border-color: #3f1d1d; }
+
 .header {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
@@ -374,6 +413,22 @@ body {
   font-family: 'Times New Roman', serif;
   line-height: 1.6;
 }
+
+/* Template variants */
+.template-modern {
+  font-family: 'Inter', system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+  line-height: 1.65;
+}
+.template-modern .preview-header { border-bottom-color: #dbeafe; }
+.template-modern .preview-section-title { border-bottom-color: #d1fae5; color: #0ea5e9; }
+
+.template-compact {
+  padding: 24px;
+  line-height: 1.4;
+  font-size: 13px;
+}
+.template-compact .preview-name { font-size: 20px; }
+.template-compact .preview-section-title { font-size: 14px; }
 
 .preview-header {
   text-align: center;

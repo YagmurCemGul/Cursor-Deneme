@@ -36,10 +36,19 @@ export const SkillsForm: React.FC<SkillsFormProps> = ({ skills, onChange }) => {
         <input
           type="text"
           className="form-input"
-          placeholder="Add a skill (e.g., JavaScript, Project Management)"
+          placeholder="Add a skill (e.g., JavaScript) or paste: skill1, skill2"
           value={newSkill}
           onChange={(e) => setNewSkill(e.target.value)}
           onKeyPress={handleKeyPress}
+          onPaste={(e) => {
+            const text = e.clipboardData.getData('text');
+            if (text.includes(',')) {
+              e.preventDefault();
+              const newOnes = text.split(',').map(s => s.trim()).filter(Boolean);
+              const unique = Array.from(new Set([...skills, ...newOnes]));
+              onChange(unique);
+            }
+          }}
           style={{ flex: 1 }}
         />
         <button className="btn btn-primary" onClick={handleAddSkill}>

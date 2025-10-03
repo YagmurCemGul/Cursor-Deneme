@@ -71,37 +71,53 @@ export class FileParser {
   }
 
   private static extractCVData(text: string): Partial<CVData> {
-    // Basic extraction logic - in a real implementation, this would use NLP or AI
-    const emailRegex = /[\w.-]+@[\w.-]+\.\w+/g;
-    const phoneRegex = /(\+?\d{1,3}[-.\s]?)?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}/g;
-    const linkedInRegex = /linkedin\.com\/in\/([\w-]+)/i;
-    const githubRegex = /github\.com\/([\w-]+)/i;
+    // Basic extraction logic - lightweight heuristics
+    const emailRegex = /[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/gi;
+    const phoneRegex = /(\+\d{1,3}[\s-]?)?(\(?\d{2,4}\)?[\s-]?)?\d{3}[\s-]?\d{2,4}[\s-]?\d{2,4}/g;
+    const linkedInRegex = /(linkedin\.com\/in\/|@?linkedin:\s*)([\w-]+)/i;
+    const githubRegex = /(github\.com\/|@?github:\s*)([\w-]+)/i;
+    const portfolioRegex = /(https?:\/\/)?([\w-]+\.)+[\w-]{2,}(\/[\w-._~:?#[\]@!$&'()*+,;=]*)?/i;
 
     const emails = text.match(emailRegex);
     const phones = text.match(phoneRegex);
     const linkedInMatch = text.match(linkedInRegex);
     const githubMatch = text.match(githubRegex);
 
-    // Extract name (usually the first line or largest text)
-    const lines = text.split('\n').filter(line => line.trim());
-    const possibleName = lines[0] || '';
-    const nameParts = possibleName.trim().split(' ');
+    // Extract name heuristically: look for a line with 2-3 words with initial caps
+    const lines = text.split('\n').map(l => l.trim()).filter(Boolean);
+    const nameLine = lines.find(l => /^(?:[A-ZÇĞİÖŞÜ][a-zçğıöşü]+\s){1,2}[A-ZÇĞİÖŞÜ][a-zçğıöşü]+$/.test(l)) || lines[0] || '';
+    const nameParts = nameLine.trim().split(/\s+/);
+
+    // Look for a Summary section
+    const summaryIdx = lines.findIndex(l => /^(summary|about me|hakkımda)/i.test(l));
+    const summary = summaryIdx >= 0 ? lines.slice(summaryIdx + 1, summaryIdx + 6).join(' ').slice(0, 500) : '';
+
+    // Extract a simple skills line if present
+    const skillsLine = lines.find(l => /^skills?:/i.test(l));
+    const parsedSkills = skillsLine ? skillsLine.split(/skills?:/i)[1].split(/[•,;|]/).map(s => s.trim()).filter(Boolean) : [];
+
+    const portfolioMatch = text.match(/(portfolio|website|site):?\s*(.*)/i);
+    const portfolioUrl = portfolioMatch ? (portfolioMatch[2].match(portfolioRegex)?.[0] || '') : '';
+
+    const firstPhone = phones?.[0] || '';
+    const countryCode = (firstPhone.match(/^(\+\d{1,3})/) || [])[1] || '';
+    const phoneNumber = firstPhone.replace(countryCode, '').trim();
 
     return {
       personalInfo: {
         firstName: nameParts[0] || '',
-        middleName: nameParts.length > 2 ? nameParts[1] : '',
+        middleName: nameParts.length === 3 ? nameParts[1] : '',
         lastName: nameParts[nameParts.length - 1] || '',
         email: emails?.[0] || '',
-        linkedInUsername: linkedInMatch?.[1] || '',
-        portfolioUrl: '',
-        githubUsername: githubMatch?.[1] || '',
+        linkedInUsername: linkedInMatch ? (linkedInMatch[2] || '').replace(/^\//, '') : '',
+        portfolioUrl: portfolioUrl,
+        githubUsername: githubMatch ? (githubMatch[2] || '').replace(/^\//, '') : '',
         whatsappLink: '',
-        phoneNumber: phones?.[0] || '',
-        countryCode: '',
-        summary: ''
+        phoneNumber,
+        countryCode,
+        summary
       },
-      skills: [],
+      skills: parsedSkills,
       experience: [],
       education: [],
       certifications: [],

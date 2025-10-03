@@ -14,8 +14,10 @@ export const CertificationsForm: React.FC<CertificationsFormProps> = ({ certific
       issuingOrganization: '',
       issueDate: '',
       expirationDate: '',
+      noExpiration: false,
       credentialId: '',
       credentialUrl: '',
+      description: '',
       skills: []
     };
     onChange([...certifications, newCert]);
@@ -29,6 +31,13 @@ export const CertificationsForm: React.FC<CertificationsFormProps> = ({ certific
 
   const handleRemove = (id: string) => {
     onChange(certifications.filter(cert => cert.id !== id));
+  };
+
+  const removeSkill = (id: string, skillToRemove: string) => {
+    const cert = certifications.find(c => c.id === id);
+    if (!cert) return;
+    const updated = certifications.map(c => c.id === id ? { ...c, skills: c.skills.filter(s => s !== skillToRemove) } : c);
+    onChange(updated);
   };
 
   return (
@@ -103,8 +112,21 @@ export const CertificationsForm: React.FC<CertificationsFormProps> = ({ certific
                     className="form-input"
                     value={cert.expirationDate}
                     onChange={(e) => handleUpdate(cert.id, 'expirationDate', e.target.value)}
+                    disabled={!!cert.noExpiration}
                     placeholder="No expiration"
                   />
+                </div>
+              </div>
+
+              <div className="form-group">
+                <div className="checkbox-item">
+                  <input
+                    type="checkbox"
+                    id={`noexp-${cert.id}`}
+                    checked={!!cert.noExpiration}
+                    onChange={(e) => handleUpdate(cert.id, 'noExpiration', e.target.checked)}
+                  />
+                  <label htmlFor={`noexp-${cert.id}`}>Doesn't expire / Ongoing</label>
                 </div>
               </div>
               
@@ -131,8 +153,76 @@ export const CertificationsForm: React.FC<CertificationsFormProps> = ({ certific
                   />
                 </div>
               </div>
+
+              <div className="form-group">
+                <label className="form-label">Description</label>
+                <textarea
+                  className="form-textarea"
+                  value={cert.description || ''}
+                  onChange={(e) => handleUpdate(cert.id, 'description', e.target.value)}
+                  placeholder={'Use bullets like:\n• Credential URL: ...\n• Skills gained: ...'}
+                  onPaste={(e) => {
+                    const text = e.clipboardData.getData('text');
+                    if (text.includes('•') || text.includes('\n- ') || text.includes('\n* ')) {
+                      e.preventDefault();
+                      const normalized = text
+                        .split(/\n|•|^-\s|^\*\s/m)
+                        .map(s => s.trim())
+                        .filter(Boolean)
+                        .map(s => `• ${s}`)
+                        .join('\n');
+                      handleUpdate(cert.id, 'description', ((cert.description || '') ? cert.description + '\n' : '') + normalized);
+                    }
+                  }}
+                />
+                <div>
+                  <button className="btn btn-secondary" onClick={(e) => { e.preventDefault(); handleUpdate(cert.id, 'description', ((cert.description || '') ? cert.description + '\n' : '') + '• '); }}>+ Add Bullet</button>
+                </div>
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">Skills</label>
+                <div className="skills-input-container">
+                  <input
+                    type="text"
+                    className="form-input"
+                    placeholder="Add a skill or paste: skill1, skill2"
+                    onKeyPress={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        const value = (e.target as HTMLInputElement).value;
+                        value.split(',').map(s => s.trim()).filter(Boolean).forEach(s => handleUpdate(cert.id, 'skills', [...cert.skills, s]));
+                        (e.target as HTMLInputElement).value = '';
+                      }
+                    }}
+                    onPaste={(e) => {
+                      const text = e.clipboardData.getData('text');
+                      if (text.includes(',')) {
+                        e.preventDefault();
+                        text.split(',').map(s => s.trim()).filter(Boolean).forEach(s => handleUpdate(cert.id, 'skills', [...cert.skills, s]));
+                      }
+                    }}
+                    style={{ flex: 1 }}
+                  />
+                </div>
+                {cert.skills.length > 0 && (
+                  <div className="skills-tags">
+                    {cert.skills.map((skill, idx) => (
+                      <div key={idx} className="skill-tag">
+                        {skill}
+                        <span className="skill-tag-remove" onClick={() => removeSkill(cert.id, skill)}>✕</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
           ))}
+          {certifications.length > 0 && (
+            <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+              <button className="btn btn-primary btn-icon" onClick={handleAdd}>+ Add Certification</button>
+            </div>
+          )}
         </div>
       )}
     </div>

@@ -10,6 +10,7 @@ export interface PersonalInfo {
   phoneNumber: string;
   countryCode: string;
   summary: string;
+  photoDataUrl?: string; // base64 data URL for profile photo
 }
 
 export interface Experience {
@@ -19,7 +20,9 @@ export interface Experience {
   company: string;
   startDate: string;
   endDate: string;
-  location: string;
+  location: string; // backward compatibility string
+  country?: string; // ISO country name
+  city?: string;
   locationType: string;
   description: string;
   skills: string[];
@@ -32,6 +35,7 @@ export interface Education {
   fieldOfStudy: string;
   startDate: string;
   endDate: string;
+  currentlyStudying?: boolean;
   grade: string;
   activities: string;
   description: string;
@@ -44,8 +48,10 @@ export interface Certification {
   issuingOrganization: string;
   issueDate: string;
   expirationDate: string;
+  noExpiration?: boolean;
   credentialId: string;
   credentialUrl: string;
+  description?: string;
   skills: string[];
 }
 

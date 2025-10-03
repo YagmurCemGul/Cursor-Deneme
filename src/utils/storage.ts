@@ -1,6 +1,29 @@
 import { CVProfile, CVTemplate, SavedPrompt } from '../types';
 
 export class StorageService {
+  // Draft autosave/load for preserving work-in-progress across sessions
+  static async saveDraft(draft: unknown): Promise<void> {
+    await chrome.storage.local.set({ draft });
+  }
+
+  static async getDraft<T = unknown>(): Promise<T | null> {
+    const { draft = null } = await chrome.storage.local.get('draft');
+    return draft as T | null;
+  }
+
+  static async clearDraft(): Promise<void> {
+    await chrome.storage.local.remove('draft');
+  }
+
+  // UI settings: theme, language, template selection, etc.
+  static async saveSettings(settings: Record<string, unknown>): Promise<void> {
+    await chrome.storage.local.set({ settings });
+  }
+
+  static async getSettings<T = Record<string, unknown>>(): Promise<T | null> {
+    const { settings = null } = await chrome.storage.local.get('settings');
+    return settings as T | null;
+  }
   static async saveProfile(profile: CVProfile): Promise<void> {
     const { profiles = [] } = await chrome.storage.local.get('profiles');
     const existingIndex = profiles.findIndex((p: CVProfile) => p.id === profile.id);

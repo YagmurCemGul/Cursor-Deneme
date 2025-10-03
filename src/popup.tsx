@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import ReactDOM from 'react-dom/client';
 import { CVData, ATSOptimization, CVProfile } from './types';
 import { CVUpload } from './components/CVUpload';
@@ -16,9 +16,12 @@ import { CoverLetter } from './components/CoverLetter';
 import { ProfileManager } from './components/ProfileManager';
 import AIService from './utils/aiService';
 import { StorageService } from './utils/storage';
+import { t } from './i18n';
 import './styles.css';
 
 type TabType = 'cv-info' | 'optimize' | 'cover-letter' | 'profiles';
+type Theme = 'light' | 'dark' | 'system';
+type Language = 'en' | 'tr';
 
 const App: React.FC = () => {
   const [activeTab, setActiveTab] = useState<TabType>('cv-info');
@@ -50,17 +53,65 @@ const App: React.FC = () => {
   const [isGeneratingCoverLetter, setIsGeneratingCoverLetter] = useState(false);
   const [profileName, setProfileName] = useState('');
   const [apiKey, setApiKey] = useState('');
+  const [theme, setTheme] = useState<Theme>('light');
+  const [language, setLanguage] = useState<Language>('en');
+  const [systemPrefersDark, setSystemPrefersDark] = useState(false);
 
   useEffect(() => {
-    loadAPIKey();
+    loadInitial();
   }, []);
 
-  const loadAPIKey = async () => {
+  useEffect(() => {
+    const mq = window.matchMedia('(prefers-color-scheme: dark)');
+    const update = () => setSystemPrefersDark(mq.matches);
+    update();
+    mq.addEventListener ? mq.addEventListener('change', update) : mq.addListener(update);
+    return () => {
+      mq.removeEventListener ? mq.removeEventListener('change', update) : mq.removeListener(update);
+    };
+  }, []);
+
+  const loadInitial = async () => {
     const key = await StorageService.getAPIKey();
-    if (key) {
-      setApiKey(key);
+    if (key) setApiKey(key);
+    // Restore settings
+    const settings = await StorageService.getSettings<{ theme?: Theme; language?: Language }>();
+    if (settings?.theme) setTheme(settings.theme);
+    if (settings?.language) setLanguage(settings.language);
+    // Restore draft
+    const draft = await StorageService.getDraft<{
+      activeTab: TabType;
+      jobDescription: string;
+      cvData: CVData;
+      optimizations: ATSOptimization[];
+      coverLetter: string;
+      profileName: string;
+    }>();
+    if (draft) {
+      setActiveTab(draft.activeTab || 'cv-info');
+      setJobDescription(draft.jobDescription || '');
+      setCVData(draft.cvData || cvData);
+      setOptimizations(draft.optimizations || []);
+      setCoverLetter(draft.coverLetter || '');
+      setProfileName(draft.profileName || '');
     }
   };
+
+  // Autosave draft when critical state changes
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      StorageService.saveDraft({ activeTab, jobDescription, cvData, optimizations, coverLetter, profileName });
+    }, 400);
+    return () => clearTimeout(timeout);
+  }, [activeTab, jobDescription, cvData, optimizations, coverLetter, profileName]);
+
+  // Persist settings
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      StorageService.saveSettings({ theme, language });
+    }, 200);
+    return () => clearTimeout(timeout);
+  }, [theme, language]);
 
   const handleCVParsed = (parsedData: Partial<CVData>) => {
     setCVData(prev => ({
@@ -134,11 +185,24 @@ const App: React.FC = () => {
     alert('Profile loaded successfully!');
   };
 
+  const appliedTheme: Theme = theme === 'system' ? (systemPrefersDark ? 'dark' : 'light') : theme;
+
   return (
-    <div className="app-container">
+    <div className={`app-container ${appliedTheme}`} data-lang={language}>
       <div className="header">
-        <h1>🤖 AI CV & Cover Letter Optimizer</h1>
-        <p>ATS-Optimized Resumes & Cover Letters Powered by AI</p>
+        <h1>🤖 {t(language, 'app.title')}</h1>
+        <p>{t(language, 'app.subtitle')}</p>
+        <div style={{ display: 'flex', gap: 10, justifyContent: 'center', marginTop: 10 }}>
+          <select className="form-select" value={language} onChange={(e) => setLanguage(e.target.value as Language)} style={{ width: 150 }}>
+            <option value="en">English</option>
+            <option value="tr">Türkçe</option>
+          </select>
+          <select className="form-select" value={theme} onChange={(e) => setTheme(e.target.value as Theme)} style={{ width: 150 }}>
+            <option value="light">Light</option>
+            <option value="dark">Dark</option>
+            <option value="system">System</option>
+          </select>
+        </div>
       </div>
       
       <div className="tabs">
@@ -146,25 +210,25 @@ const App: React.FC = () => {
           className={`tab ${activeTab === 'cv-info' ? 'active' : ''}`}
           onClick={() => setActiveTab('cv-info')}
         >
-          📝 CV Information
+          📝 {t(language, 'tabs.cvinfo')}
         </button>
         <button 
           className={`tab ${activeTab === 'optimize' ? 'active' : ''}`}
           onClick={() => setActiveTab('optimize')}
         >
-          ✨ Optimize & Preview
+          ✨ {t(language, 'tabs.optimize')}
         </button>
         <button 
           className={`tab ${activeTab === 'cover-letter' ? 'active' : ''}`}
           onClick={() => setActiveTab('cover-letter')}
         >
-          ✉️ Cover Letter
+          ✉️ {t(language, 'tabs.cover')}
         </button>
         <button 
           className={`tab ${activeTab === 'profiles' ? 'active' : ''}`}
           onClick={() => setActiveTab('profiles')}
         >
-          💾 Profiles
+          💾 {t(language, 'tabs.profiles')}
         </button>
       </div>
       
@@ -220,7 +284,7 @@ const App: React.FC = () => {
                 disabled={isOptimizing}
                 style={{ width: '100%', fontSize: '16px', padding: '15px' }}
               >
-                {isOptimizing ? '⏳ Optimizing...' : '✨ Optimize CV with AI'}
+                {isOptimizing ? '⏳ Optimizing...' : `✨ ${t(language, 'opt.optimizeBtn')}`}
               </button>
             </div>
           </>

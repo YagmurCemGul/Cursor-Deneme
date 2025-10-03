@@ -35,15 +35,17 @@ export const ATSOptimizations: React.FC<ATSOptimizationsProps> = ({ optimization
           
           <div className="pill-container">
             {optimizations.map((opt) => (
-              <div
+              <button
                 key={opt.id}
                 className="pill"
                 onClick={() => toggleOptimization(opt.id)}
                 title={`${opt.category}: ${opt.change}\n\nOriginal: ${opt.originalText}\nOptimized: ${opt.optimizedText}\n\nClick to ${opt.applied ? 'remove' : 'apply'}`}
+                aria-pressed={opt.applied}
+                data-opt-id={opt.id}
               >
                 <span>{opt.category}: {opt.change}</span>
                 <span className="pill-remove">✕</span>
-              </div>
+              </button>
             ))}
           </div>
           

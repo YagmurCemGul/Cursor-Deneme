@@ -84,9 +84,7 @@ export class DocumentGenerator {
                 }),
               ],
             }),
-            new Paragraph({
-              text: exp.description,
-            }),
+            ...exp.description.split('\n').filter(Boolean).map(line => new Paragraph({ text: line })),
             new Paragraph({ text: '' }),
           ]),
           
@@ -113,6 +111,7 @@ export class DocumentGenerator {
                 }),
               ],
             }),
+            ...edu.description.split('\n').filter(Boolean).map(line => new Paragraph({ text: line })),
             new Paragraph({ text: '' }),
           ]),
         ],

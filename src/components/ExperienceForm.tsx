@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { Experience } from '../types';
+import { countries, citiesByCountry } from '../data/locations';
 
 interface ExperienceFormProps {
   experiences: Experience[];
@@ -18,6 +19,8 @@ export const ExperienceForm: React.FC<ExperienceFormProps> = ({ experiences, onC
       startDate: '',
       endDate: '',
       location: '',
+      country: '',
+      city: '',
       locationType: '',
       description: '',
       skills: []
@@ -146,29 +149,56 @@ export const ExperienceForm: React.FC<ExperienceFormProps> = ({ experiences, onC
               
               <div className="form-row">
                 <div className="form-group">
-                  <label className="form-label">Location</label>
-                  <input
-                    type="text"
-                    className="form-input"
-                    value={exp.location}
-                    onChange={(e) => handleUpdate(exp.id, 'location', e.target.value)}
-                    placeholder="San Francisco, CA"
-                  />
-                </div>
-                
-                <div className="form-group">
-                  <label className="form-label">Location Type</label>
+                  <label className="form-label">Country</label>
                   <select
                     className="form-select"
-                    value={exp.locationType}
-                    onChange={(e) => handleUpdate(exp.id, 'locationType', e.target.value)}
+                    value={exp.country || ''}
+                    onChange={(e) => {
+                      const country = e.target.value;
+                      const firstCity = country ? citiesByCountry[country]?.[0] || '' : '';
+                      handleUpdate(exp.id, 'country', country);
+                      handleUpdate(exp.id, 'city', firstCity);
+                      handleUpdate(exp.id, 'location', country && firstCity ? `${firstCity}, ${country}` : country || '');
+                    }}
                   >
-                    <option value="">Select Type</option>
-                    <option value="On-site">On-site</option>
-                    <option value="Remote">Remote</option>
-                    <option value="Hybrid">Hybrid</option>
+                    <option value="">Select Country</option>
+                    {countries.map((c) => (
+                      <option key={c} value={c}>{c}</option>
+                    ))}
                   </select>
                 </div>
+                <div className="form-group">
+                  <label className="form-label">City</label>
+                  <select
+                    className="form-select"
+                    value={exp.city || ''}
+                    onChange={(e) => {
+                      const city = e.target.value;
+                      handleUpdate(exp.id, 'city', city);
+                      handleUpdate(exp.id, 'location', exp.country && city ? `${city}, ${exp.country}` : city);
+                    }}
+                    disabled={!exp.country}
+                  >
+                    <option value="">{exp.country ? 'Select City' : 'Select Country First'}</option>
+                    {(exp.country ? citiesByCountry[exp.country] || [] : []).map((ct) => (
+                      <option key={ct} value={ct}>{ct}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">Location Type</label>
+                <select
+                  className="form-select"
+                  value={exp.locationType}
+                  onChange={(e) => handleUpdate(exp.id, 'locationType', e.target.value)}
+                >
+                  <option value="">Select Type</option>
+                  <option value="On-site">On-site</option>
+                  <option value="Remote">Remote</option>
+                  <option value="Hybrid">Hybrid</option>
+                </select>
               </div>
               
               <div className="form-group">
@@ -177,8 +207,24 @@ export const ExperienceForm: React.FC<ExperienceFormProps> = ({ experiences, onC
                   className="form-textarea"
                   value={exp.description}
                   onChange={(e) => handleUpdate(exp.id, 'description', e.target.value)}
-                  placeholder="Describe your responsibilities and achievements..."
+                  placeholder="Use bullets like: \n• Improved X by Y% \n• Led Z project"
+                  onPaste={(e) => {
+                    const text = e.clipboardData.getData('text');
+                    if (text.includes('•') || text.includes('\n- ') || text.includes('\n* ')) {
+                      e.preventDefault();
+                      const normalized = text
+                        .split(/\n|•|^-\s|^\*\s/m)
+                        .map(s => s.trim())
+                        .filter(Boolean)
+                        .map(s => `• ${s}`)
+                        .join('\n');
+                      handleUpdate(exp.id, 'description', (exp.description ? exp.description + '\n' : '') + normalized);
+                    }
+                  }}
                 />
+                <div>
+                  <button className="btn btn-secondary" onClick={(e) => { e.preventDefault(); handleUpdate(exp.id, 'description', (exp.description ? exp.description + '\n' : '') + '• '); }}>+ Add Bullet</button>
+                </div>
               </div>
               
               <div className="form-group">
@@ -187,12 +233,19 @@ export const ExperienceForm: React.FC<ExperienceFormProps> = ({ experiences, onC
                   <input
                     type="text"
                     className="form-input"
-                    placeholder="Add a skill"
+                    placeholder="Add a skill or paste: skill1, skill2"
                     onKeyPress={(e) => {
                       if (e.key === 'Enter') {
                         e.preventDefault();
                         handleAddSkill(exp.id, (e.target as HTMLInputElement).value);
                         (e.target as HTMLInputElement).value = '';
+                      }
+                    }}
+                    onPaste={(e) => {
+                      const text = e.clipboardData.getData('text');
+                      if (text.includes(',')) {
+                        e.preventDefault();
+                        text.split(',').map(s => s.trim()).filter(Boolean).forEach(s => handleAddSkill(exp.id, s));
                       }
                     }}
                     style={{ flex: 1 }}
@@ -214,6 +267,12 @@ export const ExperienceForm: React.FC<ExperienceFormProps> = ({ experiences, onC
                   </div>
                 )}
               </div>
+            </div>
+            {/* Add button also below each experience card for UX */}
+            <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+              {index === experiences.length - 1 && (
+                <button className="btn btn-primary btn-icon" onClick={handleAdd}>+ Add Experience</button>
+              )}
             </div>
           ))}
         </div>
