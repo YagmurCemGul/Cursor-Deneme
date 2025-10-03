@@ -202,12 +202,11 @@ export const ProjectsForm: React.FC<ProjectsFormProps> = ({ projects, onChange }
                 )}
               </div>
             </div>
-            {index === projects.length - 1 && (
-              <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-                <button className="btn btn-primary btn-icon" onClick={handleAdd}>+ Add Project</button>
-              </div>
-            )}
           ))}
+          {/* Add button at the bottom of all projects */}
+          <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '1rem' }}>
+            <button className="btn btn-primary btn-icon" onClick={handleAdd}>+ Add Project</button>
+          </div>
         </div>
       )}
     </div>
