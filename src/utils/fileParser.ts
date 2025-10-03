@@ -1,8 +1,30 @@
 import mammoth from 'mammoth';
 import * as pdfjsLib from 'pdfjs-dist';
+// Import the pdf.js worker as a bundled asset and set workerSrc explicitly
+// to avoid protocol-relative CDN URLs inside a Chrome Extension context.
+// @ts-ignore - treated as asset URL by webpack
+import pdfjsWorker from 'pdfjs-dist/build/pdf.worker.min.js';
+
+// Ensure the worker script is correctly referenced for pdf.js
+// This avoids "Setting up fake worker failed" errors.
+(pdfjsLib as any).GlobalWorkerOptions.workerSrc = pdfjsWorker as unknown as string;
 import { CVData } from '../types';
 
 export class FileParser {
+  // Ensure pdf.js worker is resolved from bundled assets, not a CDN
+  // This avoids the "fake worker" fallback and CSP/network issues in extensions
+  static configurePdfJsWorker(): void {
+    try {
+      // Prefer explicit worker script URL (UMD build) for broad compatibility
+      const workerUrl = new URL('pdfjs-dist/build/pdf.worker.min.js', import.meta.url).toString();
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (pdfjsLib as any).GlobalWorkerOptions.workerSrc = workerUrl;
+    } catch (error) {
+      // If the above fails (unlikely in modern bundlers), silently continue; parsing may still work
+      // eslint-disable-next-line no-console
+      console.warn('Failed to configure pdf.js workerSrc; falling back to default', error);
+    }
+  }
   static async parseFile(file: File): Promise<Partial<CVData>> {
     const fileType = file.name.split('.').pop()?.toLowerCase();
 
@@ -17,6 +39,8 @@ export class FileParser {
 
   private static async parsePDF(file: File): Promise<Partial<CVData>> {
     try {
+      // Configure worker before any getDocument calls
+      this.configurePdfJsWorker();
       const arrayBuffer = await file.arrayBuffer();
       const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
       
