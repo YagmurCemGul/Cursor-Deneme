@@ -1,0 +1,36 @@
+{
+  "name": "ai-cv-optimizer",
+  "version": "1.0.0",
+  "description": "AI-powered CV and Cover Letter Optimizer Chrome Extension",
+  "scripts": {
+    "build": "webpack --mode production",
+    "dev": "webpack --mode development --watch",
+    "type-check": "tsc --noEmit"
+  },
+  "dependencies": {
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "mammoth": "^1.6.0",
+    "pdfjs-dist": "^3.11.174",
+    "docx": "^8.5.0",
+    "jspdf": "^2.5.1",
+    "html2canvas": "^1.4.1",
+    "file-saver": "^2.0.5",
+    "openai": "^4.20.1",
+    "react-icons": "^4.12.0",
+    "lucide-react": "^0.292.0"
+  },
+  "devDependencies": {
+    "@types/react": "^18.2.43",
+    "@types/react-dom": "^18.2.17",
+    "@types/chrome": "^0.0.254",
+    "@types/file-saver": "^2.0.7",
+    "typescript": "^5.3.3",
+    "webpack": "^5.89.0",
+    "webpack-cli": "^5.1.4",
+    "ts-loader": "^9.5.1",
+    "css-loader": "^6.8.1",
+    "style-loader": "^3.3.3",
+    "html-webpack-plugin": "^5.6.0"
+  }
+}

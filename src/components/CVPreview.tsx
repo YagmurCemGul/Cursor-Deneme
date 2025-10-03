@@ -1,0 +1,188 @@
+import React from 'react';
+import { CVData, ATSOptimization } from '../types';
+import { DocumentGenerator } from '../utils/documentGenerator';
+
+interface CVPreviewProps {
+  cvData: CVData;
+  optimizations: ATSOptimization[];
+}
+
+export const CVPreview: React.FC<CVPreviewProps> = ({ cvData, optimizations }) => {
+  const handleDownload = async (format: 'docx' | 'pdf') => {
+    const fileName = DocumentGenerator.generateProfessionalFileName(cvData, 'cv', format);
+    
+    try {
+      if (format === 'docx') {
+        await DocumentGenerator.generateDOCX(cvData, optimizations, fileName);
+      } else if (format === 'pdf') {
+        await DocumentGenerator.generatePDF(cvData, optimizations, fileName);
+      }
+    } catch (error) {
+      console.error('Error generating document:', error);
+      alert('Error generating document. Please try again.');
+    }
+  };
+
+  const handleGoogleDoc = () => {
+    alert('Google Docs export: This feature requires Google Docs API integration. The DOCX file can be uploaded to Google Drive and opened with Google Docs.');
+  };
+
+  return (
+    <div className="section">
+      <h2 className="section-title">
+        👁️ CV Preview
+      </h2>
+      
+      <div className="preview-container">
+        {/* Header */}
+        <div className="preview-header">
+          <div className="preview-name">
+            {cvData.personalInfo.firstName} {cvData.personalInfo.middleName} {cvData.personalInfo.lastName}
+          </div>
+          <div className="preview-contact">
+            {cvData.personalInfo.email} | {cvData.personalInfo.countryCode}{cvData.personalInfo.phoneNumber}
+          </div>
+          {cvData.personalInfo.linkedInUsername && (
+            <div className="preview-contact">
+              linkedin.com/in/{cvData.personalInfo.linkedInUsername}
+              {cvData.personalInfo.githubUsername && ` | github.com/${cvData.personalInfo.githubUsername}`}
+            </div>
+          )}
+          {cvData.personalInfo.portfolioUrl && (
+            <div className="preview-contact">
+              {cvData.personalInfo.portfolioUrl}
+            </div>
+          )}
+        </div>
+        
+        {/* Summary */}
+        {cvData.personalInfo.summary && (
+          <div className="preview-section">
+            <div className="preview-section-title">Summary</div>
+            <div className="preview-item-description">
+              {cvData.personalInfo.summary}
+            </div>
+          </div>
+        )}
+        
+        {/* Skills */}
+        {cvData.skills.length > 0 && (
+          <div className="preview-section">
+            <div className="preview-section-title">Skills</div>
+            <div className="preview-item-description">
+              {cvData.skills.join(' • ')}
+            </div>
+          </div>
+        )}
+        
+        {/* Experience */}
+        {cvData.experience.length > 0 && (
+          <div className="preview-section">
+            <div className="preview-section-title">Experience</div>
+            {cvData.experience.map((exp) => (
+              <div key={exp.id} className="preview-item">
+                <div className="preview-item-title">
+                  {exp.title} | {exp.company}
+                </div>
+                <div className="preview-item-subtitle">
+                  {exp.startDate} - {exp.endDate || 'Present'} | {exp.location}
+                </div>
+                {exp.description && (
+                  <div className="preview-item-description">
+                    {exp.description}
+                  </div>
+                )}
+                {exp.skills.length > 0 && (
+                  <div className="preview-item-description" style={{ fontSize: '12px', fontStyle: 'italic' }}>
+                    Skills: {exp.skills.join(', ')}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+        
+        {/* Education */}
+        {cvData.education.length > 0 && (
+          <div className="preview-section">
+            <div className="preview-section-title">Education</div>
+            {cvData.education.map((edu) => (
+              <div key={edu.id} className="preview-item">
+                <div className="preview-item-title">
+                  {edu.school}
+                </div>
+                <div className="preview-item-description">
+                  {edu.degree} in {edu.fieldOfStudy}
+                </div>
+                <div className="preview-item-subtitle">
+                  {edu.startDate} - {edu.endDate}
+                  {edu.grade && ` | GPA: ${edu.grade}`}
+                </div>
+                {edu.description && (
+                  <div className="preview-item-description">
+                    {edu.description}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+        
+        {/* Certifications */}
+        {cvData.certifications.length > 0 && (
+          <div className="preview-section">
+            <div className="preview-section-title">Certifications</div>
+            {cvData.certifications.map((cert) => (
+              <div key={cert.id} className="preview-item">
+                <div className="preview-item-title">
+                  {cert.name}
+                </div>
+                <div className="preview-item-subtitle">
+                  {cert.issuingOrganization}
+                  {cert.issueDate && ` | Issued: ${cert.issueDate}`}
+                  {cert.credentialId && ` | ID: ${cert.credentialId}`}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+        
+        {/* Projects */}
+        {cvData.projects.length > 0 && (
+          <div className="preview-section">
+            <div className="preview-section-title">Projects</div>
+            {cvData.projects.map((proj) => (
+              <div key={proj.id} className="preview-item">
+                <div className="preview-item-title">
+                  {proj.name}
+                </div>
+                {proj.associatedWith && (
+                  <div className="preview-item-subtitle">
+                    {proj.associatedWith}
+                  </div>
+                )}
+                {proj.description && (
+                  <div className="preview-item-description">
+                    {proj.description}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+      
+      <div className="download-options">
+        <button className="btn btn-primary" onClick={() => handleDownload('pdf')}>
+          📥 Download PDF
+        </button>
+        <button className="btn btn-primary" onClick={() => handleDownload('docx')}>
+          📥 Download DOCX
+        </button>
+        <button className="btn btn-secondary" onClick={handleGoogleDoc}>
+          📄 Export to Google Docs
+        </button>
+      </div>
+    </div>
+  );
+};
