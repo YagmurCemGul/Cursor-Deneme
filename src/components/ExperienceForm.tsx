@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useState } from 'react';
 import { Experience } from '../types';
 import { countries, citiesByCountry } from '../data/locations';
 
@@ -8,7 +8,7 @@ interface ExperienceFormProps {
 }
 
 export const ExperienceForm: React.FC<ExperienceFormProps> = ({ experiences, onChange }) => {
-  const [isAdding, setIsAdding] = useState(false);
+  const [, setIsAdding] = useState(false);
 
   const handleAdd = () => {
     const newExperience: Experience = {
@@ -29,7 +29,7 @@ export const ExperienceForm: React.FC<ExperienceFormProps> = ({ experiences, onC
     setIsAdding(true);
   };
 
-  const handleUpdate = (id: string, field: keyof Experience, value: any) => {
+  const handleUpdate = (id: string, field: keyof Experience, value: string | string[] | boolean) => {
     onChange(experiences.map(exp => 
       exp.id === id ? { ...exp, [field]: value } : exp
     ));

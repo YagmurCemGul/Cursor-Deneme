@@ -1,4 +1,4 @@
-import React, { useRef, useState, useEffect } from 'react';
+import React, { useRef, useState } from 'react';
 import { PersonalInfo } from '../types';
 
 interface PersonalInfoFormProps {
@@ -39,12 +39,17 @@ export const PersonalInfoForm: React.FC<PersonalInfoFormProps> = ({ data, onChan
     
     // Check for common typos in domain
     const [localPart, domain] = email.split('@');
+    if (!domain || !localPart) {
+      setEmailValidation({ isValid: false, message: 'Invalid email format' });
+      return;
+    }
+    
     const domainSuggestions = commonDomains.filter(d => 
       d.includes(domain) || domain.includes(d) || 
       calculateLevenshteinDistance(domain, d) <= 2
     );
     
-    if (domainSuggestions.length > 0 && !commonDomains.includes(domain)) {
+    if (domainSuggestions.length > 0 && !commonDomains.includes(domain) && domainSuggestions[0]) {
       setEmailValidation({ 
         isValid: false, 
         message: `Did you mean ${localPart}@${domainSuggestions[0]}?` 
@@ -56,23 +61,34 @@ export const PersonalInfoForm: React.FC<PersonalInfoFormProps> = ({ data, onChan
   };
 
   const calculateLevenshteinDistance = (str1: string, str2: string): number => {
-    const matrix = Array(str2.length + 1).fill(null).map(() => Array(str1.length + 1).fill(null));
+    const matrix = Array(str2.length + 1).fill(null).map(() => Array(str1.length + 1).fill(0));
     
-    for (let i = 0; i <= str1.length; i++) matrix[0][i] = i;
-    for (let j = 0; j <= str2.length; j++) matrix[j][0] = j;
+    for (let i = 0; i <= str1.length; i++) {
+      const row = matrix[0];
+      if (row) row[i] = i;
+    }
+    for (let j = 0; j <= str2.length; j++) {
+      const row = matrix[j];
+      if (row) row[0] = j;
+    }
     
     for (let j = 1; j <= str2.length; j++) {
       for (let i = 1; i <= str1.length; i++) {
         const indicator = str1[i - 1] === str2[j - 1] ? 0 : 1;
-        matrix[j][i] = Math.min(
-          matrix[j][i - 1] + 1,
-          matrix[j - 1][i] + 1,
-          matrix[j - 1][i - 1] + indicator
-        );
+        const currentRow = matrix[j];
+        const prevRow = matrix[j - 1];
+        if (currentRow && prevRow) {
+          currentRow[i] = Math.min(
+            (currentRow[i - 1] ?? 0) + 1,
+            (prevRow[i] ?? 0) + 1,
+            (prevRow[i - 1] ?? 0) + indicator
+          );
+        }
       }
     }
     
-    return matrix[str2.length][str1.length];
+    const lastRow = matrix[str2.length];
+    return lastRow?.[str1.length] ?? 0;
   };
 
   const generateEmailSuggestions = (email: string) => {
@@ -85,7 +101,7 @@ export const PersonalInfoForm: React.FC<PersonalInfoFormProps> = ({ data, onChan
     const [localPart, domain] = email.split('@');
     const commonDomains = ['gmail.com', 'yahoo.com', 'outlook.com', 'hotmail.com', 'icloud.com'];
     
-    if (domain && !commonDomains.includes(domain)) {
+    if (domain && localPart && !commonDomains.includes(domain)) {
       const suggestions = commonDomains.map(d => `${localPart}@${d}`);
       setEmailSuggestions(suggestions);
       setShowEmailSuggestions(true);
@@ -235,7 +251,7 @@ export const PersonalInfoForm: React.FC<PersonalInfoFormProps> = ({ data, onChan
           <div>
             <button className="btn btn-secondary" onClick={(e) => { e.preventDefault(); fileInputRef.current?.click(); }}>Upload</button>
             {data.photoDataUrl && (
-              <button className="btn btn-danger" style={{ marginLeft: 8 }} onClick={(e) => { e.preventDefault(); onChange({ ...data, photoDataUrl: undefined }); }}>Remove</button>
+              <button className="btn btn-danger" style={{ marginLeft: 8 }} onClick={(e) => { e.preventDefault(); onChange({ ...data }); }}>Remove</button>
             )}
             <input ref={fileInputRef} type="file" accept="image/*" onChange={handlePhotoSelect} style={{ display: 'none' }} />
           </div>

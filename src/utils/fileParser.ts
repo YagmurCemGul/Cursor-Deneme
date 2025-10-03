@@ -1,5 +1,6 @@
 import mammoth from 'mammoth';
 import * as pdfjsLib from 'pdfjs-dist';
+import type { TextItem } from 'pdfjs-dist';
 // Import the pdf.js worker as a bundled asset and set workerSrc explicitly
 // to avoid protocol-relative CDN URLs inside a Chrome Extension context.
 // @ts-ignore - treated as asset URL by webpack
@@ -7,8 +8,8 @@ import pdfjsWorker from 'pdfjs-dist/build/pdf.worker.min.js';
 
 // Ensure the worker script is correctly referenced for pdf.js
 // This avoids "Setting up fake worker failed" errors.
-(pdfjsLib.GlobalWorkerOptions as any).workerSrc = pdfjsWorker as unknown as string;
-import { CVData } from '../types';
+pdfjsLib.GlobalWorkerOptions.workerSrc = pdfjsWorker as unknown as string;
+import { CVData, Experience, Education, Certification, Project } from '../types';
 
 export class FileParser {
   // Ensure pdf.js worker is resolved from bundled assets, not a CDN
@@ -17,8 +18,7 @@ export class FileParser {
     try {
       // Prefer explicit worker script URL (UMD build) for broad compatibility
       const workerUrl = new URL('pdfjs-dist/build/pdf.worker.min.js', import.meta.url).toString();
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (pdfjsLib.GlobalWorkerOptions as any).workerSrc = workerUrl;
+      pdfjsLib.GlobalWorkerOptions.workerSrc = workerUrl;
     } catch (error) {
       // If the above fails (unlikely in modern bundlers), silently continue; parsing may still work
       // eslint-disable-next-line no-console
@@ -48,7 +48,10 @@ export class FileParser {
       for (let i = 1; i <= pdf.numPages; i++) {
         const page = await pdf.getPage(i);
         const textContent = await page.getTextContent();
-        const pageText = textContent.items.map((item: { str: string }) => item.str).join(' ');
+        const pageText = textContent.items
+          .filter((item): item is TextItem => 'str' in item)
+          .map((item: TextItem) => item.str)
+          .join(' ');
         fullText += pageText + '\n';
       }
 
@@ -195,9 +198,9 @@ export class FileParser {
     for (const pattern of portfolioPatterns) {
       const match = text.match(pattern);
       if (match) {
-        const url = match[2] || match[1];
+        const url = match[2] || match[1] || '';
         const urlMatch = url.match(portfolioRegex);
-        if (urlMatch && !urlMatch[0].includes('linkedin') && !urlMatch[0].includes('github')) {
+        if (urlMatch && urlMatch[0] && !urlMatch[0].includes('linkedin') && !urlMatch[0].includes('github')) {
           portfolioUrl = urlMatch[0];
           break;
         }
@@ -215,9 +218,9 @@ export class FileParser {
     return {
       personalInfo: {
         firstName: nameParts[0] || '',
-        middleName: nameParts.length === 3 ? nameParts[1] : '',
-        lastName: nameParts[nameParts.length - 1] || '',
-        email: emails?.[0] || '',
+        middleName: nameParts.length === 3 ? (nameParts[1] ?? '') : '',
+        lastName: nameParts[nameParts.length - 1] ?? '',
+        email: emails?.[0] ?? '',
         linkedInUsername: linkedInMatch ? (linkedInMatch[2] || '').replace(/^\//, '') : '',
         portfolioUrl: portfolioUrl,
         githubUsername: githubMatch ? (githubMatch[2] || '').replace(/^\//, '') : '',
@@ -235,8 +238,8 @@ export class FileParser {
     };
   }
 
-  private static extractExperienceSection(lines: string[], patterns: RegExp[]): any[] {
-    const experiences: any[] = [];
+  private static extractExperienceSection(lines: string[], patterns: RegExp[]): Experience[] {
+    const experiences: Experience[] = [];
     let experienceStartIdx = -1;
     
     for (const pattern of patterns) {
@@ -259,14 +262,14 @@ export class FileParser {
     const experienceLines = lines.slice(experienceStartIdx + 1, endIdx);
     
     // Parse individual experiences
-    let currentExp: any = null;
+    let currentExp: Partial<Experience> | null = null;
     for (let i = 0; i < experienceLines.length; i++) {
       const line = experienceLines[i];
       
       // Check if this line looks like a job title/company
-      if (/^[A-Z][a-zA-Z\s&]+$/.test(line) && line.length > 5 && line.length < 50) {
-        if (currentExp) {
-          experiences.push(currentExp);
+      if (line && /^[A-Z][a-zA-Z\s&]+$/.test(line) && line.length > 5 && line.length < 50) {
+        if (currentExp && currentExp.id) {
+          experiences.push(currentExp as Experience);
         }
         currentExp = {
           id: Date.now().toString() + Math.random(),
@@ -282,33 +285,33 @@ export class FileParser {
           description: '',
           skills: []
         };
-      } else if (currentExp && line.includes(' - ')) {
+      } else if (currentExp && line && line.includes(' - ')) {
         // Parse date range and company
         const parts = line.split(' - ');
-        if (parts.length >= 2) {
+        if (parts.length >= 2 && parts[0] && parts[1]) {
           currentExp.company = parts[0].trim();
           const dateRange = parts[1].trim();
           const dates = dateRange.split(/[–\-]/);
-          if (dates.length >= 2) {
+          if (dates.length >= 2 && dates[0] && dates[1]) {
             currentExp.startDate = dates[0].trim();
             currentExp.endDate = dates[1].trim();
           }
         }
-      } else if (currentExp && line.length > 20) {
+      } else if (currentExp && line && line.length > 20) {
         // Add to description
-        currentExp.description += (currentExp.description ? '\n' : '') + line;
+        currentExp.description = (currentExp.description || '') + (currentExp.description ? '\n' : '') + line;
       }
     }
     
-    if (currentExp) {
-      experiences.push(currentExp);
+    if (currentExp && currentExp.id) {
+      experiences.push(currentExp as Experience);
     }
     
     return experiences;
   }
 
-  private static extractEducationSection(lines: string[], patterns: RegExp[]): any[] {
-    const education: any[] = [];
+  private static extractEducationSection(lines: string[], patterns: RegExp[]): Education[] {
+    const education: Education[] = [];
     let educationStartIdx = -1;
     
     for (const pattern of patterns) {
@@ -331,14 +334,14 @@ export class FileParser {
     const educationLines = lines.slice(educationStartIdx + 1, endIdx);
     
     // Parse individual education entries
-    let currentEdu: any = null;
+    let currentEdu: Partial<Education> | null = null;
     for (let i = 0; i < educationLines.length; i++) {
       const line = educationLines[i];
       
       // Check if this line looks like a degree/school
-      if (/^[A-Z][a-zA-Z\s&]+$/.test(line) && line.length > 5 && line.length < 50) {
-        if (currentEdu) {
-          education.push(currentEdu);
+      if (line && /^[A-Z][a-zA-Z\s&]+$/.test(line) && line.length > 5 && line.length < 50) {
+        if (currentEdu && currentEdu.id) {
+          education.push(currentEdu as Education);
         }
         currentEdu = {
           id: Date.now().toString() + Math.random(),
@@ -353,33 +356,33 @@ export class FileParser {
           description: '',
           skills: []
         };
-      } else if (currentEdu && line.includes(' - ')) {
+      } else if (currentEdu && line && line.includes(' - ')) {
         // Parse date range and degree
         const parts = line.split(' - ');
-        if (parts.length >= 2) {
+        if (parts.length >= 2 && parts[0] && parts[1]) {
           currentEdu.degree = parts[0].trim();
           const dateRange = parts[1].trim();
           const dates = dateRange.split(/[–\-]/);
-          if (dates.length >= 2) {
+          if (dates.length >= 2 && dates[0] && dates[1]) {
             currentEdu.startDate = dates[0].trim();
             currentEdu.endDate = dates[1].trim();
           }
         }
-      } else if (currentEdu && line.length > 10) {
+      } else if (currentEdu && line && line.length > 10) {
         // Add to description
-        currentEdu.description += (currentEdu.description ? '\n' : '') + line;
+        currentEdu.description = (currentEdu.description || '') + (currentEdu.description ? '\n' : '') + line;
       }
     }
     
-    if (currentEdu) {
-      education.push(currentEdu);
+    if (currentEdu && currentEdu.id) {
+      education.push(currentEdu as Education);
     }
     
     return education;
   }
 
-  private static extractCertificationSection(lines: string[], patterns: RegExp[]): any[] {
-    const certifications: any[] = [];
+  private static extractCertificationSection(lines: string[], patterns: RegExp[]): Certification[] {
+    const certifications: Certification[] = [];
     let certStartIdx = -1;
     
     for (const pattern of patterns) {
@@ -405,17 +408,19 @@ export class FileParser {
     for (const line of certLines) {
       if (line.length > 10 && line.includes(' - ')) {
         const parts = line.split(' - ');
-        if (parts.length >= 2) {
+        if (parts.length >= 2 && parts[0] && parts[1]) {
           certifications.push({
             id: Date.now().toString() + Math.random(),
             name: parts[0].trim(),
             issuingOrganization: parts[1].trim(),
             issueDate: '',
             expirationDate: '',
+            noExpiration: false,
             credentialId: '',
             credentialUrl: '',
+            description: '',
             skills: []
-          });
+          } as Certification);
         }
       }
     }
@@ -423,8 +428,8 @@ export class FileParser {
     return certifications;
   }
 
-  private static extractProjectSection(lines: string[], patterns: RegExp[]): any[] {
-    const projects: any[] = [];
+  private static extractProjectSection(lines: string[], patterns: RegExp[]): Project[] {
+    const projects: Project[] = [];
     let projectStartIdx = -1;
     
     for (const pattern of patterns) {
@@ -447,14 +452,14 @@ export class FileParser {
     const projectLines = lines.slice(projectStartIdx + 1, endIdx);
     
     // Parse individual projects
-    let currentProj: any = null;
+    let currentProj: Partial<Project> | null = null;
     for (let i = 0; i < projectLines.length; i++) {
       const line = projectLines[i];
       
       // Check if this line looks like a project name
-      if (/^[A-Z][a-zA-Z\s&]+$/.test(line) && line.length > 5 && line.length < 50) {
-        if (currentProj) {
-          projects.push(currentProj);
+      if (line && /^[A-Z][a-zA-Z\s&]+$/.test(line) && line.length > 5 && line.length < 50) {
+        if (currentProj && currentProj.id) {
+          projects.push(currentProj as Project);
         }
         currentProj = {
           id: Date.now().toString() + Math.random(),
@@ -466,14 +471,14 @@ export class FileParser {
           currentlyWorking: false,
           associatedWith: ''
         };
-      } else if (currentProj && line.length > 20) {
+      } else if (currentProj && line && line.length > 20) {
         // Add to description
-        currentProj.description += (currentProj.description ? '\n' : '') + line;
+        currentProj.description = (currentProj.description || '') + (currentProj.description ? '\n' : '') + line;
       }
     }
     
-    if (currentProj) {
-      projects.push(currentProj);
+    if (currentProj && currentProj.id) {
+      projects.push(currentProj as Project);
     }
     
     return projects;

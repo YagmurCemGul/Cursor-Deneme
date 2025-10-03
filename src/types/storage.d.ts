@@ -1,41 +1,57 @@
-// Chrome storage API type definitions
-export interface StorageKeys {
-  PROFILE_DATA: 'profileData';
-  API_KEYS: 'apiKeys';
-  SETTINGS: 'settings';
-  TEMPLATES: 'templates';
+// Chrome storage types and constants
+
+export const STORAGE_KEYS = {
+  PROFILE_DATA: 'profileData',
+  API_KEYS: 'apiKeys',
+  SETTINGS: 'settings',
+  TEMPLATES: 'templates',
+  APPLICATIONS: 'applications',
+  SAVED_PROMPTS: 'savedPrompts',
+  CV_PROFILES: 'cvProfiles'
+} as const;
+
+export type StorageKey = typeof STORAGE_KEYS[keyof typeof STORAGE_KEYS];
+
+export interface ChromeStorageData {
+  [STORAGE_KEYS.PROFILE_DATA]?: import('../types').CVData;
+  [STORAGE_KEYS.API_KEYS]?: Record<string, string>;
+  [STORAGE_KEYS.SETTINGS]?: AppSettings;
+  [STORAGE_KEYS.TEMPLATES]?: import('../types').CVTemplate[];
+  [STORAGE_KEYS.APPLICATIONS]?: JobApplication[];
+  [STORAGE_KEYS.SAVED_PROMPTS]?: import('../types').SavedPrompt[];
+  [STORAGE_KEYS.CV_PROFILES]?: import('../types').CVProfile[];
 }
 
-export const STORAGE_KEYS: StorageKeys;
-
-export interface ChromeStorage {
-  get(keys: string | string[] | null): Promise<{ [key: string]: any }>;
-  set(items: { [key: string]: any }): Promise<void>;
-  remove(keys: string | string[]): Promise<void>;
-  clear(): Promise<void>;
-}
-
-export interface ProfileData {
-  id: string;
-  name: string;
-  data: import('../types').CVData;
-  createdAt: string;
-  updatedAt: string;
-}
-
-export interface APIKeys {
-  openai?: string;
-  gemini?: string;
-  claude?: string;
-}
-
-export interface Settings {
+export interface AppSettings {
+  language: 'en' | 'tr';
   theme: 'light' | 'dark';
-  language: 'tr' | 'en';
   autoSave: boolean;
-  notifications: boolean;
+  defaultTemplate: string;
+  aiProvider: 'openai' | 'gemini' | 'claude';
 }
 
-export interface Templates {
-  [key: string]: import('../types').CVTemplate;
+export interface JobApplication {
+  id: string;
+  company: string;
+  position: string;
+  appliedDate: string;
+  status: 'applied' | 'interview' | 'offer' | 'rejected';
+  cvVersion: string;
+  coverLetter?: string;
+  notes?: string;
+  followUpDate?: string;
 }
+
+// Chrome storage API wrapper types
+export interface StorageResult<T> {
+  [key: string]: T;
+}
+
+export interface StorageChangeEvent {
+  [key: string]: {
+    oldValue?: any;
+    newValue?: any;
+  };
+}
+
+export type StorageArea = 'sync' | 'local' | 'managed';
