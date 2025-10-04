@@ -1448,12 +1448,16 @@ body:has(.app-container.dark) {
   position: relative;
 }
 
-.form-input.error {
+.form-input.error,
+.form-textarea.input-error,
+.input-error {
   border-color: #ef4444;
   box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
 }
 
-.app-container.dark .form-input.error {
+.app-container.dark .form-input.error,
+.app-container.dark .form-textarea.input-error,
+.app-container.dark .input-error {
   border-color: #f87171;
   box-shadow: 0 0 0 3px rgba(248, 113, 113, 0.1);
 }

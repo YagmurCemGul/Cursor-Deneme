@@ -684,6 +684,18 @@ const dict: Record<string, Record<Lang, string>> = {
     tr: 'Kullanıcıların seçebileceği seçenekler ekleyin',
   },
   'questions.multilineInput': { en: 'Multi-line text area', tr: 'Çok satırlı metin alanı' },
+  'questions.fileUpload': { en: 'File Upload', tr: 'Dosya Yükleme' },
+  'questions.required': { en: 'Required', tr: 'Zorunlu' },
+  'questions.makeRequired': { en: 'Make this question required', tr: 'Bu soruyu zorunlu yap' },
+  'questions.maxLength': { en: 'Character Limit', tr: 'Karakter Sınırı' },
+  'questions.charactersRemaining': { en: '{remaining} characters remaining', tr: '{remaining} karakter kaldı' },
+  'questions.charactersOver': { en: '{over} characters over limit', tr: 'Sınırın {over} karakter üzerinde' },
+  'questions.uploadFile': { en: 'Upload File', tr: 'Dosya Yükle' },
+  'questions.fileUploaded': { en: 'File uploaded: {name}', tr: 'Dosya yüklendi: {name}' },
+  'questions.removeFile': { en: 'Remove file', tr: 'Dosyayı kaldır' },
+  'questions.changeFile': { en: 'Change file', tr: 'Dosyayı değiştir' },
+  'questions.validationRequired': { en: 'This field is required', tr: 'Bu alan zorunludur' },
+  'questions.autoSaved': { en: 'Auto-saved', tr: 'Otomatik kaydedildi' },
 
   // Rich Text Editor
   'editor.bold': { en: 'Bold', tr: 'Kalın' },
