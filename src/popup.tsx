@@ -19,11 +19,13 @@ import { GoogleDriveSettings } from './components/GoogleDriveSettings';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { ATSScoreCard } from './components/ATSScoreCard';
 import { AnalyticsDashboard } from './components/AnalyticsDashboard';
+import { ErrorAnalyticsDashboard } from './components/ErrorAnalyticsDashboard';
 import { aiService } from './utils/aiService';
 import { AIConfig } from './utils/aiProviders';
 import { StorageService } from './utils/storage';
 import { applyCVOptimizations } from './utils/cvOptimizer';
 import { logger } from './utils/logger';
+import { errorTracker } from './utils/errorTracking';
 import { performanceMonitor } from './utils/performance';
 import { t } from './i18n';
 import './styles.css';
@@ -762,7 +764,10 @@ const App: React.FC = () => {
         )}
 
         {activeTab === 'analytics' && (
-          <AnalyticsDashboard language={language} />
+          <>
+            <AnalyticsDashboard language={language} />
+            <ErrorAnalyticsDashboard language={language} />
+          </>
         )}
       </div>
     </div>

@@ -226,4 +226,74 @@ export class StorageService {
       await chrome.storage.local.set({ jobDescriptions });
     }
   }
+
+  // Error Analytics
+  static async saveError(error: import('../types').ErrorLog): Promise<void> {
+    const { errorLogs = [] } = await chrome.storage.local.get('errorLogs');
+    errorLogs.push(error);
+    // Keep only last 500 error logs
+    const trimmed = errorLogs.slice(-500);
+    await chrome.storage.local.set({ errorLogs: trimmed });
+  }
+
+  static async getErrorLogs(): Promise<import('../types').ErrorLog[]> {
+    const { errorLogs = [] } = await chrome.storage.local.get('errorLogs');
+    return errorLogs.sort((a: import('../types').ErrorLog, b: import('../types').ErrorLog) => 
+      new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+    );
+  }
+
+  static async clearErrorLogs(): Promise<void> {
+    await chrome.storage.local.set({ errorLogs: [] });
+  }
+
+  static async markErrorResolved(errorId: string): Promise<void> {
+    const { errorLogs = [] } = await chrome.storage.local.get('errorLogs');
+    const error = errorLogs.find((e: import('../types').ErrorLog) => e.id === errorId);
+    
+    if (error) {
+      error.resolved = true;
+      await chrome.storage.local.set({ errorLogs });
+    }
+  }
+
+  static async getErrorAnalytics(): Promise<import('../types').ErrorAnalytics> {
+    const errorLogs = await this.getErrorLogs();
+    
+    const totalErrors = errorLogs.length;
+    const errorsByType: Record<string, number> = {};
+    const errorsBySeverity: Record<string, number> = {};
+    const errorsByComponent: Record<string, number> = {};
+    const errorTrendsMap: Record<string, number> = {};
+
+    errorLogs.forEach((error) => {
+      // Count by type
+      errorsByType[error.errorType] = (errorsByType[error.errorType] || 0) + 1;
+      
+      // Count by severity
+      errorsBySeverity[error.severity] = (errorsBySeverity[error.severity] || 0) + 1;
+      
+      // Count by component
+      if (error.component) {
+        errorsByComponent[error.component] = (errorsByComponent[error.component] || 0) + 1;
+      }
+      
+      // Count by date for trends
+      const date = new Date(error.timestamp).toISOString().split('T')[0];
+      errorTrendsMap[date] = (errorTrendsMap[date] || 0) + 1;
+    });
+
+    const errorTrends = Object.entries(errorTrendsMap)
+      .map(([date, count]) => ({ date, count }))
+      .sort((a, b) => a.date.localeCompare(b.date));
+
+    return {
+      totalErrors,
+      errorsByType,
+      errorsBySeverity,
+      errorsByComponent,
+      recentErrors: errorLogs.slice(0, 20),
+      errorTrends,
+    };
+  }
 }

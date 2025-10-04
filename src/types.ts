@@ -184,3 +184,29 @@ export interface SavedJobDescription {
   updatedAt: string;
   usageCount?: number;
 }
+
+export interface ErrorLog {
+  id: string;
+  timestamp: string;
+  errorType: 'runtime' | 'network' | 'validation' | 'api' | 'storage' | 'parsing' | 'export' | 'unknown';
+  severity: 'low' | 'medium' | 'high' | 'critical';
+  message: string;
+  stack?: string;
+  component?: string;
+  action?: string;
+  userAgent?: string;
+  resolved?: boolean;
+  metadata?: Record<string, any>;
+}
+
+export interface ErrorAnalytics {
+  totalErrors: number;
+  errorsByType: Record<string, number>;
+  errorsBySeverity: Record<string, number>;
+  errorsByComponent: Record<string, number>;
+  recentErrors: ErrorLog[];
+  errorTrends: {
+    date: string;
+    count: number;
+  }[];
+}

@@ -1,6 +1,7 @@
 import { CVData, ATSOptimization } from '../types';
 import { createAIProvider, AIConfig, AIProviderAdapter } from './aiProviders';
 import { logger } from './logger';
+import { errorTracker } from './errorTracking';
 
 /**
  * AIService - Handles AI-powered CV optimization and cover letter generation
@@ -34,6 +35,12 @@ export class AIService {
         this.useMockMode = false;
       } catch (error) {
         logger.error('Failed to initialize AI provider, falling back to mock mode:', error);
+        errorTracker.trackError(error as Error, {
+          errorType: 'api',
+          severity: 'medium',
+          component: 'AIService',
+          action: 'Initialize provider',
+        });
         this.useMockMode = true;
       }
     } else {
@@ -55,6 +62,12 @@ export class AIService {
       this.useMockMode = false;
     } catch (error) {
       logger.error('Failed to update AI provider:', error);
+      errorTracker.trackError(error as Error, {
+        errorType: 'api',
+        severity: 'high',
+        component: 'AIService',
+        action: 'Update config',
+      });
       throw error;
     }
   }
@@ -79,6 +92,10 @@ export class AIService {
         return await this.provider.optimizeCV(cvData, jobDescription);
       } catch (error) {
         logger.error('AI provider error, falling back to mock:', error);
+        errorTracker.trackAPIError(error as Error, {
+          provider: this.provider?.constructor.name,
+          component: 'AIService',
+        });
         // Fall through to mock mode
       }
     }
