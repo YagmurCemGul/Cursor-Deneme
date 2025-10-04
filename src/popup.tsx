@@ -19,6 +19,8 @@ import { GoogleDriveSettings } from './components/GoogleDriveSettings';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { ATSScoreCard } from './components/ATSScoreCard';
 import { AnalyticsDashboard } from './components/AnalyticsDashboard';
+import InterviewQuestionsGenerator from './components/InterviewQuestionsGenerator';
+import TalentGapAnalysis from './components/TalentGapAnalysis';
 import { aiService } from './utils/aiService';
 import { AIConfig } from './utils/aiProviders';
 import { StorageService } from './utils/storage';
@@ -28,7 +30,7 @@ import { performanceMonitor } from './utils/performance';
 import { t } from './i18n';
 import './styles.css';
 
-type TabType = 'cv-info' | 'optimize' | 'cover-letter' | 'profiles' | 'settings' | 'analytics';
+type TabType = 'cv-info' | 'optimize' | 'cover-letter' | 'profiles' | 'settings' | 'analytics' | 'interview-questions' | 'talent-gap';
 type Theme = 'light' | 'dark' | 'system';
 type Language = 'en' | 'tr';
 
@@ -630,6 +632,24 @@ const App: React.FC = () => {
         >
           📊 {t(language, 'analytics.title')}
         </button>
+        <button
+          className={`tab ${activeTab === 'interview-questions' ? 'active' : ''}`}
+          onClick={() => setActiveTab('interview-questions')}
+          role="tab"
+          aria-selected={activeTab === 'interview-questions'}
+          aria-label="Interview Questions"
+        >
+          ❓ Interview Questions
+        </button>
+        <button
+          className={`tab ${activeTab === 'talent-gap' ? 'active' : ''}`}
+          onClick={() => setActiveTab('talent-gap')}
+          role="tab"
+          aria-selected={activeTab === 'talent-gap'}
+          aria-label="Talent Gap Analysis"
+        >
+          🎯 Talent Gap
+        </button>
       </div>
 
       <div className="content">
@@ -641,6 +661,11 @@ const App: React.FC = () => {
               value={jobDescription}
               onChange={setJobDescription}
               language={language}
+              aiConfig={currentAIProvider && apiKeys[currentAIProvider] ? {
+                provider: currentAIProvider,
+                apiKey: apiKeys[currentAIProvider],
+                temperature: 0.7,
+              } : undefined}
             />
 
             <PersonalInfoForm
@@ -766,6 +791,20 @@ const App: React.FC = () => {
 
         {activeTab === 'analytics' && (
           <AnalyticsDashboard language={language} />
+        )}
+
+        {activeTab === 'interview-questions' && (
+          <InterviewQuestionsGenerator 
+            cvData={cvData}
+            jobDescription={jobDescription}
+          />
+        )}
+
+        {activeTab === 'talent-gap' && (
+          <TalentGapAnalysis 
+            cvData={cvData}
+            jobDescription={jobDescription}
+          />
         )}
       </div>
     </div>

@@ -132,9 +132,17 @@ export interface CVData {
 export interface CustomQuestion {
   id: string;
   question: string;
-  type: 'text' | 'form_group' | 'choice' | 'fieldset' | 'selection' | 'checkbox';
+  type: 'text' | 'form_group' | 'choice' | 'fieldset' | 'selection' | 'checkbox' | 'file_upload';
   options?: string[] | undefined;
   answer: string | string[];
+  required?: boolean;
+  maxLength?: number;
+  fileData?: {
+    name: string;
+    size: number;
+    type: string;
+    dataUrl: string;
+  };
 }
 
 export interface ATSOptimization {
