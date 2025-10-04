@@ -1,19 +1,22 @@
 import React, { useState, useEffect } from 'react';
 import { CVProfile, CVTemplate } from '../types';
 import { StorageService } from '../utils/storage';
+import { t, Lang } from '../i18n';
 
 interface ProfileManagerProps {
   onLoadProfile: (profile: CVProfile) => void;
   onSaveProfile: (name: string) => void;
   currentProfileName: string;
   onProfileNameChange: (name: string) => void;
+  language: Lang;
 }
 
 export const ProfileManager: React.FC<ProfileManagerProps> = ({
   onLoadProfile,
   onSaveProfile,
   currentProfileName,
-  onProfileNameChange
+  onProfileNameChange,
+  language
 }) => {
   const [profiles, setProfiles] = useState<CVProfile[]>([]);
   const [, setTemplates] = useState<CVTemplate[]>([]);
@@ -39,7 +42,7 @@ export const ProfileManager: React.FC<ProfileManagerProps> = ({
   };
 
   const handleDeleteProfile = async (profileId: string) => {
-    if (confirm('Are you sure you want to delete this profile?')) {
+    if (confirm(t(language, 'profile.deleteConfirm'))) {
       await StorageService.deleteProfile(profileId);
       await loadData();
     }
@@ -48,27 +51,27 @@ export const ProfileManager: React.FC<ProfileManagerProps> = ({
   return (
     <div className="section">
       <h2 className="section-title">
-        💾 Profile Management
+        💾 {t(language, 'profile.section')}
       </h2>
       
       {/* Current Profile */}
       <div className="card current-profile-card">
         <h3 className="card-subtitle">
-          Current Profile
+          {t(language, 'profile.current')}
         </h3>
         
         <div className="form-group">
-          <label className="form-label">Profile Name</label>
+          <label className="form-label">{t(language, 'profile.name')}</label>
           <div className="profile-name-input-group">
             <input
               type="text"
               className="form-input flex-input"
               value={currentProfileName}
               onChange={(e) => onProfileNameChange(e.target.value)}
-              placeholder="My Profile"
+              placeholder={t(language, 'profile.namePlaceholder')}
             />
             <button className="btn btn-success" onClick={handleSaveProfile}>
-              💾 Save Profile
+              💾 {t(language, 'profile.save')}
             </button>
           </div>
         </div>
@@ -78,7 +81,7 @@ export const ProfileManager: React.FC<ProfileManagerProps> = ({
       {profiles.length > 0 && (
         <div>
           <h3 className="subsection-title">
-            Saved Profiles
+            {t(language, 'profile.saved')}
           </h3>
           
           <div className="card-list">
@@ -88,7 +91,7 @@ export const ProfileManager: React.FC<ProfileManagerProps> = ({
                   <div>
                     <div className="card-title">{profile.name}</div>
                     <div className="card-meta">
-                      Updated: {new Date(profile.updatedAt).toLocaleDateString()}
+                      {t(language, 'profile.updated')}: {new Date(profile.updatedAt).toLocaleDateString()}
                     </div>
                   </div>
                   <div className="card-actions">
@@ -96,7 +99,7 @@ export const ProfileManager: React.FC<ProfileManagerProps> = ({
                       className="btn btn-primary btn-icon"
                       onClick={() => onLoadProfile(profile)}
                     >
-                      📂 Load
+                      📂 {t(language, 'profile.load')}
                     </button>
                     <button
                       className="btn btn-danger btn-icon"
@@ -116,7 +119,7 @@ export const ProfileManager: React.FC<ProfileManagerProps> = ({
         <div className="empty-state">
           <div className="empty-state-icon">💾</div>
           <div className="empty-state-text">
-            No saved profiles yet. Fill in your information and click "Save Profile" to save it for later use!
+            {t(language, 'profile.emptyState')}
           </div>
         </div>
       )}

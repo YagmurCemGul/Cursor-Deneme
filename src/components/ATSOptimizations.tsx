@@ -1,12 +1,14 @@
 import React from 'react';
 import { ATSOptimization } from '../types';
+import { t, Lang } from '../i18n';
 
 interface ATSOptimizationsProps {
   optimizations: ATSOptimization[];
   onChange: (optimizations: ATSOptimization[]) => void;
+  language: Lang;
 }
 
-export const ATSOptimizations: React.FC<ATSOptimizationsProps> = ({ optimizations, onChange }) => {
+export const ATSOptimizations: React.FC<ATSOptimizationsProps> = ({ optimizations, onChange, language }) => {
   const toggleOptimization = (id: string) => {
     onChange(optimizations.map(opt => 
       opt.id === id ? { ...opt, applied: !opt.applied } : opt
@@ -19,18 +21,18 @@ export const ATSOptimizations: React.FC<ATSOptimizationsProps> = ({ optimization
   return (
     <div className="section">
       <h2 className="section-title">
-        ✨ ATS Optimization Details
+        ✨ {t(language, 'opt.section')}
       </h2>
       
       {optimizations.length === 0 ? (
         <div className="alert alert-info">
-          Click "Optimize CV" to generate ATS optimization suggestions based on your CV and the job description.
+          {t(language, 'opt.clickOptimize')}
         </div>
       ) : (
         <>
           <div className="alert alert-success optimization-summary">
-            {appliedOptimizations.length} optimization{appliedOptimizations.length !== 1 ? 's' : ''} applied. 
-            Hover over any pill and click the X to remove an optimization.
+            {appliedOptimizations.length} {appliedOptimizations.length !== 1 ? t(language, 'opt.optimizations') : t(language, 'opt.optimization')} {t(language, 'opt.applied')}. 
+            {t(language, 'opt.hoverTip')}
           </div>
           
           <div className="pill-container">
@@ -39,7 +41,7 @@ export const ATSOptimizations: React.FC<ATSOptimizationsProps> = ({ optimization
                 key={opt.id}
                 className="pill"
                 onClick={() => toggleOptimization(opt.id)}
-                title={`${opt.category}: ${opt.change}\n\nOriginal: ${opt.originalText}\nOptimized: ${opt.optimizedText}\n\nClick to ${opt.applied ? 'remove' : 'apply'}`}
+                title={`${opt.category}: ${opt.change}\n\n${t(language, 'opt.original')}: ${opt.originalText}\n${t(language, 'opt.optimized')}: ${opt.optimizedText}\n\n${opt.applied ? t(language, 'opt.clickToRemove') : t(language, 'opt.clickToApply')}`}
                 aria-pressed={opt.applied}
                 data-opt-id={opt.id}
               >
@@ -51,7 +53,7 @@ export const ATSOptimizations: React.FC<ATSOptimizationsProps> = ({ optimization
           
           <div className="optimization-details-section">
             <h3 className="subsection-title">
-              Optimization Details
+              {t(language, 'opt.detailsTitle')}
             </h3>
             
             {optimizations.map((opt) => (
@@ -62,7 +64,7 @@ export const ATSOptimizations: React.FC<ATSOptimizationsProps> = ({ optimization
                     className={`btn btn-${opt.applied ? 'danger' : 'success'} btn-icon`}
                     onClick={() => toggleOptimization(opt.id)}
                   >
-                    {opt.applied ? '✕ Remove' : '✓ Apply'}
+                    {opt.applied ? `✕ ${t(language, 'common.remove')}` : `✓ ${t(language, 'common.add')}`}
                   </button>
                 </div>
                 
@@ -72,14 +74,14 @@ export const ATSOptimizations: React.FC<ATSOptimizationsProps> = ({ optimization
                 
                 <div className="text-comparison">
                   <div>
-                    <div className="text-label">Original</div>
+                    <div className="text-label">{t(language, 'opt.original')}</div>
                     <div className="text-box text-original">
                       {opt.originalText}
                     </div>
                   </div>
                   
                   <div>
-                    <div className="text-label">Optimized</div>
+                    <div className="text-label">{t(language, 'opt.optimized')}</div>
                     <div className="text-box text-optimized">
                       {opt.optimizedText}
                     </div>

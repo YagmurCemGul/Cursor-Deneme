@@ -1,12 +1,14 @@
 import React, { useState } from 'react';
 import { FileParser } from '../utils/fileParser';
 import { CVData } from '../types';
+import { t, Lang } from '../i18n';
 
 interface CVUploadProps {
   onCVParsed: (data: Partial<CVData>) => void;
+  language: Lang;
 }
 
-export const CVUpload: React.FC<CVUploadProps> = ({ onCVParsed }) => {
+export const CVUpload: React.FC<CVUploadProps> = ({ onCVParsed, language }) => {
   const [isDragging, setIsDragging] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [fileName, setFileName] = useState<string | null>(null);
@@ -46,7 +48,7 @@ export const CVUpload: React.FC<CVUploadProps> = ({ onCVParsed }) => {
       onCVParsed(parsedData);
     } catch (error) {
       console.error('Error parsing file:', error);
-      alert('Error parsing file. Please make sure it\'s a valid PDF or DOCX file.');
+      alert(t(language, 'upload.error'));
     } finally {
       setIsLoading(false);
     }
@@ -55,7 +57,7 @@ export const CVUpload: React.FC<CVUploadProps> = ({ onCVParsed }) => {
   return (
     <div className="section">
       <h2 className="section-title">
-        📄 Upload Your CV
+        📄 {t(language, 'upload.section')}
       </h2>
       
       <div
@@ -68,16 +70,16 @@ export const CVUpload: React.FC<CVUploadProps> = ({ onCVParsed }) => {
         {isLoading ? (
           <div className="loading">
             <div className="spinner"></div>
-            <p className="loading-text">Parsing your CV...</p>
+            <p className="loading-text">{t(language, 'upload.uploading')}</p>
           </div>
         ) : (
           <>
             <div className="upload-icon">📁</div>
             <div className="upload-text">
-              {fileName ? `Uploaded: ${fileName}` : 'Drag and drop your CV here or click to browse'}
+              {fileName ? `${t(language, 'upload.uploaded')}: ${fileName}` : t(language, 'upload.drag')}
             </div>
             <div className="upload-subtext">
-              Supported formats: PDF, DOCX, DOC
+              {t(language, 'upload.supported')}
             </div>
           </>
         )}

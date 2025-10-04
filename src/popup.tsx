@@ -140,7 +140,7 @@ const App: React.FC = () => {
 
   const handleOptimizeCV = async () => {
     if (!jobDescription.trim()) {
-      alert('Please enter a job description first!');
+      alert(t(language, 'cover.needJobDesc'));
       return;
     }
 
@@ -152,7 +152,7 @@ const App: React.FC = () => {
       setActiveTab('optimize');
     } catch (error) {
       console.error('Error optimizing CV:', error);
-      alert('Error optimizing CV. Please try again.');
+      alert(t(language, 'common.errorOptimizing'));
     } finally {
       setIsOptimizing(false);
     }
@@ -160,7 +160,7 @@ const App: React.FC = () => {
 
   const handleGenerateCoverLetter = async (extraPrompt: string) => {
     if (!jobDescription.trim()) {
-      alert('Please enter a job description first!');
+      alert(t(language, 'cover.needJobDesc'));
       return;
     }
 
@@ -170,7 +170,7 @@ const App: React.FC = () => {
       setCoverLetter(letter);
     } catch (error) {
       console.error('Error generating cover letter:', error);
-      alert('Error generating cover letter. Please try again.');
+      alert(t(language, 'cover.errorGenerating'));
     } finally {
       setIsGeneratingCoverLetter(false);
     }
@@ -187,14 +187,14 @@ const App: React.FC = () => {
     
     await StorageService.saveProfile(profile);
     setProfileName(name);
-    alert('Profile saved successfully!');
+    alert(t(language, 'profile.saveSuccess'));
   };
 
   const handleLoadProfile = (profile: CVProfile) => {
     setCVData(profile.data);
     setProfileName(profile.name);
     setActiveTab('cv-info');
-    alert('Profile loaded successfully!');
+    alert(t(language, 'profile.loadSuccess'));
   };
 
   const appliedTheme: Theme = theme === 'system' ? (systemPrefersDark ? 'dark' : 'light') : theme;
@@ -247,46 +247,54 @@ const App: React.FC = () => {
       <div className="content">
         {activeTab === 'cv-info' && (
           <>
-            <CVUpload onCVParsed={handleCVParsed} />
+            <CVUpload onCVParsed={handleCVParsed} language={language} />
             
             <JobDescriptionInput 
               value={jobDescription} 
               onChange={setJobDescription} 
+              language={language}
             />
             
             <PersonalInfoForm 
               data={cvData.personalInfo}
               onChange={(personalInfo) => setCVData({ ...cvData, personalInfo })}
+              language={language}
             />
             
             <SkillsForm 
               skills={cvData.skills}
               onChange={(skills) => setCVData({ ...cvData, skills })}
+              language={language}
             />
             
             <ExperienceForm 
               experiences={cvData.experience}
               onChange={(experience) => setCVData({ ...cvData, experience })}
+              language={language}
             />
             
             <EducationForm 
               education={cvData.education}
               onChange={(education) => setCVData({ ...cvData, education })}
+              language={language}
             />
             
             <CertificationsForm 
               certifications={cvData.certifications}
               onChange={(certifications) => setCVData({ ...cvData, certifications })}
+              language={language}
             />
             
             <ProjectsForm 
               projects={cvData.projects}
               onChange={(projects) => setCVData({ ...cvData, projects })}
+              language={language}
             />
             
             <CustomQuestionsForm 
               questions={cvData.customQuestions}
               onChange={(customQuestions) => setCVData({ ...cvData, customQuestions })}
+              language={language}
             />
             
             <div className="sticky-footer">
@@ -296,7 +304,7 @@ const App: React.FC = () => {
                 disabled={isOptimizing}
                 style={{ width: '100%', fontSize: '16px', padding: '15px' }}
               >
-                {isOptimizing ? '⏳ Optimizing...' : `✨ ${t(language, 'opt.optimizeBtn')}`}
+                {isOptimizing ? `⏳ ${t(language, 'opt.optimizing')}` : `✨ ${t(language, 'opt.optimizeBtn')}`}
               </button>
             </div>
           </>
@@ -307,11 +315,13 @@ const App: React.FC = () => {
             <ATSOptimizations 
               optimizations={optimizations}
               onChange={setOptimizations}
+              language={language}
             />
             
             <CVPreview 
               cvData={cvData}
               optimizations={optimizations}
+              language={language}
             />
           </>
         )}
@@ -323,6 +333,7 @@ const App: React.FC = () => {
             coverLetter={coverLetter}
             onGenerate={handleGenerateCoverLetter}
             isGenerating={isGeneratingCoverLetter}
+            language={language}
           />
         )}
         
@@ -332,6 +343,7 @@ const App: React.FC = () => {
             onSaveProfile={handleSaveProfile}
             currentProfileName={profileName}
             onProfileNameChange={setProfileName}
+            language={language}
           />
         )}
       </div>
