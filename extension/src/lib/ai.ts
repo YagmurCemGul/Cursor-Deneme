@@ -81,31 +81,88 @@ async function callOpenAI(system: string, user: string): Promise<string> {
   if (!opts?.apiKey) {
     return 'API key not set. Go to Options to configure.';
   }
-  const endpoint = opts.apiProvider === 'azure' ? 'https://example-azure-endpoint' : 'https://api.openai.com/v1/chat/completions';
-
+  
+  const provider = opts.apiProvider || 'openai';
+  
   try {
-    const res = await fetch(endpoint, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${opts.apiKey}`
-      },
-      body: JSON.stringify({
-        model: 'gpt-4o-mini',
-        messages: [
-          { role: 'system', content: system },
-          { role: 'user', content: user }
-        ],
-        temperature: 0.3,
-      })
-    });
+    if (provider === 'openai' || provider === 'azure') {
+      const endpoint = provider === 'azure' ? 'https://example-azure-endpoint' : 'https://api.openai.com/v1/chat/completions';
+      
+      const res = await fetch(endpoint, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${opts.apiKey}`
+        },
+        body: JSON.stringify({
+          model: 'gpt-4o-mini',
+          messages: [
+            { role: 'system', content: system },
+            { role: 'user', content: user }
+          ],
+          temperature: 0.3,
+        })
+      });
 
-    if (!res.ok) {
-      return `OpenAI error: ${res.status} ${res.statusText}`;
+      if (!res.ok) {
+        return `OpenAI error: ${res.status} ${res.statusText}`;
+      }
+      const data = await res.json();
+      const content = data.choices?.[0]?.message?.content ?? '';
+      return content.trim();
+    } else if (provider === 'gemini') {
+      const prompt = `${system}\n\n${user}`;
+      const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${opts.apiKey}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          contents: [{
+            parts: [{ text: prompt }]
+          }],
+          generationConfig: {
+            temperature: 0.3,
+            topK: 40,
+            topP: 0.95,
+          }
+        })
+      });
+
+      if (!res.ok) {
+        return `Gemini error: ${res.status} ${res.statusText}`;
+      }
+      const data = await res.json();
+      const content = data.candidates?.[0]?.content?.parts?.[0]?.text ?? '';
+      return content.trim();
+    } else if (provider === 'claude') {
+      const res = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': opts.apiKey,
+          'anthropic-version': '2023-06-01'
+        },
+        body: JSON.stringify({
+          model: 'claude-3-haiku-20240307',
+          max_tokens: 2000,
+          temperature: 0.3,
+          system: system,
+          messages: [
+            { role: 'user', content: user }
+          ]
+        })
+      });
+
+      if (!res.ok) {
+        return `Claude error: ${res.status} ${res.statusText}`;
+      }
+      const data = await res.json();
+      const content = data.content?.[0]?.text ?? '';
+      return content.trim();
+    } else {
+      return `Unsupported AI provider: ${provider}`;
     }
-    const data = await res.json();
-    const content = data.choices?.[0]?.message?.content ?? '';
-    return content.trim();
   } catch (err) {
     return `Request failed: ${String(err)}`;
   }

@@ -1,15 +1,49 @@
 import { CVData, ATSOptimization } from '../types';
+import { createAIProvider, AIConfig, AIProviderAdapter } from './aiProviders';
 
 export class AIService {
-  constructor(_apiKey: string) {
-    // Store API key for future use
+  private provider: AIProviderAdapter | null = null;
+  private useMockMode: boolean = false;
+
+  constructor(config?: AIConfig) {
+    if (config && config.apiKey) {
+      try {
+        this.provider = createAIProvider(config);
+        this.useMockMode = false;
+      } catch (error) {
+        console.error('Failed to initialize AI provider, falling back to mock mode:', error);
+        this.useMockMode = true;
+      }
+    } else {
+      this.useMockMode = true;
+    }
   }
 
-  async optimizeCV(cvData: CVData, _jobDescription: string): Promise<{ optimizedCV: CVData; optimizations: ATSOptimization[] }> {
-    // In a real implementation, this would call OpenAI API
-    // For now, we'll simulate the optimization
+  /**
+   * Update the AI provider configuration
+   */
+  updateConfig(config: AIConfig): void {
+    try {
+      this.provider = createAIProvider(config);
+      this.useMockMode = false;
+    } catch (error) {
+      console.error('Failed to update AI provider:', error);
+      throw error;
+    }
+  }
 
-    // Mock optimizations for demonstration
+  async optimizeCV(cvData: CVData, jobDescription: string): Promise<{ optimizedCV: CVData; optimizations: ATSOptimization[] }> {
+    // If we have a real provider configured, use it
+    if (!this.useMockMode && this.provider) {
+      try {
+        return await this.provider.optimizeCV(cvData, jobDescription);
+      } catch (error) {
+        console.error('AI provider error, falling back to mock:', error);
+        // Fall through to mock mode
+      }
+    }
+
+    // Mock optimizations for demonstration or fallback
     const mockOptimizations: ATSOptimization[] = [
       {
         id: '1',
@@ -37,21 +71,24 @@ export class AIService {
       }
     ];
 
-    try {
-      return {
-        optimizedCV: cvData,
-        optimizations: mockOptimizations
-      };
-    } catch (error) {
-      console.error('Error optimizing CV:', error);
-      throw error;
-    }
+    return {
+      optimizedCV: cvData,
+      optimizations: mockOptimizations
+    };
   }
 
   async generateCoverLetter(cvData: CVData, jobDescription: string, extraPrompt?: string): Promise<string> {
-    // In a real implementation, this would call OpenAI API
-    // This enhanced mock simulates intelligent data extraction and matching
+    // If we have a real provider configured, use it
+    if (!this.useMockMode && this.provider) {
+      try {
+        return await this.provider.generateCoverLetter(cvData, jobDescription, extraPrompt);
+      } catch (error) {
+        console.error('AI provider error, falling back to mock:', error);
+        // Fall through to mock mode
+      }
+    }
 
+    // Mock/fallback implementation
     try {
       // Extract job information from description
       const jobInfo = this.extractJobInfo(jobDescription);
@@ -355,5 +392,5 @@ ${skillsParagraph}${educationParagraph}${extraParagraph}${closing}`;
   }
 }
 
-// Export singleton instance
-export const aiService = new AIService('mock-api-key');
+// Export singleton instance (will be initialized with proper config from popup)
+export const aiService = new AIService();

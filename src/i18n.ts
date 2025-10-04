@@ -8,6 +8,7 @@ const dict: Record<string, Record<Lang, string>> = {
   'tabs.optimize': { en: 'Optimize & Preview', tr: 'Optimize Et & Önizleme' },
   'tabs.cover': { en: 'Cover Letter', tr: 'Niyet Mektubu' },
   'tabs.profiles': { en: 'Profiles', tr: 'Profiller' },
+  'tabs.settings': { en: 'Settings', tr: 'Ayarlar' },
 
   'common.add': { en: 'Add', tr: 'Ekle' },
   'common.remove': { en: 'Remove', tr: 'Kaldır' },
@@ -276,7 +277,34 @@ const dict: Record<string, Record<Lang, string>> = {
   'templates.cert.skills': { en: '• Skills gained: [skill1], [skill2], [skill3]', tr: '• Kazanılan yetenekler: [yetenek1], [yetenek2], [yetenek3]' },
   'templates.cert.focus': { en: '• Focus areas: [area1], [area2]', tr: '• Odak alanları: [alan1], [alan2]' },
   'templates.project.built': { en: '• Built [feature] using [technologies]', tr: '• [teknolojiler] kullanarak [özellik] geliştirdim' },
-  'templates.project.implemented': { en: '• Implemented [functionality] resulting in [outcome]', tr: '• [sonuç] ile sonuçlanan [işlevsellik] uyguladım' }
+  'templates.project.implemented': { en: '• Implemented [functionality] resulting in [outcome]', tr: '• [sonuç] ile sonuçlanan [işlevsellik] uyguladım' },
+
+  // AI Settings
+  'settings.aiSection': { en: 'AI Provider Settings', tr: 'YZ Sağlayıcı Ayarları' },
+  'settings.aiProvider': { en: 'AI Provider', tr: 'YZ Sağlayıcısı' },
+  'settings.aiProviderDesc': { en: 'Choose which AI service to use for CV optimization and cover letter generation', tr: 'CV optimizasyonu ve niyet mektubu oluşturma için hangi YZ hizmetini kullanacağınızı seçin' },
+  'settings.apiKey': { en: 'API Key', tr: 'API Anahtarı' },
+  'settings.apiKeyPlaceholder': { en: 'Enter your API key', tr: 'API anahtarınızı girin' },
+  'settings.apiKeyRequired': { en: 'API key is required for AI features to work', tr: 'YZ özelliklerinin çalışması için API anahtarı gereklidir' },
+  'settings.apiKeyHidden': { en: 'API key is hidden for security', tr: 'API anahtarı güvenlik için gizlenmiştir' },
+  'settings.showApiKey': { en: 'Show', tr: 'Göster' },
+  'settings.hideApiKey': { en: 'Hide', tr: 'Gizle' },
+  'settings.aiModel': { en: 'Model', tr: 'Model' },
+  'settings.aiModelDesc': { en: 'Select the AI model to use (optional)', tr: 'Kullanılacak YZ modelini seçin (isteğe bağlı)' },
+  'settings.aiTemperature': { en: 'Creativity Level', tr: 'Yaratıcılık Seviyesi' },
+  'settings.aiTemperatureDesc': { en: 'Higher values make output more creative, lower values more focused', tr: 'Yüksek değerler çıktıyı daha yaratıcı, düşük değerler daha odaklı yapar' },
+  'settings.saveSuccess': { en: 'Settings saved successfully!', tr: 'Ayarlar başarıyla kaydedildi!' },
+  'settings.saveError': { en: 'Error saving settings. Please try again.', tr: 'Ayarlar kaydedilirken hata oluştu. Lütfen tekrar deneyin.' },
+  'settings.testConnection': { en: 'Test Connection', tr: 'Bağlantıyı Test Et' },
+  'settings.testing': { en: 'Testing...', tr: 'Test ediliyor...' },
+  'settings.testSuccess': { en: 'Connection successful!', tr: 'Bağlantı başarılı!' },
+  'settings.testError': { en: 'Connection failed. Please check your API key.', tr: 'Bağlantı başarısız. Lütfen API anahtarınızı kontrol edin.' },
+  'settings.getApiKey': { en: 'Get API Key', tr: 'API Anahtarı Al' },
+  'settings.openaiInfo': { en: 'OpenAI (ChatGPT) - Most widely used, excellent quality', tr: 'OpenAI (ChatGPT) - En yaygın kullanılan, mükemmel kalite' },
+  'settings.geminiInfo': { en: 'Google Gemini - Fast and cost-effective', tr: 'Google Gemini - Hızlı ve uygun maliyetli' },
+  'settings.claudeInfo': { en: 'Anthropic Claude - Great for detailed analysis', tr: 'Anthropic Claude - Detaylı analiz için harika' },
+  'settings.mockMode': { en: 'Demo Mode (No API key required)', tr: 'Demo Modu (API anahtarı gerekmez)' },
+  'settings.mockModeDesc': { en: 'Currently running in demo mode with sample data', tr: 'Şu anda örnek verilerle demo modunda çalışıyor' }
 };
 
 export function t(lang: Lang, key: string): string {
