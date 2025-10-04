@@ -2,7 +2,7 @@
  * Tests for Performance Monitor
  */
 
-import { performanceMonitor, PerformanceMonitor } from '../performance';
+import { PerformanceMonitor, PerformanceMetric } from '../performance';
 
 describe('PerformanceMonitor', () => {
   let monitor: PerformanceMonitor;
@@ -94,8 +94,8 @@ describe('PerformanceMonitor', () => {
 
       const metrics = monitor.getMetrics();
       expect(metrics).toHaveLength(2);
-      expect(metrics.map((m) => m.name)).toContain('metric1');
-      expect(metrics.map((m) => m.name)).toContain('metric2');
+      expect(metrics.map((m: PerformanceMetric) => m.name)).toContain('metric1');
+      expect(metrics.map((m: PerformanceMetric) => m.name)).toContain('metric2');
     });
 
     it('should return empty array when no metrics', () => {

@@ -25,7 +25,7 @@ export interface PerformanceMetric {
  * 
  * @class PerformanceMonitor
  */
-class PerformanceMonitor {
+export class PerformanceMonitor {
   private metrics: Map<string, PerformanceMetric> = new Map();
   private enabled: boolean = true;
 
@@ -42,7 +42,7 @@ class PerformanceMonitor {
     this.metrics.set(name, {
       name,
       startTime: performance.now(),
-      metadata,
+      ...(metadata && { metadata }),
     });
 
     logger.debug(`Performance tracking started: ${name}`, metadata);

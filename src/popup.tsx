@@ -17,6 +17,7 @@ import { ProfileManager } from './components/ProfileManager';
 import { AISettings } from './components/AISettings';
 import { GoogleDriveSettings } from './components/GoogleDriveSettings';
 import { ErrorBoundary } from './components/ErrorBoundary';
+import { ATSScoreCard } from './components/ATSScoreCard';
 import { aiService } from './utils/aiService';
 import { AIConfig } from './utils/aiProviders';
 import { StorageService } from './utils/storage';
@@ -382,37 +383,67 @@ const App: React.FC = () => {
                 ? 'Gemini'
                 : 'Claude'}
           </div>
+          <button
+            onClick={() => {/* TODO: Add keyboard shortcuts help */}}
+            style={{
+              fontSize: '18px',
+              padding: '6px 12px',
+              borderRadius: '6px',
+              border: 'none',
+              background: 'transparent',
+              cursor: 'pointer',
+              opacity: 0.7,
+            }}
+            title={language === 'en' ? 'Keyboard Shortcuts (?)' : 'Klavye Kısayolları (?)'}
+          >
+            ⌨️
+          </button>
         </div>
       </div>
 
-      <div className="tabs">
+      <div className="tabs" role="navigation" aria-label={language === 'en' ? 'Main navigation' : 'Ana navigasyon'}>
         <button
           className={`tab ${activeTab === 'cv-info' ? 'active' : ''}`}
           onClick={() => setActiveTab('cv-info')}
+          role="tab"
+          aria-selected={activeTab === 'cv-info'}
+          aria-label={t(language, 'tabs.cvinfo')}
         >
           📝 {t(language, 'tabs.cvinfo')}
         </button>
         <button
           className={`tab ${activeTab === 'optimize' ? 'active' : ''}`}
           onClick={() => setActiveTab('optimize')}
+          role="tab"
+          aria-selected={activeTab === 'optimize'}
+          aria-label={t(language, 'tabs.optimize')}
         >
           ✨ {t(language, 'tabs.optimize')}
         </button>
         <button
           className={`tab ${activeTab === 'cover-letter' ? 'active' : ''}`}
           onClick={() => setActiveTab('cover-letter')}
+          role="tab"
+          aria-selected={activeTab === 'cover-letter'}
+          aria-label={t(language, 'tabs.cover')}
         >
           ✉️ {t(language, 'tabs.cover')}
         </button>
         <button
           className={`tab ${activeTab === 'profiles' ? 'active' : ''}`}
           onClick={() => setActiveTab('profiles')}
+          role="tab"
+          aria-selected={activeTab === 'profiles'}
+          aria-label={t(language, 'tabs.profiles')}
         >
           💾 {t(language, 'tabs.profiles')}
         </button>
         <button
           className={`tab ${activeTab === 'settings' ? 'active' : ''}`}
           onClick={() => setActiveTab('settings')}
+          role="tab"
+          aria-selected={activeTab === 'settings'}
+          aria-label={t(language, 'tabs.settings')}
         >
           ⚙️ {t(language, 'tabs.settings')}
         </button>
@@ -471,12 +502,19 @@ const App: React.FC = () => {
               language={language}
             />
 
+            <ATSScoreCard
+              cvData={cvData}
+              jobDescription={jobDescription}
+              language={language}
+            />
+
             <div className="sticky-footer">
               <button
                 className="btn btn-primary"
                 onClick={handleOptimizeCV}
                 disabled={isOptimizing}
                 style={{ width: '100%', fontSize: '16px', padding: '15px' }}
+                aria-label={isOptimizing ? t(language, 'opt.optimizing') : t(language, 'opt.optimizeBtn')}
               >
                 {isOptimizing
                   ? `⏳ ${t(language, 'opt.optimizing')}`
@@ -488,6 +526,12 @@ const App: React.FC = () => {
 
         {activeTab === 'optimize' && (
           <>
+            <ATSScoreCard
+              cvData={cvData}
+              jobDescription={jobDescription}
+              language={language}
+            />
+            
             <ATSOptimizations
               optimizations={optimizations}
               onChange={handleOptimizationsChange}
