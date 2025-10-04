@@ -866,6 +866,58 @@ const dict: Record<string, Record<Lang, string>> = {
     en: 'Currently running in demo mode with sample data',
     tr: 'Şu anda örnek verilerle demo modunda çalışıyor',
   },
+
+  // Undo/Redo
+  'undo.undo': { en: 'Undo', tr: 'Geri Al' },
+  'undo.redo': { en: 'Redo', tr: 'Yinele' },
+  'undo.noUndoHistory': { en: 'No changes to undo', tr: 'Geri alınacak değişiklik yok' },
+  'undo.noRedoHistory': { en: 'No changes to redo', tr: 'Yinelenecek değişiklik yok' },
+  'undo.shortcut': { en: 'Ctrl+Z to undo, Ctrl+Shift+Z to redo', tr: 'Geri almak için Ctrl+Z, yinelemek için Ctrl+Shift+Z' },
+
+  // Version History
+  'version.title': { en: 'Version History', tr: 'Versiyon Geçmişi' },
+  'version.viewHistory': { en: 'View History', tr: 'Geçmişi Görüntüle' },
+  'version.noHistory': { en: 'No version history available', tr: 'Versiyon geçmişi yok' },
+  'version.restore': { en: 'Restore', tr: 'Geri Yükle' },
+  'version.version': { en: 'Version', tr: 'Versiyon' },
+  'version.current': { en: 'Current', tr: 'Mevcut' },
+  'version.changes': { en: 'Changes', tr: 'Değişiklikler' },
+  'version.restoreConfirm': { en: 'Restore this version? Current changes will be lost if not saved.', tr: 'Bu versiyonu geri yükle? Kaydedilmemiş değişiklikler kaybolacak.' },
+  'version.restoreSuccess': { en: 'Version restored successfully', tr: 'Versiyon başarıyla geri yüklendi' },
+  'version.autoSaved': { en: 'Auto-saved', tr: 'Otomatik kaydedildi' },
+  'version.manual': { en: 'Manual save', tr: 'Manuel kayıt' },
+
+  // Analytics Dashboard
+  'analytics.title': { en: 'Analytics Dashboard', tr: 'Analitik Panosu' },
+  'analytics.overview': { en: 'Overview', tr: 'Genel Bakış' },
+  'analytics.totalOptimizations': { en: 'Total Optimizations', tr: 'Toplam Optimizasyon' },
+  'analytics.averagePerSession': { en: 'Average per Session', tr: 'Oturum Başına Ortalama' },
+  'analytics.mostOptimized': { en: 'Most Optimized Section', tr: 'En Çok Optimize Edilen Bölüm' },
+  'analytics.aiProvider': { en: 'AI Provider Used', tr: 'Kullanılan YZ Sağlayıcısı' },
+  'analytics.recentActivity': { en: 'Recent Activity', tr: 'Son Aktivite' },
+  'analytics.optimizationsApplied': { en: 'optimizations applied', tr: 'optimizasyon uygulandı' },
+  'analytics.categories': { en: 'Categories', tr: 'Kategoriler' },
+  'analytics.noData': { en: 'No analytics data yet. Start optimizing your CV to see insights!', tr: 'Henüz analitik verisi yok. İçgörüler görmek için CV\'nizi optimize etmeye başlayın!' },
+  'analytics.clearData': { en: 'Clear Analytics Data', tr: 'Analitik Verisini Temizle' },
+  'analytics.clearConfirm': { en: 'Are you sure you want to clear all analytics data?', tr: 'Tüm analitik verisini temizlemek istediğinizden emin misiniz?' },
+  'analytics.sectionBreakdown': { en: 'Section Breakdown', tr: 'Bölüm Dağılımı' },
+  'analytics.categoryBreakdown': { en: 'Category Breakdown', tr: 'Kategori Dağılımı' },
+  'analytics.timeline': { en: 'Optimization Timeline', tr: 'Optimizasyon Zaman Çizelgesi' },
+
+  // Enhanced Profile Filter
+  'filter.sortBy': { en: 'Sort by', tr: 'Sırala' },
+  'filter.sortByName': { en: 'Name', tr: 'İsim' },
+  'filter.sortByUpdated': { en: 'Last Updated', tr: 'Son Güncelleme' },
+  'filter.sortByCreated': { en: 'Date Created', tr: 'Oluşturma Tarihi' },
+  'filter.sortOrder': { en: 'Order', tr: 'Sıralama' },
+  'filter.ascending': { en: 'Ascending', tr: 'Artan' },
+  'filter.descending': { en: 'Descending', tr: 'Azalan' },
+  'filter.dateRange': { en: 'Date Range', tr: 'Tarih Aralığı' },
+  'filter.from': { en: 'From', tr: 'Başlangıç' },
+  'filter.to': { en: 'To', tr: 'Bitiş' },
+  'filter.clearFilters': { en: 'Clear Filters', tr: 'Filtreleri Temizle' },
+  'filter.showFilters': { en: 'Show Filters', tr: 'Filtreleri Göster' },
+  'filter.hideFilters': { en: 'Hide Filters', tr: 'Filtreleri Gizle' },
 };
 
 export function t(lang: Lang, key: string): string {

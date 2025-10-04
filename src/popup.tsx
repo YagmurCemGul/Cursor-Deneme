@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import ReactDOM from 'react-dom/client';
-import { CVData, ATSOptimization, CVProfile } from './types';
+import { CVData, ATSOptimization, CVProfile, HistoryState, ProfileVersion, OptimizationAnalytics } from './types';
 import { CVUpload } from './components/CVUpload';
 import { JobDescriptionInput } from './components/JobDescriptionInput';
 import { PersonalInfoForm } from './components/PersonalInfoForm';
@@ -18,6 +18,7 @@ import { AISettings } from './components/AISettings';
 import { GoogleDriveSettings } from './components/GoogleDriveSettings';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { ATSScoreCard } from './components/ATSScoreCard';
+import { AnalyticsDashboard } from './components/AnalyticsDashboard';
 import { aiService } from './utils/aiService';
 import { AIConfig } from './utils/aiProviders';
 import { StorageService } from './utils/storage';
@@ -27,7 +28,7 @@ import { performanceMonitor } from './utils/performance';
 import { t } from './i18n';
 import './styles.css';
 
-type TabType = 'cv-info' | 'optimize' | 'cover-letter' | 'profiles' | 'settings';
+type TabType = 'cv-info' | 'optimize' | 'cover-letter' | 'profiles' | 'settings' | 'analytics';
 type Theme = 'light' | 'dark' | 'system';
 type Language = 'en' | 'tr';
 
@@ -71,10 +72,40 @@ const App: React.FC = () => {
   const [currentAIProvider, setCurrentAIProvider] = useState<'openai' | 'gemini' | 'claude'>(
     'openai'
   );
+  
+  // Undo/Redo state
+  const [undoStack, setUndoStack] = useState<HistoryState[]>([]);
+  const [redoStack, setRedoStack] = useState<HistoryState[]>([]);
+  const isUndoRedoOperation = useRef(false);
+  const currentProfileId = useRef<string | null>(null);
 
   useEffect(() => {
     loadInitial();
   }, []);
+
+  // Keyboard shortcuts for undo/redo
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Ctrl+Z or Cmd+Z for undo
+      if ((e.ctrlKey || e.metaKey) && e.key === 'z' && !e.shiftKey) {
+        e.preventDefault();
+        handleUndo();
+      }
+      // Ctrl+Shift+Z or Cmd+Shift+Z for redo
+      else if ((e.ctrlKey || e.metaKey) && e.key === 'z' && e.shiftKey) {
+        e.preventDefault();
+        handleRedo();
+      }
+      // Ctrl+Y or Cmd+Y for redo (alternative)
+      else if ((e.ctrlKey || e.metaKey) && e.key === 'y') {
+        e.preventDefault();
+        handleRedo();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [undoStack, redoStack, cvData]);
 
   useEffect(() => {
     const mq = window.matchMedia('(prefers-color-scheme: dark)');
@@ -182,8 +213,70 @@ const App: React.FC = () => {
     setOriginalCVData(null);
   };
 
+  // Push current state to undo stack
+  const pushToUndoStack = (data: CVData) => {
+    if (isUndoRedoOperation.current) return;
+    
+    setUndoStack(prev => {
+      const newStack = [...prev, { cvData: data, timestamp: Date.now() }];
+      // Keep only last 50 states
+      return newStack.slice(-50);
+    });
+    // Clear redo stack when new changes are made
+    setRedoStack([]);
+  };
+
+  // Undo handler
+  const handleUndo = () => {
+    if (undoStack.length === 0) {
+      alert(t(language, 'undo.noUndoHistory'));
+      return;
+    }
+
+    isUndoRedoOperation.current = true;
+    
+    // Save current state to redo stack
+    setRedoStack(prev => [...prev, { cvData, timestamp: Date.now() }]);
+    
+    // Pop from undo stack
+    const previousState = undoStack[undoStack.length - 1];
+    setUndoStack(prev => prev.slice(0, -1));
+    
+    setCVData(previousState.cvData);
+    
+    setTimeout(() => {
+      isUndoRedoOperation.current = false;
+    }, 100);
+  };
+
+  // Redo handler
+  const handleRedo = () => {
+    if (redoStack.length === 0) {
+      alert(t(language, 'undo.noRedoHistory'));
+      return;
+    }
+
+    isUndoRedoOperation.current = true;
+    
+    // Save current state to undo stack
+    setUndoStack(prev => [...prev, { cvData, timestamp: Date.now() }]);
+    
+    // Pop from redo stack
+    const nextState = redoStack[redoStack.length - 1];
+    setRedoStack(prev => prev.slice(0, -1));
+    
+    setCVData(nextState.cvData);
+    
+    setTimeout(() => {
+      isUndoRedoOperation.current = false;
+    }, 100);
+  };
+
   // Handler to update CV data and clear optimizations (when manually editing)
   const handleCVDataChange = (newCVData: CVData) => {
+    // Push current state to undo stack before changing
+    pushToUndoStack(cvData);
+    
     setCVData(newCVData);
     // If there are optimizations active and user manually edits, clear them
     if (optimizations.length > 0) {
@@ -209,6 +302,25 @@ const App: React.FC = () => {
       setOriginalCVData(JSON.parse(JSON.stringify(cvData)));
       // Set optimizations (all initially unapplied)
       setOptimizations(result.optimizations);
+      
+      // Save analytics data
+      const analytics: OptimizationAnalytics = {
+        id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
+        timestamp: new Date().toISOString(),
+        profileId: currentProfileId.current || undefined,
+        optimizationsApplied: result.optimizations.length,
+        categoriesOptimized: [...new Set(result.optimizations.map(o => o.category))],
+        jobDescriptionLength: jobDescription.length,
+        cvSections: [...new Set(result.optimizations.map(o => o.section).filter(Boolean))] as string[],
+        aiProvider: currentAIProvider,
+        changes: result.optimizations.map(o => ({
+          section: o.section || 'general',
+          category: o.category,
+          applied: o.applied
+        }))
+      };
+      await StorageService.saveAnalytics(analytics);
+      
       setActiveTab('optimize');
     } catch (error: any) {
       logger.error('Error optimizing CV:', error);
@@ -315,8 +427,9 @@ const App: React.FC = () => {
   };
 
   const handleSaveProfile = async (name: string) => {
+    const profileId = currentProfileId.current || Date.now().toString();
     const profile: CVProfile = {
-      id: Date.now().toString(),
+      id: profileId,
       name,
       data: cvData,
       createdAt: new Date().toISOString(),
@@ -324,6 +437,23 @@ const App: React.FC = () => {
     };
 
     await StorageService.saveProfile(profile);
+    currentProfileId.current = profileId;
+    
+    // Create version history entry
+    const existingVersions = await StorageService.getProfileVersions(profileId);
+    const versionNumber = existingVersions.length + 1;
+    
+    const version: ProfileVersion = {
+      id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
+      profileId,
+      versionNumber,
+      data: cvData,
+      createdAt: new Date().toISOString(),
+      description: `${t(language, 'version.manual')} - ${name}`,
+    };
+    
+    await StorageService.saveProfileVersion(version);
+    
     setProfileName(name);
     alert(t(language, 'profile.saveSuccess'));
   };
@@ -331,10 +461,14 @@ const App: React.FC = () => {
   const handleLoadProfile = (profile: CVProfile) => {
     setCVData(profile.data);
     setProfileName(profile.name);
+    currentProfileId.current = profile.id;
     setActiveTab('cv-info');
     // Clear optimizations when loading a new profile
     setOptimizations([]);
     setOriginalCVData(null);
+    // Clear undo/redo stacks when loading a new profile
+    setUndoStack([]);
+    setRedoStack([]);
     alert(t(language, 'profile.loadSuccess'));
   };
 
@@ -383,6 +517,43 @@ const App: React.FC = () => {
                 ? 'Gemini'
                 : 'Claude'}
           </div>
+          
+          {/* Undo/Redo Buttons */}
+          <button
+            onClick={handleUndo}
+            disabled={undoStack.length === 0}
+            style={{
+              fontSize: '16px',
+              padding: '6px 12px',
+              borderRadius: '6px',
+              border: 'none',
+              background: undoStack.length > 0 ? 'var(--primary-color)' : 'rgba(128,128,128,0.3)',
+              color: undoStack.length > 0 ? 'white' : 'rgba(128,128,128,0.7)',
+              cursor: undoStack.length > 0 ? 'pointer' : 'not-allowed',
+              opacity: undoStack.length > 0 ? 1 : 0.5,
+            }}
+            title={`${t(language, 'undo.undo')} (Ctrl+Z)`}
+          >
+            ↶
+          </button>
+          <button
+            onClick={handleRedo}
+            disabled={redoStack.length === 0}
+            style={{
+              fontSize: '16px',
+              padding: '6px 12px',
+              borderRadius: '6px',
+              border: 'none',
+              background: redoStack.length > 0 ? 'var(--primary-color)' : 'rgba(128,128,128,0.3)',
+              color: redoStack.length > 0 ? 'white' : 'rgba(128,128,128,0.7)',
+              cursor: redoStack.length > 0 ? 'pointer' : 'not-allowed',
+              opacity: redoStack.length > 0 ? 1 : 0.5,
+            }}
+            title={`${t(language, 'undo.redo')} (Ctrl+Shift+Z)`}
+          >
+            ↷
+          </button>
+          
           <button
             onClick={() => {/* TODO: Add keyboard shortcuts help */}}
             style={{
@@ -446,6 +617,15 @@ const App: React.FC = () => {
           aria-label={t(language, 'tabs.settings')}
         >
           ⚙️ {t(language, 'tabs.settings')}
+        </button>
+        <button
+          className={`tab ${activeTab === 'analytics' ? 'active' : ''}`}
+          onClick={() => setActiveTab('analytics')}
+          role="tab"
+          aria-selected={activeTab === 'analytics'}
+          aria-label={t(language, 'analytics.title')}
+        >
+          📊 {t(language, 'analytics.title')}
         </button>
       </div>
 
@@ -579,6 +759,10 @@ const App: React.FC = () => {
 
             <GoogleDriveSettings language={language} />
           </>
+        )}
+
+        {activeTab === 'analytics' && (
+          <AnalyticsDashboard language={language} />
         )}
       </div>
     </div>

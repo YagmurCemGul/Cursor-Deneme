@@ -132,3 +132,44 @@ export interface CoverLetterTemplateSelection {
   name: string;
   selected: boolean;
 }
+
+export interface ProfileVersion {
+  id: string;
+  profileId: string;
+  versionNumber: number;
+  data: CVData;
+  createdAt: string;
+  description?: string;
+  changesSummary?: string;
+}
+
+export interface HistoryState {
+  cvData: CVData;
+  timestamp: number;
+}
+
+export interface OptimizationAnalytics {
+  id: string;
+  timestamp: string;
+  profileId?: string;
+  optimizationsApplied: number;
+  categoriesOptimized: string[];
+  jobDescriptionLength: number;
+  cvSections: string[];
+  aiProvider: 'openai' | 'gemini' | 'claude';
+  changes: Array<{
+    section: string;
+    category: string;
+    applied: boolean;
+  }>;
+}
+
+export interface ProfileFilter {
+  searchQuery: string;
+  dateRange?: {
+    start: string;
+    end: string;
+  };
+  sortBy: 'name' | 'updatedAt' | 'createdAt';
+  sortOrder: 'asc' | 'desc';
+}

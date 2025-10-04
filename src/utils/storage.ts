@@ -139,4 +139,53 @@ export class StorageService {
     const settings = (await this.getSettings()) as any;
     return settings?.aiModel;
   }
+
+  // Profile Version History
+  static async saveProfileVersion(version: import('../types').ProfileVersion): Promise<void> {
+    const { profileVersions = [] } = await chrome.storage.local.get('profileVersions');
+    profileVersions.push(version);
+    // Keep only last 20 versions per profile
+    const filteredVersions = profileVersions
+      .filter((v: any) => v.profileId === version.profileId)
+      .sort((a: any, b: any) => b.versionNumber - a.versionNumber)
+      .slice(0, 20);
+    
+    const otherVersions = profileVersions.filter((v: any) => v.profileId !== version.profileId);
+    await chrome.storage.local.set({ profileVersions: [...otherVersions, ...filteredVersions] });
+  }
+
+  static async getProfileVersions(profileId: string): Promise<import('../types').ProfileVersion[]> {
+    const { profileVersions = [] } = await chrome.storage.local.get('profileVersions');
+    return profileVersions
+      .filter((v: import('../types').ProfileVersion) => v.profileId === profileId)
+      .sort((a: import('../types').ProfileVersion, b: import('../types').ProfileVersion) => 
+        b.versionNumber - a.versionNumber
+      );
+  }
+
+  static async deleteProfileVersions(profileId: string): Promise<void> {
+    const { profileVersions = [] } = await chrome.storage.local.get('profileVersions');
+    const filtered = profileVersions.filter((v: import('../types').ProfileVersion) => v.profileId !== profileId);
+    await chrome.storage.local.set({ profileVersions: filtered });
+  }
+
+  // Optimization Analytics
+  static async saveAnalytics(analytics: import('../types').OptimizationAnalytics): Promise<void> {
+    const { analyticsData = [] } = await chrome.storage.local.get('analyticsData');
+    analyticsData.push(analytics);
+    // Keep only last 100 analytics entries
+    const trimmed = analyticsData.slice(-100);
+    await chrome.storage.local.set({ analyticsData: trimmed });
+  }
+
+  static async getAnalytics(): Promise<import('../types').OptimizationAnalytics[]> {
+    const { analyticsData = [] } = await chrome.storage.local.get('analyticsData');
+    return analyticsData.sort((a: import('../types').OptimizationAnalytics, b: import('../types').OptimizationAnalytics) => 
+      new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+    );
+  }
+
+  static async clearAnalytics(): Promise<void> {
+    await chrome.storage.local.set({ analyticsData: [] });
+  }
 }
