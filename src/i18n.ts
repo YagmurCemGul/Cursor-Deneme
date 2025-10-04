@@ -221,6 +221,12 @@ const dict: Record<string, Record<Lang, string>> = {
   'questions.answerPlaceholder': { en: 'Your answer...', tr: 'Cevabınız...' },
   'questions.type': { en: 'Type', tr: 'Tip' },
   'questions.emptyState': { en: 'No custom questions added. Add questions to capture additional information!', tr: 'Özel soru eklenmedi. Ek bilgi toplamak için sorular ekleyin!' },
+  'questions.options': { en: 'Options', tr: 'Seçenekler' },
+  'questions.addOption': { en: 'Add Option', tr: 'Seçenek Ekle' },
+  'questions.optionPlaceholder': { en: 'Enter option text...', tr: 'Seçenek metnini girin...' },
+  'questions.removeOption': { en: 'Remove option', tr: 'Seçeneği kaldır' },
+  'questions.optionsRequired': { en: 'Please add at least one option for this question type', tr: 'Bu soru tipi için en az bir seçenek ekleyin' },
+  'questions.optionsHelp': { en: 'Add options that users can choose from', tr: 'Kullanıcıların seçebileceği seçenekler ekleyin' },
   
   // Rich Text Editor
   'editor.bold': { en: 'Bold', tr: 'Kalın' },

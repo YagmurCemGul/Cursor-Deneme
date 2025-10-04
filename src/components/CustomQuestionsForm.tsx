@@ -12,21 +12,55 @@ export const CustomQuestionsForm: React.FC<CustomQuestionsFormProps> = ({ questi
   const [isAdding, setIsAdding] = useState(false);
   const [newQuestionText, setNewQuestionText] = useState('');
   const [newQuestionType, setNewQuestionType] = useState<CustomQuestion['type']>('text');
+  const [newQuestionOptions, setNewQuestionOptions] = useState<string[]>([]);
+  const [currentOptionText, setCurrentOptionText] = useState('');
+
+  const requiresOptions = (type: CustomQuestion['type']) => {
+    return type === 'choice' || type === 'selection' || type === 'checkbox';
+  };
+
+  const handleAddOption = () => {
+    if (currentOptionText.trim()) {
+      setNewQuestionOptions([...newQuestionOptions, currentOptionText.trim()]);
+      setCurrentOptionText('');
+    }
+  };
+
+  const handleRemoveOption = (index: number) => {
+    setNewQuestionOptions(newQuestionOptions.filter((_, idx) => idx !== index));
+  };
+
+  const handleTypeChange = (type: CustomQuestion['type']) => {
+    setNewQuestionType(type);
+    // Reset options when changing type
+    if (!requiresOptions(type)) {
+      setNewQuestionOptions([]);
+      setCurrentOptionText('');
+    }
+  };
 
   const handleAdd = () => {
     if (!newQuestionText.trim()) return;
+    
+    // Validate options for option-based question types
+    if (requiresOptions(newQuestionType) && newQuestionOptions.length === 0) {
+      alert(t(language, 'questions.optionsRequired'));
+      return;
+    }
     
     const newQuestion: CustomQuestion = {
       id: Date.now().toString(),
       question: newQuestionText,
       type: newQuestionType,
-      options: (newQuestionType === 'choice' || newQuestionType === 'selection' || newQuestionType === 'checkbox') ? [] : undefined,
+      options: requiresOptions(newQuestionType) ? newQuestionOptions : undefined,
       answer: newQuestionType === 'checkbox' ? [] : ''
     };
     
     onChange([...questions, newQuestion]);
     setNewQuestionText('');
     setNewQuestionType('text');
+    setNewQuestionOptions([]);
+    setCurrentOptionText('');
     setIsAdding(false);
   };
 
@@ -58,41 +92,53 @@ export const CustomQuestionsForm: React.FC<CustomQuestionsFormProps> = ({ questi
       case 'selection':
         return (
           <div className="radio-group">
-            {question.options?.map((option, idx) => (
-              <div key={idx} className="radio-item">
-                <input
-                  type="radio"
-                  id={`${question.id}-${idx}`}
-                  name={question.id}
-                  checked={question.answer === option}
-                  onChange={() => handleUpdate(question.id, 'answer', option)}
-                />
-                <label htmlFor={`${question.id}-${idx}`}>{option}</label>
+            {question.options && question.options.length > 0 ? (
+              question.options.map((option, idx) => (
+                <div key={idx} className="radio-item">
+                  <input
+                    type="radio"
+                    id={`${question.id}-${idx}`}
+                    name={question.id}
+                    checked={question.answer === option}
+                    onChange={() => handleUpdate(question.id, 'answer', option)}
+                  />
+                  <label htmlFor={`${question.id}-${idx}`}>{option}</label>
+                </div>
+              ))
+            ) : (
+              <div style={{ color: 'var(--text-secondary)', fontStyle: 'italic' }}>
+                {t(language, 'questions.optionsRequired')}
               </div>
-            ))}
+            )}
           </div>
         );
       
       case 'checkbox':
         return (
           <div className="checkbox-group">
-            {question.options?.map((option, idx) => (
-              <div key={idx} className="checkbox-item">
-                <input
-                  type="checkbox"
-                  id={`${question.id}-${idx}`}
-                  checked={(question.answer as string[]).includes(option)}
-                  onChange={(e) => {
-                    const currentAnswers = question.answer as string[];
-                    const newAnswers = e.target.checked
-                      ? [...currentAnswers, option]
-                      : currentAnswers.filter(a => a !== option);
-                    handleUpdate(question.id, 'answer', newAnswers);
-                  }}
-                />
-                <label htmlFor={`${question.id}-${idx}`}>{option}</label>
+            {question.options && question.options.length > 0 ? (
+              question.options.map((option, idx) => (
+                <div key={idx} className="checkbox-item">
+                  <input
+                    type="checkbox"
+                    id={`${question.id}-${idx}`}
+                    checked={(question.answer as string[]).includes(option)}
+                    onChange={(e) => {
+                      const currentAnswers = question.answer as string[];
+                      const newAnswers = e.target.checked
+                        ? [...currentAnswers, option]
+                        : currentAnswers.filter(a => a !== option);
+                      handleUpdate(question.id, 'answer', newAnswers);
+                    }}
+                  />
+                  <label htmlFor={`${question.id}-${idx}`}>{option}</label>
+                </div>
+              ))
+            ) : (
+              <div style={{ color: 'var(--text-secondary)', fontStyle: 'italic' }}>
+                {t(language, 'questions.optionsRequired')}
               </div>
-            ))}
+            )}
           </div>
         );
       
@@ -128,7 +174,7 @@ export const CustomQuestionsForm: React.FC<CustomQuestionsFormProps> = ({ questi
             <select
               className="form-select"
               value={newQuestionType}
-              onChange={(e) => setNewQuestionType(e.target.value as CustomQuestion['type'])}
+              onChange={(e) => handleTypeChange(e.target.value as CustomQuestion['type'])}
             >
               <option value="text">{t(language, 'questions.textInput')}</option>
               <option value="form_group">{t(language, 'questions.formGroup')}</option>
@@ -138,6 +184,67 @@ export const CustomQuestionsForm: React.FC<CustomQuestionsFormProps> = ({ questi
               <option value="checkbox">{t(language, 'questions.checkbox')}</option>
             </select>
           </div>
+          
+          {requiresOptions(newQuestionType) && (
+            <div className="form-group">
+              <label className="form-label">
+                {t(language, 'questions.options')}
+                <span className="form-help-text"> - {t(language, 'questions.optionsHelp')}</span>
+              </label>
+              
+              <div style={{ display: 'flex', gap: '8px', marginBottom: '12px' }}>
+                <input
+                  type="text"
+                  className="form-input"
+                  value={currentOptionText}
+                  onChange={(e) => setCurrentOptionText(e.target.value)}
+                  onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), handleAddOption())}
+                  placeholder={t(language, 'questions.optionPlaceholder')}
+                  style={{ flex: 1 }}
+                />
+                <button 
+                  type="button"
+                  className="btn btn-secondary" 
+                  onClick={handleAddOption}
+                  disabled={!currentOptionText.trim()}
+                >
+                  + {t(language, 'questions.addOption')}
+                </button>
+              </div>
+              
+              {newQuestionOptions.length > 0 && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  {newQuestionOptions.map((option, idx) => (
+                    <div 
+                      key={idx} 
+                      style={{ 
+                        display: 'flex', 
+                        alignItems: 'center', 
+                        justifyContent: 'space-between',
+                        padding: '8px 12px',
+                        backgroundColor: 'var(--bg-secondary)',
+                        borderRadius: '6px',
+                        border: '1px solid var(--border-color)'
+                      }}
+                    >
+                      <span style={{ flex: 1 }}>
+                        {newQuestionType === 'checkbox' ? '☑' : '◉'} {option}
+                      </span>
+                      <button
+                        type="button"
+                        className="btn btn-danger btn-icon"
+                        onClick={() => handleRemoveOption(idx)}
+                        title={t(language, 'questions.removeOption')}
+                        style={{ minWidth: 'auto', padding: '4px 8px' }}
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
           
           <button className="btn btn-success" onClick={handleAdd}>
             ✓ {t(language, 'questions.add')}
@@ -157,7 +264,14 @@ export const CustomQuestionsForm: React.FC<CustomQuestionsFormProps> = ({ questi
               <div className="card-header">
                 <div>
                   <div className="card-title">{question.question}</div>
-                  <div className="card-meta">{t(language, 'questions.type')}: {question.type}</div>
+                  <div className="card-meta">
+                    {t(language, 'questions.type')}: {question.type}
+                    {question.options && question.options.length > 0 && (
+                      <span style={{ marginLeft: '8px', color: 'var(--text-secondary)' }}>
+                        ({question.options.length} {t(language, 'questions.options').toLowerCase()})
+                      </span>
+                    )}
+                  </div>
                 </div>
                 <button
                   className="btn btn-danger btn-icon"
@@ -166,6 +280,19 @@ export const CustomQuestionsForm: React.FC<CustomQuestionsFormProps> = ({ questi
                   🗑️
                 </button>
               </div>
+              
+              {question.options && question.options.length === 0 && requiresOptions(question.type) && (
+                <div style={{ 
+                  padding: '12px', 
+                  backgroundColor: 'var(--warning-bg, #fff3cd)', 
+                  border: '1px solid var(--warning-border, #ffc107)',
+                  borderRadius: '6px',
+                  marginBottom: '12px',
+                  color: 'var(--warning-text, #856404)'
+                }}>
+                  ⚠️ {t(language, 'questions.optionsRequired')}
+                </div>
+              )}
               
               <div className="form-group">
                 <label className="form-label">{t(language, 'questions.answer')}</label>
