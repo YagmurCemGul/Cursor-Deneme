@@ -197,6 +197,25 @@ export interface ErrorLog {
   userAgent?: string;
   resolved?: boolean;
   metadata?: Record<string, any>;
+  groupId?: string; // For grouping similar errors
+  breadcrumbs?: ErrorBreadcrumb[]; // User actions leading to error
+  performanceImpact?: {
+    memoryUsage?: number;
+    loadTime?: number;
+    renderTime?: number;
+  };
+  screenshot?: string; // Base64 screenshot of UI state
+  recoverable?: boolean; // Can this error be recovered from?
+  recoverySuggestion?: string; // Suggestion for recovery
+  count?: number; // Number of times this grouped error occurred
+}
+
+export interface ErrorBreadcrumb {
+  timestamp: string;
+  type: 'navigation' | 'click' | 'input' | 'api' | 'error';
+  category: string;
+  message: string;
+  data?: Record<string, any>;
 }
 
 export interface ErrorAnalytics {
@@ -209,4 +228,42 @@ export interface ErrorAnalytics {
     date: string;
     count: number;
   }[];
+  groupedErrors?: ErrorGroup[];
+  errorRate?: {
+    lastHour: number;
+    lastDay: number;
+    lastWeek: number;
+  };
+  performanceImpact?: {
+    avgMemoryIncrease: number;
+    avgLoadTimeIncrease: number;
+    totalImpactedOperations: number;
+  };
+}
+
+export interface ErrorGroup {
+  id: string;
+  message: string;
+  count: number;
+  firstSeen: string;
+  lastSeen: string;
+  errorType: string;
+  severity: string;
+  errors: ErrorLog[];
+}
+
+export interface ErrorReportingConfig {
+  enabled: boolean;
+  webhookUrl?: string;
+  reportCriticalOnly: boolean;
+  includeStackTrace: boolean;
+  includeScreenshot: boolean;
+  includeBreadcrumbs: boolean;
+}
+
+export interface ErrorAlertConfig {
+  enabled: boolean;
+  thresholdPerHour: number;
+  criticalErrorThreshold: number;
+  notificationMethod: 'browser' | 'webhook' | 'both';
 }

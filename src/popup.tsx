@@ -19,13 +19,14 @@ import { GoogleDriveSettings } from './components/GoogleDriveSettings';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { ATSScoreCard } from './components/ATSScoreCard';
 import { AnalyticsDashboard } from './components/AnalyticsDashboard';
-import { ErrorAnalyticsDashboard } from './components/ErrorAnalyticsDashboard';
+import { ErrorAnalyticsDashboardEnhanced } from './components/ErrorAnalyticsDashboardEnhanced';
 import { aiService } from './utils/aiService';
 import { AIConfig } from './utils/aiProviders';
 import { StorageService } from './utils/storage';
 import { applyCVOptimizations } from './utils/cvOptimizer';
 import { logger } from './utils/logger';
 import { errorTracker } from './utils/errorTracking';
+import { breadcrumbTracker } from './utils/breadcrumbTracker';
 import { performanceMonitor } from './utils/performance';
 import { t } from './i18n';
 import './styles.css';
@@ -83,6 +84,8 @@ const App: React.FC = () => {
 
   useEffect(() => {
     loadInitial();
+    // Initialize breadcrumb tracking
+    breadcrumbTracker.initializeAutoTracking();
   }, []);
 
   // Keyboard shortcuts for undo/redo
@@ -766,7 +769,7 @@ const App: React.FC = () => {
         {activeTab === 'analytics' && (
           <>
             <AnalyticsDashboard language={language} />
-            <ErrorAnalyticsDashboard language={language} />
+            <ErrorAnalyticsDashboardEnhanced language={language} />
           </>
         )}
       </div>

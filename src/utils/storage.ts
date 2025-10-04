@@ -265,8 +265,25 @@ export class StorageService {
     const errorsBySeverity: Record<string, number> = {};
     const errorsByComponent: Record<string, number> = {};
     const errorTrendsMap: Record<string, number> = {};
+    const errorGroups: Map<string, import('../types').ErrorGroup> = new Map();
+
+    // Calculate time windows
+    const now = new Date();
+    const oneHourAgo = new Date(now.getTime() - 60 * 60 * 1000);
+    const oneDayAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+    const oneWeekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+
+    let errorsLastHour = 0;
+    let errorsLastDay = 0;
+    let errorsLastWeek = 0;
+
+    let totalMemoryImpact = 0;
+    let totalLoadTimeImpact = 0;
+    let impactedOperations = 0;
 
     errorLogs.forEach((error) => {
+      const errorTime = new Date(error.timestamp);
+
       // Count by type
       errorsByType[error.errorType] = (errorsByType[error.errorType] || 0) + 1;
       
@@ -281,11 +298,57 @@ export class StorageService {
       // Count by date for trends
       const date = new Date(error.timestamp).toISOString().split('T')[0];
       errorTrendsMap[date] = (errorTrendsMap[date] || 0) + 1;
+
+      // Error rate calculations
+      if (errorTime >= oneHourAgo) errorsLastHour++;
+      if (errorTime >= oneDayAgo) errorsLastDay++;
+      if (errorTime >= oneWeekAgo) errorsLastWeek++;
+
+      // Performance impact
+      if (error.performanceImpact) {
+        if (error.performanceImpact.memoryUsage) {
+          totalMemoryImpact += error.performanceImpact.memoryUsage;
+        }
+        if (error.performanceImpact.loadTime) {
+          totalLoadTimeImpact += error.performanceImpact.loadTime;
+        }
+        impactedOperations++;
+      }
+
+      // Group errors
+      if (error.groupId) {
+        if (!errorGroups.has(error.groupId)) {
+          errorGroups.set(error.groupId, {
+            id: error.groupId,
+            message: error.message,
+            count: 0,
+            firstSeen: error.timestamp,
+            lastSeen: error.timestamp,
+            errorType: error.errorType,
+            severity: error.severity,
+            errors: [],
+          });
+        }
+
+        const group = errorGroups.get(error.groupId)!;
+        group.count++;
+        group.lastSeen = error.timestamp;
+        if (new Date(error.timestamp) < new Date(group.firstSeen)) {
+          group.firstSeen = error.timestamp;
+        }
+        // Only keep last 5 errors per group to save space
+        if (group.errors.length < 5) {
+          group.errors.push(error);
+        }
+      }
     });
 
     const errorTrends = Object.entries(errorTrendsMap)
       .map(([date, count]) => ({ date, count }))
       .sort((a, b) => a.date.localeCompare(b.date));
+
+    const groupedErrors = Array.from(errorGroups.values())
+      .sort((a, b) => b.count - a.count);
 
     return {
       totalErrors,
@@ -294,6 +357,17 @@ export class StorageService {
       errorsByComponent,
       recentErrors: errorLogs.slice(0, 20),
       errorTrends,
+      groupedErrors,
+      errorRate: {
+        lastHour: errorsLastHour,
+        lastDay: errorsLastDay,
+        lastWeek: errorsLastWeek,
+      },
+      performanceImpact: impactedOperations > 0 ? {
+        avgMemoryIncrease: totalMemoryImpact / impactedOperations,
+        avgLoadTimeIncrease: totalLoadTimeImpact / impactedOperations,
+        totalImpactedOperations: impactedOperations,
+      } : undefined,
     };
   }
 }
