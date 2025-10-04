@@ -1,6 +1,8 @@
 import { CVData, ATSOptimization } from '../types';
-import { createAIProvider, AIConfig, AIProviderAdapter } from './aiProviders';
+import { createAIProvider, AIConfig, AIProviderAdapter, AIProvider } from './aiProviders';
 import { logger } from './logger';
+import { usageAnalytics } from './usageAnalytics';
+import { StorageService } from './storage';
 
 /**
  * AIService - Handles AI-powered CV optimization and cover letter generation
@@ -20,6 +22,9 @@ import { logger } from './logger';
 export class AIService {
   private provider: AIProviderAdapter | null = null;
   private useMockMode: boolean = false;
+  private currentProvider: AIProvider | null = null;
+  private fallbackProviders: AIProvider[] = [];
+  private autoFallbackEnabled: boolean = true;
 
   /**
    * Creates an instance of AIService
@@ -31,7 +36,9 @@ export class AIService {
     if (config && config.apiKey && config.apiKey.trim()) {
       try {
         this.provider = createAIProvider(config);
+        this.currentProvider = config.provider;
         this.useMockMode = false;
+        this.initializeFallbackProviders(config.provider);
       } catch (error) {
         logger.error('Failed to initialize AI provider, falling back to mock mode:', error);
         this.useMockMode = true;
@@ -43,6 +50,14 @@ export class AIService {
   }
 
   /**
+   * Initialize fallback providers
+   */
+  private initializeFallbackProviders(currentProvider: AIProvider): void {
+    const allProviders: AIProvider[] = ['openai', 'gemini', 'claude'];
+    this.fallbackProviders = allProviders.filter(p => p !== currentProvider);
+  }
+
+  /**
    * Update the AI provider configuration
    * 
    * @param {AIConfig} config - New AI configuration
@@ -51,12 +66,95 @@ export class AIService {
    */
   updateConfig(config: AIConfig): void {
     try {
+      const oldProvider = this.currentProvider;
       this.provider = createAIProvider(config);
+      this.currentProvider = config.provider;
       this.useMockMode = false;
+      this.initializeFallbackProviders(config.provider);
+      
+      // Track provider switch
+      if (oldProvider && oldProvider !== config.provider) {
+        usageAnalytics.trackProviderSwitch(oldProvider, config.provider);
+      }
     } catch (error) {
       logger.error('Failed to update AI provider:', error);
       throw error;
     }
+  }
+
+  /**
+   * Enable or disable auto-fallback
+   */
+  setAutoFallback(enabled: boolean): void {
+    this.autoFallbackEnabled = enabled;
+    logger.info(`Auto-fallback ${enabled ? 'enabled' : 'disabled'}`);
+  }
+
+  /**
+   * Try fallback providers if primary fails
+   */
+  private async tryFallbackProviders<T>(
+    operation: (provider: AIProviderAdapter) => Promise<T>,
+    operationName: string
+  ): Promise<T> {
+    if (!this.autoFallbackEnabled || this.fallbackProviders.length === 0) {
+      throw new Error('Primary provider failed and no fallback available');
+    }
+
+    logger.info(`Attempting fallback for ${operationName}`);
+
+    for (const fallbackProvider of this.fallbackProviders) {
+      try {
+        // Get API keys from storage
+        const apiKeys = await StorageService.getAPIKeys();
+        const apiKey = apiKeys[fallbackProvider];
+
+        if (!apiKey) {
+          logger.warn(`No API key for fallback provider: ${fallbackProvider}`);
+          continue;
+        }
+
+        logger.info(`Trying fallback provider: ${fallbackProvider}`);
+        
+        const fallbackConfig: AIConfig = {
+          provider: fallbackProvider,
+          apiKey,
+          temperature: 0.3,
+        };
+
+        const fallbackProviderAdapter = createAIProvider(fallbackConfig);
+        const result = await operation(fallbackProviderAdapter);
+
+        logger.info(`Fallback successful with provider: ${fallbackProvider}`);
+        
+        // Track successful fallback
+        await usageAnalytics.trackEvent({
+          eventType: 'api_call',
+          provider: fallbackProvider,
+          success: true,
+          metadata: { 
+            isFallback: true, 
+            originalProvider: this.currentProvider,
+            operationName 
+          },
+        });
+
+        return result;
+      } catch (error) {
+        logger.warn(`Fallback provider ${fallbackProvider} failed:`, error);
+        
+        // Track failed fallback attempt
+        await usageAnalytics.trackError(
+          fallbackProvider,
+          `Fallback failed: ${error}`,
+          { isFallback: true, operationName }
+        );
+        
+        continue;
+      }
+    }
+
+    throw new Error('All fallback providers failed');
   }
 
   /**
@@ -73,13 +171,51 @@ export class AIService {
     cvData: CVData,
     jobDescription: string
   ): Promise<{ optimizedCV: CVData; optimizations: ATSOptimization[] }> {
+    const startTime = Date.now();
+    
     // If we have a real provider configured, use it
     if (!this.useMockMode && this.provider) {
       try {
-        return await this.provider.optimizeCV(cvData, jobDescription);
+        const result = await this.provider.optimizeCV(cvData, jobDescription);
+        const duration = Date.now() - startTime;
+        
+        // Track successful optimization
+        if (this.currentProvider) {
+          await usageAnalytics.trackCVOptimization(
+            this.currentProvider,
+            true,
+            duration,
+            { optimizationCount: result.optimizations.length }
+          );
+        }
+        
+        return result;
       } catch (error) {
-        logger.error('AI provider error, falling back to mock:', error);
-        // Fall through to mock mode
+        const duration = Date.now() - startTime;
+        logger.error('AI provider error:', error);
+        
+        // Track failed attempt
+        if (this.currentProvider) {
+          await usageAnalytics.trackCVOptimization(
+            this.currentProvider,
+            false,
+            duration,
+            { error: String(error) }
+          );
+        }
+        
+        // Try fallback providers
+        if (this.autoFallbackEnabled) {
+          try {
+            return await this.tryFallbackProviders(
+              (provider) => provider.optimizeCV(cvData, jobDescription),
+              'optimizeCV'
+            );
+          } catch (fallbackError) {
+            logger.error('All fallback providers failed:', fallbackError);
+            // Fall through to mock mode
+          }
+        }
       }
     }
 
@@ -138,16 +274,55 @@ export class AIService {
     jobDescription: string,
     extraPrompt?: string
   ): Promise<string> {
+    const startTime = Date.now();
+    
     // Validate inputs
     this.validateCoverLetterInputs(cvData, jobDescription);
 
     // If we have a real provider configured, use it
     if (!this.useMockMode && this.provider) {
       try {
-        return await this.provider.generateCoverLetter(cvData, jobDescription, extraPrompt);
+        const result = await this.provider.generateCoverLetter(cvData, jobDescription, extraPrompt);
+        const duration = Date.now() - startTime;
+        
+        // Track successful generation
+        if (this.currentProvider) {
+          await usageAnalytics.trackCoverLetterGeneration(
+            this.currentProvider,
+            true,
+            duration,
+            { hasExtraPrompt: !!extraPrompt }
+          );
+        }
+        
+        return result;
       } catch (error: any) {
+        const duration = Date.now() - startTime;
         logger.error('AI provider error:', error);
-        // Don't fall back to mock mode - let user know what went wrong
+        
+        // Track failed attempt
+        if (this.currentProvider) {
+          await usageAnalytics.trackCoverLetterGeneration(
+            this.currentProvider,
+            false,
+            duration,
+            { error: String(error) }
+          );
+        }
+        
+        // Try fallback providers
+        if (this.autoFallbackEnabled) {
+          try {
+            return await this.tryFallbackProviders(
+              (provider) => provider.generateCoverLetter(cvData, jobDescription, extraPrompt),
+              'generateCoverLetter'
+            );
+          } catch (fallbackError) {
+            logger.error('All fallback providers failed:', fallbackError);
+            throw error; // Throw original error
+          }
+        }
+        
         throw error;
       }
     }
