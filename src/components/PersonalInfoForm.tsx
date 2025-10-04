@@ -1,6 +1,7 @@
 import React, { useRef, useState } from 'react';
 import { PersonalInfo } from '../types';
 import { t, Lang } from '../i18n';
+import { PhotoCropper } from './PhotoCropper';
 
 interface PersonalInfoFormProps {
   data: PersonalInfo;
@@ -12,6 +13,10 @@ export const PersonalInfoForm: React.FC<PersonalInfoFormProps> = ({ data, onChan
   const [emailValidation, setEmailValidation] = useState<{ isValid: boolean; message: string }>({ isValid: true, message: '' });
   const [emailSuggestions, setEmailSuggestions] = useState<string[]>([]);
   const [showEmailSuggestions, setShowEmailSuggestions] = useState(false);
+  const [photoError, setPhotoError] = useState<string>('');
+  const [photoLoading, setPhotoLoading] = useState(false);
+  const [showCropper, setShowCropper] = useState(false);
+  const [tempPhotoUrl, setTempPhotoUrl] = useState<string>('');
   
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
@@ -119,15 +124,121 @@ export const PersonalInfoForm: React.FC<PersonalInfoFormProps> = ({ data, onChan
     validateEmail(suggestion);
   };
 
+  const compressImage = (file: File, maxSizeMB: number = 0.5): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          let width = img.width;
+          let height = img.height;
+          
+          // Maintain aspect ratio, max dimension 500px
+          const maxDimension = 500;
+          if (width > height && width > maxDimension) {
+            height = (height * maxDimension) / width;
+            width = maxDimension;
+          } else if (height > maxDimension) {
+            width = (width * maxDimension) / height;
+            height = maxDimension;
+          }
+          
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          ctx?.drawImage(img, 0, 0, width, height);
+          
+          // Try different quality levels to meet size requirement
+          let quality = 0.9;
+          let dataUrl = canvas.toDataURL('image/jpeg', quality);
+          
+          // Estimate size and reduce quality if needed
+          while (dataUrl.length > maxSizeMB * 1024 * 1024 * 1.37 && quality > 0.1) {
+            quality -= 0.1;
+            dataUrl = canvas.toDataURL('image/jpeg', quality);
+          }
+          
+          resolve(dataUrl);
+        };
+        img.onerror = reject;
+        img.src = e.target?.result as string;
+      };
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  };
+
   const handlePhotoSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    const reader = new FileReader();
-    reader.onload = () => {
-      const result = reader.result as string;
-      onChange({ ...data, photoDataUrl: result });
-    };
-    reader.readAsDataURL(file);
+    
+    setPhotoError('');
+    setPhotoLoading(true);
+    
+    // Validate file type
+    const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+    if (!validTypes.includes(file.type)) {
+      setPhotoError('Please upload a valid image file (JPEG, PNG, or WebP)');
+      setPhotoLoading(false);
+      return;
+    }
+    
+    // Validate file size (max 10MB before compression)
+    const maxSize = 10 * 1024 * 1024;
+    if (file.size > maxSize) {
+      setPhotoError('Image is too large. Please upload an image smaller than 10MB.');
+      setPhotoLoading(false);
+      return;
+    }
+    
+    try {
+      // Load image for cropping
+      const reader = new FileReader();
+      reader.onload = () => {
+        setTempPhotoUrl(reader.result as string);
+        setShowCropper(true);
+        setPhotoLoading(false);
+      };
+      reader.readAsDataURL(file);
+    } catch (error) {
+      setPhotoError('Error processing image. Please try another file.');
+      console.error('Image processing error:', error);
+      setPhotoLoading(false);
+    } finally {
+      // Reset file input
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    }
+  };
+
+  const handleCropComplete = async (croppedDataUrl: string) => {
+    setShowCropper(false);
+    setPhotoLoading(true);
+    
+    try {
+      // Create a file from the cropped data URL for compression
+      const response = await fetch(croppedDataUrl);
+      const blob = await response.blob();
+      const file = new File([blob], 'cropped.jpg', { type: 'image/jpeg' });
+      
+      // Compress the cropped image
+      const compressedDataUrl = await compressImage(file, 0.3);
+      onChange({ ...data, photoDataUrl: compressedDataUrl });
+    } catch (error) {
+      setPhotoError('Error processing cropped image. Please try again.');
+      console.error('Crop processing error:', error);
+    } finally {
+      setPhotoLoading(false);
+      setTempPhotoUrl('');
+    }
+  };
+
+  const handleCropCancel = () => {
+    setShowCropper(false);
+    setTempPhotoUrl('');
+    setPhotoLoading(false);
   };
 
   return (
@@ -243,19 +354,75 @@ export const PersonalInfoForm: React.FC<PersonalInfoFormProps> = ({ data, onChan
       <div className="form-group">
         <label className="form-label">{t(language, 'personal.photo')}</label>
         <div className="photo-upload-container">
-          {data.photoDataUrl ? (
+          {photoLoading ? (
+            <div className="photo-preview-loading">
+              <div className="spinner"></div>
+            </div>
+          ) : data.photoDataUrl ? (
             <img src={data.photoDataUrl} alt="Profile" className="photo-preview" />
           ) : (
             <div className="photo-placeholder">📷</div>
           )}
           <div className="photo-actions">
-            <button className="btn btn-secondary" onClick={(e) => { e.preventDefault(); fileInputRef.current?.click(); }}>{t(language, 'personal.upload')}</button>
+            <button 
+              className="btn btn-secondary" 
+              onClick={(e) => { e.preventDefault(); fileInputRef.current?.click(); }}
+              disabled={photoLoading}
+            >
+              {data.photoDataUrl ? '🔄 Change' : '📤 ' + t(language, 'personal.upload')}
+            </button>
             {data.photoDataUrl && (
-              <button className="btn btn-danger danger-btn-spacing" onClick={(e) => { e.preventDefault(); onChange({ ...data }); }}>{t(language, 'personal.remove')}</button>
+              <>
+                <button 
+                  className="btn btn-secondary" 
+                  onClick={(e) => { 
+                    e.preventDefault(); 
+                    setTempPhotoUrl(data.photoDataUrl!);
+                    setShowCropper(true);
+                  }}
+                  disabled={photoLoading}
+                >
+                  ✂️ Edit Photo
+                </button>
+                <button 
+                  className="btn btn-danger" 
+                  onClick={(e) => { 
+                    e.preventDefault(); 
+                    onChange({ ...data, photoDataUrl: undefined });
+                    setPhotoError('');
+                  }}
+                  disabled={photoLoading}
+                >
+                  {t(language, 'personal.remove')}
+                </button>
+              </>
             )}
-            <input ref={fileInputRef} type="file" accept="image/*" onChange={handlePhotoSelect} style={{ display: 'none' }} />
+            <input 
+              ref={fileInputRef} 
+              type="file" 
+              accept="image/jpeg,image/jpg,image/png,image/webp" 
+              onChange={handlePhotoSelect} 
+              style={{ display: 'none' }} 
+            />
           </div>
         </div>
+        {photoError && (
+          <div className="validation-message error" style={{ marginTop: '8px' }}>
+            {photoError}
+          </div>
+        )}
+        {data.photoDataUrl && !photoError && (
+          <div className="validation-message success" style={{ marginTop: '8px' }}>
+            ✓ Photo uploaded successfully (optimized for ATS)
+          </div>
+        )}
+        {showCropper && tempPhotoUrl && (
+          <PhotoCropper
+            imageDataUrl={tempPhotoUrl}
+            onCrop={handleCropComplete}
+            onCancel={handleCropCancel}
+          />
+        )}
       </div>
       
       <div className="form-group">
