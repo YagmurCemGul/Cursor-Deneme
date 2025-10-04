@@ -32,7 +32,6 @@ export const CoverLetter: React.FC<CoverLetterProps> = ({
   const [selectedTemplateId, setSelectedTemplateId] = useState<string>('classic');
   const [showTemplateSelector, setShowTemplateSelector] = useState(false);
   const [isExportingToGoogle, setIsExportingToGoogle] = useState(false);
-  const [showGoogleOptions, setShowGoogleOptions] = useState(false);
 
   React.useEffect(() => {
     loadPrompts();
@@ -111,7 +110,6 @@ export const CoverLetter: React.FC<CoverLetterProps> = ({
       }
     } finally {
       setIsExportingToGoogle(false);
-      setShowGoogleOptions(false);
     }
   };
 

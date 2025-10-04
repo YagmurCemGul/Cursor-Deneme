@@ -388,7 +388,8 @@ export const PersonalInfoForm: React.FC<PersonalInfoFormProps> = ({ data, onChan
                   className="btn btn-danger" 
                   onClick={(e) => { 
                     e.preventDefault(); 
-                    onChange({ ...data, photoDataUrl: undefined });
+                    const { photoDataUrl, ...rest } = data;
+                    onChange(rest as PersonalInfo);
                     setPhotoError('');
                   }}
                   disabled={photoLoading}

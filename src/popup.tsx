@@ -17,6 +17,7 @@ import { ProfileManager } from './components/ProfileManager';
 import { AISettings } from './components/AISettings';
 import { GoogleDriveSettings } from './components/GoogleDriveSettings';
 import { aiService } from './utils/aiService';
+import { AIConfig } from './utils/aiProviders';
 import { StorageService } from './utils/storage';
 import { t } from './i18n';
 import './styles.css';
@@ -195,12 +196,15 @@ const App: React.FC = () => {
 
       const apiKey = apiKeys[provider];
       if (apiKey) {
-        aiService.updateConfig({
+        const config: AIConfig = {
           provider,
           apiKey,
-          model,
           temperature: (settings as any)?.aiTemperature || 0.3
-        });
+        };
+        if (model) {
+          config.model = model;
+        }
+        aiService.updateConfig(config);
       }
     } catch (error) {
       console.error('Failed to initialize AI service:', error);

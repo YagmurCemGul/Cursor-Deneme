@@ -13,7 +13,6 @@ interface CVPreviewProps {
 }
 
 export const CVPreview: React.FC<CVPreviewProps> = ({ cvData, optimizations, language, focusedOptimizationId, templateId = 'classic' }) => {
-  const [, setTemplate] = React.useState<'Classic' | 'Modern' | 'Compact'>('Classic');
   const highlightRefs = React.useRef<Map<string, HTMLElement>>(new Map());
   
   // Scroll to focused optimization

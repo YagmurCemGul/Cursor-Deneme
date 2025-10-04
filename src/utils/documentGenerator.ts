@@ -8,7 +8,7 @@ import { getCoverLetterTemplateById, getDefaultCoverLetterTemplate } from '../da
 export class DocumentGenerator {
   static base64ToBuffer(base64: string): Uint8Array {
     // Remove data URL prefix if present
-    const base64Data = base64.includes(',') ? base64.split(',')[1] : base64;
+    const base64Data = base64.includes(',') ? base64.split(',')[1]! : base64;
     const binaryString = atob(base64Data);
     const bytes = new Uint8Array(binaryString.length);
     for (let i = 0; i < binaryString.length; i++) {
@@ -263,7 +263,7 @@ export class DocumentGenerator {
     const hexToRgb = (hex: string): [number, number, number] => {
       const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
       return result 
-        ? [parseInt(result[1], 16), parseInt(result[2], 16), parseInt(result[3], 16)]
+        ? [parseInt(result[1]!, 16), parseInt(result[2]!, 16), parseInt(result[3]!, 16)]
         : [0, 0, 0];
     };
     
@@ -448,7 +448,7 @@ export class DocumentGenerator {
     // Process rest of the content
     let currentParagraph = '';
     for (let i = 0; i < lines.length; i++) {
-      const line = lines[i].trim();
+      const line = lines[i]?.trim() || '';
       
       if (line === '') {
         if (currentParagraph) {
@@ -515,7 +515,7 @@ export class DocumentGenerator {
     const hexToRgb = (hex: string): [number, number, number] => {
       const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
       return result 
-        ? [parseInt(result[1], 16), parseInt(result[2], 16), parseInt(result[3], 16)]
+        ? [parseInt(result[1]!, 16), parseInt(result[2]!, 16), parseInt(result[3]!, 16)]
         : [0, 0, 0];
     };
     
@@ -574,7 +574,7 @@ export class DocumentGenerator {
     
     // Process content
     for (let i = 0; i < lines.length; i++) {
-      const line = lines[i].trim();
+      const line = lines[i]?.trim() || '';
       
       if (line === '') {
         if (currentParagraph) {

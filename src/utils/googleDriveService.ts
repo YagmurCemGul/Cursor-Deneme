@@ -22,14 +22,6 @@ export interface GoogleDriveFile {
 export class GoogleDriveService {
   private static accessToken: string | null = null;
   private static tokenExpiry: number = 0;
-  
-  // Google API Scopes
-  private static readonly SCOPES = [
-    'https://www.googleapis.com/auth/drive.file',
-    'https://www.googleapis.com/auth/documents',
-    'https://www.googleapis.com/auth/spreadsheets',
-    'https://www.googleapis.com/auth/presentations'
-  ];
 
   /**
    * Initialize Google API client and authenticate
@@ -88,7 +80,7 @@ export class GoogleDriveService {
   static async exportToGoogleDocs(
     cvData: CVData,
     optimizations: ATSOptimization[],
-    templateId?: string
+    _templateId?: string
   ): Promise<GoogleDriveFile> {
     await this.ensureAuthenticated();
     
@@ -132,7 +124,7 @@ export class GoogleDriveService {
   /**
    * Build Google Docs content structure
    */
-  private static buildDocumentContent(cvData: CVData, optimizations: ATSOptimization[]): any[] {
+  private static buildDocumentContent(cvData: CVData, _optimizations: ATSOptimization[]): any[] {
     const requests: any[] = [];
     let index = 1;
 
@@ -502,7 +494,7 @@ export class GoogleDriveService {
     }
 
     // Experience slides
-    cvData.experience.forEach((exp, idx) => {
+    cvData.experience.forEach((exp) => {
       const slideId = `slide_exp_${slideIndex++}`;
       requests.push({
         createSlide: {
@@ -522,7 +514,7 @@ export class GoogleDriveService {
     });
 
     // Education slides
-    cvData.education.forEach((edu, idx) => {
+    cvData.education.forEach((edu) => {
       const slideId = `slide_edu_${slideIndex++}`;
       requests.push({
         createSlide: {
