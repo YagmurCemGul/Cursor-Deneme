@@ -638,6 +638,12 @@ const App: React.FC = () => {
               value={jobDescription}
               onChange={setJobDescription}
               language={language}
+              aiConfig={{
+                provider: aiProvider,
+                apiKey: apiKeys[aiProvider] || '',
+                model: aiModel,
+                temperature: 0.7,
+              }}
             />
 
             <PersonalInfoForm
