@@ -226,4 +226,44 @@ export class StorageService {
       await chrome.storage.local.set({ jobDescriptions });
     }
   }
+
+  // Provider Usage Analytics
+  static async saveProviderUsage(usage: import('../types/storage').ProviderUsageAnalytics): Promise<void> {
+    const { providerAnalytics = [] } = await chrome.storage.local.get('providerAnalytics');
+    providerAnalytics.push(usage);
+    // Keep only last 100 entries
+    const trimmed = providerAnalytics.slice(-100);
+    await chrome.storage.local.set({ providerAnalytics: trimmed });
+  }
+
+  static async getProviderAnalytics(): Promise<import('../types/storage').ProviderUsageAnalytics[]> {
+    const { providerAnalytics = [] } = await chrome.storage.local.get('providerAnalytics');
+    return providerAnalytics.sort((a: import('../types/storage').ProviderUsageAnalytics, b: import('../types/storage').ProviderUsageAnalytics) => 
+      new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+    );
+  }
+
+  static async clearProviderAnalytics(): Promise<void> {
+    await chrome.storage.local.set({ providerAnalytics: [] });
+  }
+
+  // Performance Metrics
+  static async savePerformanceMetrics(metrics: import('../types/storage').PerformanceMetrics): Promise<void> {
+    const { performanceMetrics = [] } = await chrome.storage.local.get('performanceMetrics');
+    performanceMetrics.push(metrics);
+    // Keep only last 100 entries
+    const trimmed = performanceMetrics.slice(-100);
+    await chrome.storage.local.set({ performanceMetrics: trimmed });
+  }
+
+  static async getPerformanceMetrics(): Promise<import('../types/storage').PerformanceMetrics[]> {
+    const { performanceMetrics = [] } = await chrome.storage.local.get('performanceMetrics');
+    return performanceMetrics.sort((a: import('../types/storage').PerformanceMetrics, b: import('../types/storage').PerformanceMetrics) => 
+      new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+    );
+  }
+
+  static async clearPerformanceMetrics(): Promise<void> {
+    await chrome.storage.local.set({ performanceMetrics: [] });
+  }
 }

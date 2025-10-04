@@ -7,37 +7,45 @@ import { StorageService } from '../storage';
 // Mock chrome.storage API
 const mockStorage: { [key: string]: any } = {};
 
+const mockStorageMethods = {
+  get: jest.fn((keys) => {
+    const result: { [key: string]: any } = {};
+    if (Array.isArray(keys)) {
+      keys.forEach((key) => {
+        if (mockStorage[key]) {
+          result[key] = mockStorage[key];
+        }
+      });
+    } else if (typeof keys === 'string') {
+      if (mockStorage[keys]) {
+        result[keys] = mockStorage[keys];
+      }
+    } else {
+      // If keys is an object with defaults
+      Object.keys(keys).forEach((key) => {
+        result[key] = mockStorage[key] ?? keys[key];
+      });
+    }
+    return Promise.resolve(result);
+  }),
+  set: jest.fn((items) => {
+    Object.assign(mockStorage, items);
+    return Promise.resolve();
+  }),
+  remove: jest.fn((keys) => {
+    if (Array.isArray(keys)) {
+      keys.forEach((key) => delete mockStorage[key]);
+    } else {
+      delete mockStorage[keys];
+    }
+    return Promise.resolve();
+  }),
+};
+
 global.chrome = {
   storage: {
-    sync: {
-      get: jest.fn((keys, callback) => {
-        const result: { [key: string]: any } = {};
-        if (Array.isArray(keys)) {
-          keys.forEach((key) => {
-            if (mockStorage[key]) {
-              result[key] = mockStorage[key];
-            }
-          });
-        } else if (typeof keys === 'string') {
-          if (mockStorage[keys]) {
-            result[keys] = mockStorage[keys];
-          }
-        }
-        callback(result);
-      }),
-      set: jest.fn((items, callback) => {
-        Object.assign(mockStorage, items);
-        if (callback) callback();
-      }),
-      remove: jest.fn((keys, callback) => {
-        if (Array.isArray(keys)) {
-          keys.forEach((key) => delete mockStorage[key]);
-        } else {
-          delete mockStorage[keys];
-        }
-        if (callback) callback();
-      }),
-    },
+    local: mockStorageMethods,
+    sync: mockStorageMethods,
   },
 } as any;
 
@@ -206,6 +214,153 @@ describe('StorageService', () => {
       await StorageService.deleteProfile('1');
       const profiles = await StorageService.getProfiles();
       expect(profiles).toHaveLength(0);
+    });
+  });
+
+  describe('Provider Usage Analytics', () => {
+    it('should track and retrieve provider usage', async () => {
+      const usage = {
+        id: '1',
+        provider: 'openai' as const,
+        operation: 'optimizeCV' as const,
+        timestamp: new Date().toISOString(),
+        success: true,
+        duration: 1500,
+      };
+
+      await StorageService.saveProviderUsage(usage);
+      const analytics = await StorageService.getProviderAnalytics();
+      expect(analytics).toHaveLength(1);
+      expect(analytics[0]).toEqual(usage);
+    });
+
+    it('should limit analytics to last 100 entries', async () => {
+      // Add 150 entries
+      for (let i = 0; i < 150; i++) {
+        await StorageService.saveProviderUsage({
+          id: `${i}`,
+          provider: 'openai' as const,
+          operation: 'optimizeCV' as const,
+          timestamp: new Date().toISOString(),
+          success: true,
+          duration: 1000,
+        });
+      }
+
+      const analytics = await StorageService.getProviderAnalytics();
+      expect(analytics.length).toBeLessThanOrEqual(100);
+    });
+
+    it('should clear all analytics', async () => {
+      await StorageService.saveProviderUsage({
+        id: '1',
+        provider: 'gemini' as const,
+        operation: 'generateCoverLetter' as const,
+        timestamp: new Date().toISOString(),
+        success: true,
+        duration: 2000,
+      });
+
+      await StorageService.clearProviderAnalytics();
+      const analytics = await StorageService.getProviderAnalytics();
+      expect(analytics).toHaveLength(0);
+    });
+  });
+
+  describe('Performance Metrics', () => {
+    it('should track and retrieve performance metrics', async () => {
+      const metrics = {
+        id: '1',
+        provider: 'claude' as const,
+        operation: 'optimizeCV' as const,
+        timestamp: new Date().toISOString(),
+        duration: 1800,
+        success: true,
+        tokensUsed: 1500,
+      };
+
+      await StorageService.savePerformanceMetrics(metrics);
+      const allMetrics = await StorageService.getPerformanceMetrics();
+      expect(allMetrics).toHaveLength(1);
+      expect(allMetrics[0]).toEqual(metrics);
+    });
+
+    it('should calculate average performance by provider', async () => {
+      // Add metrics for different providers
+      await StorageService.savePerformanceMetrics({
+        id: '1',
+        provider: 'openai' as const,
+        operation: 'optimizeCV' as const,
+        timestamp: new Date().toISOString(),
+        duration: 1000,
+        success: true,
+        tokensUsed: 1000,
+      });
+
+      await StorageService.savePerformanceMetrics({
+        id: '2',
+        provider: 'openai' as const,
+        operation: 'optimizeCV' as const,
+        timestamp: new Date().toISOString(),
+        duration: 2000,
+        success: true,
+        tokensUsed: 1500,
+      });
+
+      const metrics = await StorageService.getPerformanceMetrics();
+      const openaiMetrics = metrics.filter(m => m.provider === 'openai');
+      const avgDuration = openaiMetrics.reduce((sum, m) => sum + m.duration, 0) / openaiMetrics.length;
+      expect(avgDuration).toBe(1500);
+    });
+
+    it('should clear performance metrics', async () => {
+      await StorageService.savePerformanceMetrics({
+        id: '1',
+        provider: 'gemini' as const,
+        operation: 'generateCoverLetter' as const,
+        timestamp: new Date().toISOString(),
+        duration: 2500,
+        success: true,
+        tokensUsed: 2000,
+      });
+
+      await StorageService.clearPerformanceMetrics();
+      const metrics = await StorageService.getPerformanceMetrics();
+      expect(metrics).toHaveLength(0);
+    });
+  });
+
+  describe('Persistence Edge Cases', () => {
+    it('should handle concurrent saves', async () => {
+      const saves = [];
+      for (let i = 0; i < 10; i++) {
+        saves.push(StorageService.saveSettings({ test: i }));
+      }
+      await Promise.all(saves);
+      
+      const settings = await StorageService.getSettings();
+      expect(settings).toBeDefined();
+    });
+
+    it('should handle empty/null values gracefully', async () => {
+      await StorageService.saveAPIKeys({});
+      const keys = await StorageService.getAPIKeys();
+      expect(keys).toEqual({});
+    });
+
+    it('should preserve data types after save/load cycle', async () => {
+      const testData = {
+        string: 'test',
+        number: 42,
+        boolean: true,
+        array: [1, 2, 3],
+        object: { nested: 'value' },
+        null: null,
+      };
+
+      await StorageService.saveSettings(testData);
+      const loaded = await StorageService.getSettings();
+      expect(loaded).toEqual(testData);
     });
   });
 });
