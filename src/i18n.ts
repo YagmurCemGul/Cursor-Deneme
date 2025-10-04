@@ -684,6 +684,25 @@ const dict: Record<string, Record<Lang, string>> = {
     tr: 'Kullanıcıların seçebileceği seçenekler ekleyin',
   },
   'questions.multilineInput': { en: 'Multi-line text area', tr: 'Çok satırlı metin alanı' },
+  'questions.fileUpload': { en: 'File Upload', tr: 'Dosya Yükleme' },
+  'questions.required': { en: 'Required', tr: 'Zorunlu' },
+  'questions.markAsRequired': { en: 'Mark as required', tr: 'Zorunlu olarak işaretle' },
+  'questions.validationError': {
+    en: 'Please answer all required questions',
+    tr: 'Lütfen tüm zorunlu soruları cevaplayın',
+  },
+  'questions.characterLimit': { en: 'Character Limit', tr: 'Karakter Limiti' },
+  'questions.charactersRemaining': { en: 'characters remaining', tr: 'karakter kaldı' },
+  'questions.uploadFile': { en: 'Upload File', tr: 'Dosya Yükle' },
+  'questions.chooseFile': { en: 'Choose File', tr: 'Dosya Seç' },
+  'questions.noFileChosen': { en: 'No file chosen', tr: 'Dosya seçilmedi' },
+  'questions.removeFile': { en: 'Remove file', tr: 'Dosyayı kaldır' },
+  'questions.fileTooLarge': {
+    en: 'File is too large. Maximum size is 5MB',
+    tr: 'Dosya çok büyük. Maksimum boyut 5MB',
+  },
+  'questions.autoSaving': { en: 'Auto-saving...', tr: 'Otomatik kaydediliyor...' },
+  'questions.autoSaved': { en: 'Saved', tr: 'Kaydedildi' },
 
   // Rich Text Editor
   'editor.bold': { en: 'Bold', tr: 'Kalın' },

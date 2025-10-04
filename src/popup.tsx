@@ -240,6 +240,7 @@ const App: React.FC = () => {
     
     // Pop from undo stack
     const previousState = undoStack[undoStack.length - 1];
+    if (!previousState) return;
     setUndoStack(prev => prev.slice(0, -1));
     
     setCVData(previousState.cvData);
@@ -263,6 +264,7 @@ const App: React.FC = () => {
     
     // Pop from redo stack
     const nextState = redoStack[redoStack.length - 1];
+    if (!nextState) return;
     setRedoStack(prev => prev.slice(0, -1));
     
     setCVData(nextState.cvData);
@@ -307,7 +309,7 @@ const App: React.FC = () => {
       const analytics: OptimizationAnalytics = {
         id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
         timestamp: new Date().toISOString(),
-        profileId: currentProfileId.current || undefined,
+        ...(currentProfileId.current && { profileId: currentProfileId.current }),
         optimizationsApplied: result.optimizations.length,
         categoriesOptimized: [...new Set(result.optimizations.map(o => o.category))],
         jobDescriptionLength: jobDescription.length,

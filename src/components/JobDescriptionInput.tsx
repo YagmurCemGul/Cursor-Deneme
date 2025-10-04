@@ -32,7 +32,7 @@ export const JobDescriptionInput: React.FC<JobDescriptionInputProps> = ({
       id: Date.now().toString(),
       name: saveName.trim(),
       description: value,
-      category: saveCategory.trim() || undefined,
+      ...(saveCategory.trim() && { category: saveCategory.trim() }),
       tags: saveTags.split(',').map((t) => t.trim()).filter(Boolean),
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
