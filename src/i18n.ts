@@ -158,6 +158,16 @@ const dict: Record<string, Record<Lang, string>> = {
   'preview.downloadDocx': { en: 'Download DOCX', tr: 'DOCX İndir' },
   'preview.exportGoogleDocs': { en: 'Export to Google Docs', tr: 'Google Docs\'a Aktar' },
   'preview.template': { en: 'Template', tr: 'Şablon' },
+  
+  // CV Templates
+  'templates.title': { en: 'CV Templates', tr: 'CV Şablonları' },
+  'templates.description': { en: 'Choose a professional template that best suits your industry and career level', tr: 'Sektörünüze ve kariyer seviyenize en uygun profesyonel şablonu seçin' },
+  'templates.preview': { en: 'Preview', tr: 'Önizle' },
+  'templates.selected': { en: 'Selected', tr: 'Seçili' },
+  'templates.useTemplate': { en: 'Use This Template', tr: 'Bu Şablonu Kullan' },
+  'templates.colors': { en: 'Color Scheme', tr: 'Renk Şeması' },
+  'templates.features': { en: 'Features', tr: 'Özellikler' },
+  'templates.layout': { en: 'Layout Details', tr: 'Düzen Detayları' },
   'preview.classic': { en: 'Classic', tr: 'Klasik' },
   'preview.modern': { en: 'Modern', tr: 'Modern' },
   'preview.compact': { en: 'Compact', tr: 'Kompakt' },

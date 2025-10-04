@@ -8,10 +8,11 @@ interface CVPreviewProps {
   optimizations: ATSOptimization[];
   language: Lang;
   focusedOptimizationId?: string | null;
+  templateId?: string;
 }
 
-export const CVPreview: React.FC<CVPreviewProps> = ({ cvData, optimizations, language, focusedOptimizationId }) => {
-  const [template, setTemplate] = React.useState<'Classic' | 'Modern' | 'Compact'>('Classic');
+export const CVPreview: React.FC<CVPreviewProps> = ({ cvData, optimizations, language, focusedOptimizationId, templateId = 'classic' }) => {
+  const [, setTemplate] = React.useState<'Classic' | 'Modern' | 'Compact'>('Classic');
   const highlightRefs = React.useRef<Map<string, HTMLElement>>(new Map());
   
   // Scroll to focused optimization
@@ -74,9 +75,9 @@ export const CVPreview: React.FC<CVPreviewProps> = ({ cvData, optimizations, lan
     
     try {
       if (format === 'docx') {
-        await DocumentGenerator.generateDOCX(cvData, optimizations, fileName);
+        await DocumentGenerator.generateDOCX(cvData, optimizations, fileName, templateId);
       } else if (format === 'pdf') {
-        await DocumentGenerator.generatePDF(cvData, optimizations, fileName);
+        await DocumentGenerator.generatePDF(cvData, optimizations, fileName, templateId);
       }
     } catch (error) {
       console.error('Error generating document:', error);
@@ -94,7 +95,7 @@ export const CVPreview: React.FC<CVPreviewProps> = ({ cvData, optimizations, lan
         👁️ {t(language, 'preview.title')}
       </h2>
       
-      <div className={`preview-container template-${template.toLowerCase()}`}>
+      <div className={`preview-container template-${templateId}`}>
         {/* Header */}
         <div className="preview-header">
           {cvData.personalInfo.photoDataUrl && (
@@ -255,12 +256,6 @@ export const CVPreview: React.FC<CVPreviewProps> = ({ cvData, optimizations, lan
         <button className="btn btn-primary" onClick={() => handleDownload('docx')}>
           📥 {t(language, 'preview.downloadDocx')}
         </button>
-        {/* Template selector */}
-        <select className="form-select" style={{ minWidth: 180 }} title="Template" value={template} onChange={(e) => setTemplate(e.target.value as 'Classic' | 'Modern' | 'Compact')}>
-          <option value="Classic">{t(language, 'preview.classic')}</option>
-          <option value="Modern">{t(language, 'preview.modern')}</option>
-          <option value="Compact">{t(language, 'preview.compact')}</option>
-        </select>
         <button className="btn btn-secondary" onClick={handleGoogleDoc}>
           📄 {t(language, 'preview.exportGoogleDocs')}
         </button>

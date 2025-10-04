@@ -2,9 +2,11 @@ import { Document, Packer, Paragraph, TextRun, HeadingLevel, AlignmentType } fro
 import { saveAs } from 'file-saver';
 import jsPDF from 'jspdf';
 import { CVData, ATSOptimization } from '../types';
+import { getTemplateById, getDefaultTemplate } from '../data/cvTemplates';
 
 export class DocumentGenerator {
-  static async generateDOCX(cvData: CVData, _optimizations: ATSOptimization[], fileName: string): Promise<void> {
+  static async generateDOCX(cvData: CVData, _optimizations: ATSOptimization[], fileName: string, templateId?: string): Promise<void> {
+    const template = templateId ? getTemplateById(templateId) || getDefaultTemplate() : getDefaultTemplate();
     // const _appliedOptimizations = optimizations.filter(o => o.applied);
     
     const doc = new Document({
@@ -122,71 +124,97 @@ export class DocumentGenerator {
     saveAs(blob, fileName);
   }
 
-  static async generatePDF(cvData: CVData, _optimizations: ATSOptimization[], fileName: string): Promise<void> {
+  static async generatePDF(cvData: CVData, _optimizations: ATSOptimization[], fileName: string, templateId?: string): Promise<void> {
+    const template = templateId ? getTemplateById(templateId) || getDefaultTemplate() : getDefaultTemplate();
     const doc = new jsPDF();
     let yPosition = 20;
     
-    // Name
+    // Apply template colors (jsPDF uses RGB values)
+    const hexToRgb = (hex: string): [number, number, number] => {
+      const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+      return result 
+        ? [parseInt(result[1], 16), parseInt(result[2], 16), parseInt(result[3], 16)]
+        : [0, 0, 0];
+    };
+    
+    // Name with template color
     doc.setFontSize(20);
     doc.setFont('helvetica', 'bold');
+    const primaryColor = hexToRgb(template.colors.primary);
+    doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
     const fullName = `${cvData.personalInfo.firstName} ${cvData.personalInfo.middleName} ${cvData.personalInfo.lastName}`.trim();
-    doc.text(fullName, 105, yPosition, { align: 'center' });
+    const headerAlign = template.layout.headerAlign === 'center' ? 'center' : template.layout.headerAlign === 'right' ? 'right' : 'left';
+    const xPosition = headerAlign === 'center' ? 105 : headerAlign === 'right' ? 190 : 20;
+    doc.text(fullName, xPosition, yPosition, { align: headerAlign });
     
     yPosition += 10;
     
-    // Contact Info
+    // Contact Info - reset to text color
     doc.setFontSize(10);
     doc.setFont('helvetica', 'normal');
+    const textColor = hexToRgb(template.colors.text);
+    doc.setTextColor(textColor[0], textColor[1], textColor[2]);
     const contactLine1 = `${cvData.personalInfo.email} | ${cvData.personalInfo.countryCode}${cvData.personalInfo.phoneNumber}`;
-    doc.text(contactLine1, 105, yPosition, { align: 'center' });
+    doc.text(contactLine1, xPosition, yPosition, { align: headerAlign });
     
     yPosition += 5;
     
     if (cvData.personalInfo.linkedInUsername) {
       const contactLine2 = `linkedin.com/in/${cvData.personalInfo.linkedInUsername}`;
       if (cvData.personalInfo.githubUsername) {
-        doc.text(`${contactLine2} | github.com/${cvData.personalInfo.githubUsername}`, 105, yPosition, { align: 'center' });
+        doc.text(`${contactLine2} | github.com/${cvData.personalInfo.githubUsername}`, xPosition, yPosition, { align: headerAlign });
       } else {
-        doc.text(contactLine2, 105, yPosition, { align: 'center' });
+        doc.text(contactLine2, xPosition, yPosition, { align: headerAlign });
       }
       yPosition += 10;
     } else {
       yPosition += 5;
     }
     
-    // Summary
+    // Apply section spacing from template
+    const sectionSpacing = template.layout.sectionSpacing || 16;
+    
+    // Summary - section headings use accent color
     if (cvData.personalInfo.summary) {
       doc.setFontSize(12);
       doc.setFont('helvetica', 'bold');
+      const accentColor = hexToRgb(template.colors.accent);
+      doc.setTextColor(accentColor[0], accentColor[1], accentColor[2]);
       doc.text('SUMMARY', 20, yPosition);
       yPosition += 7;
       
       doc.setFontSize(10);
       doc.setFont('helvetica', 'normal');
+      doc.setTextColor(textColor[0], textColor[1], textColor[2]);
       const summaryLines = doc.splitTextToSize(cvData.personalInfo.summary, 170);
       doc.text(summaryLines, 20, yPosition);
-      yPosition += summaryLines.length * 5 + 5;
+      yPosition += summaryLines.length * 5 + sectionSpacing;
     }
     
     // Skills
     if (cvData.skills.length > 0) {
       doc.setFontSize(12);
       doc.setFont('helvetica', 'bold');
+      const accentColor = hexToRgb(template.colors.accent);
+      doc.setTextColor(accentColor[0], accentColor[1], accentColor[2]);
       doc.text('SKILLS', 20, yPosition);
       yPosition += 7;
       
       doc.setFontSize(10);
       doc.setFont('helvetica', 'normal');
+      doc.setTextColor(textColor[0], textColor[1], textColor[2]);
       const skillsText = cvData.skills.join(' • ');
       const skillsLines = doc.splitTextToSize(skillsText, 170);
       doc.text(skillsLines, 20, yPosition);
-      yPosition += skillsLines.length * 5 + 5;
+      yPosition += skillsLines.length * 5 + sectionSpacing;
     }
     
     // Experience
     if (cvData.experience.length > 0) {
       doc.setFontSize(12);
       doc.setFont('helvetica', 'bold');
+      const accentColor = hexToRgb(template.colors.accent);
+      doc.setTextColor(accentColor[0], accentColor[1], accentColor[2]);
       doc.text('EXPERIENCE', 20, yPosition);
       yPosition += 7;
       
@@ -198,11 +226,14 @@ export class DocumentGenerator {
         
         doc.setFontSize(11);
         doc.setFont('helvetica', 'bold');
+        const secondaryColor = hexToRgb(template.colors.secondary);
+        doc.setTextColor(secondaryColor[0], secondaryColor[1], secondaryColor[2]);
         doc.text(`${exp.title} | ${exp.company}`, 20, yPosition);
         yPosition += 5;
         
         doc.setFontSize(9);
         doc.setFont('helvetica', 'italic');
+        doc.setTextColor(textColor[0], textColor[1], textColor[2]);
         doc.text(`${exp.startDate} - ${exp.endDate} | ${exp.location}`, 20, yPosition);
         yPosition += 6;
         
@@ -210,7 +241,7 @@ export class DocumentGenerator {
         doc.setFont('helvetica', 'normal');
         const descLines = doc.splitTextToSize(exp.description, 170);
         doc.text(descLines, 20, yPosition);
-        yPosition += descLines.length * 5 + 5;
+        yPosition += descLines.length * 5 + sectionSpacing;
       });
     }
     
@@ -223,6 +254,8 @@ export class DocumentGenerator {
       
       doc.setFontSize(12);
       doc.setFont('helvetica', 'bold');
+      const accentColor = hexToRgb(template.colors.accent);
+      doc.setTextColor(accentColor[0], accentColor[1], accentColor[2]);
       doc.text('EDUCATION', 20, yPosition);
       yPosition += 7;
       
@@ -234,11 +267,14 @@ export class DocumentGenerator {
         
         doc.setFontSize(11);
         doc.setFont('helvetica', 'bold');
+        const secondaryColor = hexToRgb(template.colors.secondary);
+        doc.setTextColor(secondaryColor[0], secondaryColor[1], secondaryColor[2]);
         doc.text(edu.school, 20, yPosition);
         yPosition += 5;
         
         doc.setFontSize(10);
         doc.setFont('helvetica', 'normal');
+        doc.setTextColor(textColor[0], textColor[1], textColor[2]);
         doc.text(`${edu.degree} in ${edu.fieldOfStudy}`, 20, yPosition);
         yPosition += 5;
         
