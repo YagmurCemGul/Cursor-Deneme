@@ -246,6 +246,50 @@ const dict: Record<string, Record<Lang, string>> = {
     en: 'Advanced Features',
     tr: 'Gelişmiş Özellikler',
   },
+
+  // Setup Wizard (merged from both implementations)
+  'wizard.title': { en: 'Google Drive Setup Wizard', tr: 'Google Drive Kurulum Sihirbazı' },
+  'wizard.subtitle': {
+    en: 'Follow these steps to configure Google Drive integration',
+    tr: 'Google Drive entegrasyonunu yapılandırmak için bu adımları izleyin',
+  },
+  'wizard.setupComplete': {
+    en: 'Setup complete! Please reload the extension to apply changes.',
+    tr: 'Kurulum tamamlandı! Değişiklikleri uygulamak için uzantıyı yeniden yükleyin.',
+  },
+  'wizard.step1Title': { en: 'Create Google Cloud Project', tr: 'Google Cloud Projesi Oluştur' },
+  'wizard.step1Desc': {
+    en: 'First, create a new project in Google Cloud Console',
+    tr: 'İlk olarak, Google Cloud Console\'da yeni bir proje oluşturun',
+  },
+  'wizard.step2Title': { en: 'Enable Required APIs', tr: 'Gerekli API\'leri Etkinleştir' },
+  'wizard.step2Desc': {
+    en: 'Enable Google Drive and related APIs for your project',
+    tr: 'Projeniz için Google Drive ve ilgili API\'leri etkinleştirin',
+  },
+  'wizard.step3Title': { en: 'Configure OAuth Consent', tr: 'OAuth İzni Yapılandır' },
+  'wizard.step3Desc': {
+    en: 'Set up OAuth consent screen for your application',
+    tr: 'Uygulamanız için OAuth izin ekranını ayarlayın',
+  },
+  'wizard.step4Title': { en: 'Create OAuth Client ID', tr: 'OAuth Client ID Oluştur' },
+  'wizard.step4Desc': {
+    en: 'Generate OAuth credentials for Chrome Extension',
+    tr: 'Chrome Uzantısı için OAuth kimlik bilgileri oluşturun',
+  },
+  'wizard.step5Title': { en: 'Update manifest.json', tr: 'manifest.json\'ı Güncelle' },
+  'wizard.step5Desc': {
+    en: 'Add your Client ID to the extension manifest',
+    tr: 'Client ID\'nizi uzantı manifest dosyasına ekleyin',
+  },
+  'wizard.next': { en: 'Next', tr: 'İleri' },
+  'wizard.previous': { en: 'Previous', tr: 'Geri' },
+  'wizard.finish': { en: 'Finish', tr: 'Bitir' },
+  'wizard.skip': { en: 'Skip', tr: 'Atla' },
+  'wizard.validate': { en: 'Validate', tr: 'Doğrula' },
+  'wizard.validating': { en: 'Validating...', tr: 'Doğrulanıyor...' },
+  'wizard.openConsole': { en: 'Open Google Cloud Console', tr: 'Google Cloud Console\'u Aç' },
+
   'common.errorOptimizing': {
     en: 'Error optimizing CV. Please try again.',
     tr: 'CV optimize edilirken hata oluştu. Lütfen tekrar deneyin.',
