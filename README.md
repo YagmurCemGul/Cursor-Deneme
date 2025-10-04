@@ -38,10 +38,12 @@ A powerful Chrome Extension that uses AI to optimize your CV and generate ATS-fr
 - **📋 Detailed View**: See before/after comparisons for each optimization
 
 ### CV Export
-- **📥 Multiple Formats**: Download as PDF, DOCX, or Google Docs
+- **📥 Multiple Formats**: Download as PDF, DOCX, or export to Google Drive
+- **☁️ Google Drive Integration**: Export directly to Google Docs, Sheets, or Slides
 - **👁️ Live Preview**: See exactly how your CV will look before downloading
 - **🎨 Professional Formatting**: Clean, ATS-friendly templates
 - **📝 Smart Naming**: Automatically generates professional filenames
+- **📊 Structured Data Export**: Export to Google Sheets for data analysis
 
 ### Cover Letter Generation
 - **✉️ AI-Generated Letters**: Create compelling cover letters based on your CV and job description
@@ -49,7 +51,7 @@ A powerful Chrome Extension that uses AI to optimize your CV and generate ATS-fr
 - **💭 Extra Prompts**: Add custom instructions for tone and style
 - **💾 Prompt Management**: Save and organize frequently used prompts in folders
 - **📋 One-Click Copy**: Copy entire cover letter to clipboard
-- **📥 Export Options**: Download as PDF, DOCX, or Google Docs
+- **📥 Export Options**: Download as PDF, DOCX, or export to Google Docs
 
 ### Profile & Template Management
 - **💾 Save Profiles**: Save multiple CV profiles for different job types
@@ -74,6 +76,7 @@ The AI follows professional resume best practices:
 - Node.js (v16 or higher)
 - npm or yarn
 - Google Chrome browser
+- Google account (optional, for Google Drive integration)
 
 ### Setup Instructions
 
@@ -100,6 +103,10 @@ The AI follows professional resume best practices:
    - Click "Load unpacked"
    - Select the `dist` folder from your project
    - The extension icon should appear in your toolbar
+
+5. **Google Drive Setup (Optional)**
+   - See [Google Drive Integration Guide](GOOGLE_DRIVE_INTEGRATION.md) for setup instructions
+   - Enables direct export to Google Docs, Sheets, and Slides
 
 ## 🎯 Usage
 
@@ -131,9 +138,10 @@ The AI follows professional resume best practices:
    - Click pills to toggle specific changes
    - Preview your optimized CV
 
-5. **Download Your CV**
-   - Choose from PDF, DOCX, or Google Docs format
-   - File will be professionally named automatically
+5. **Download or Export Your CV**
+   - Download as PDF or DOCX
+   - Or export directly to Google Drive (Docs, Sheets, or Slides)
+   - Files are professionally named automatically
 
 6. **Generate Cover Letter**
    - Go to "Cover Letter" tab
@@ -235,6 +243,10 @@ ai-cv-optimizer/
 ✅ **Template-based PDF/DOCX Export**
 ✅ **Industry-Specific Template Designs**
 ✅ **Color Schemes and Layout Options**
+✅ **Google Drive Integration (Docs, Sheets, Slides)**
+✅ **File Management in Google Drive**
+✅ **OAuth2 Authentication**
+✅ **Multi-format Export Support**
 
 ## 🎨 UI Components
 
@@ -259,9 +271,11 @@ ai-cv-optimizer/
 ## 🔒 Privacy & Security
 
 - All data stored locally in Chrome storage
-- No data sent to external servers (except AI API if configured)
+- No data sent to external servers (except AI API and Google Drive if configured)
 - Complete control over your information
 - Export and delete data anytime
+- Google Drive integration uses OAuth2 for secure authentication
+- Only requested permissions are used (drive.file, documents, spreadsheets, presentations)
 
 ## 🤝 Contributing
 
@@ -280,6 +294,8 @@ This project is licensed under the MIT License.
 ## 📞 Support
 
 For issues, questions, or suggestions, please open an issue on GitHub.
+
+For Google Drive integration setup, see [Google Drive Integration Guide](GOOGLE_DRIVE_INTEGRATION.md).
 
 ---
 

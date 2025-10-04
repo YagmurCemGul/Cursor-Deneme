@@ -1,6 +1,7 @@
 import React from 'react';
 import { CVData, ATSOptimization } from '../types';
 import { DocumentGenerator } from '../utils/documentGenerator';
+import { GoogleDriveService } from '../utils/googleDriveService';
 import { t, Lang } from '../i18n';
 
 interface CVPreviewProps {
@@ -85,8 +86,44 @@ export const CVPreview: React.FC<CVPreviewProps> = ({ cvData, optimizations, lan
     }
   };
 
-  const handleGoogleDoc = () => {
-    alert(t(language, 'common.googleDocsMsg'));
+  const [isExportingToGoogle, setIsExportingToGoogle] = React.useState(false);
+  const [showGoogleOptions, setShowGoogleOptions] = React.useState(false);
+
+  const handleGoogleExport = async (exportType: 'docs' | 'sheets' | 'slides') => {
+    setIsExportingToGoogle(true);
+    try {
+      let result;
+      
+      switch (exportType) {
+        case 'docs':
+          result = await GoogleDriveService.exportToGoogleDocs(cvData, optimizations, templateId);
+          alert(`${t(language, 'googleDrive.exportSuccess')}\n${t(language, 'googleDrive.openFile')}`);
+          window.open(result.webViewLink, '_blank');
+          break;
+          
+        case 'sheets':
+          result = await GoogleDriveService.exportToGoogleSheets(cvData);
+          alert(`${t(language, 'googleDrive.exportSuccessSheets')}\n${t(language, 'googleDrive.openFile')}`);
+          window.open(result.webViewLink, '_blank');
+          break;
+          
+        case 'slides':
+          result = await GoogleDriveService.exportToGoogleSlides(cvData);
+          alert(`${t(language, 'googleDrive.exportSuccessSlides')}\n${t(language, 'googleDrive.openFile')}`);
+          window.open(result.webViewLink, '_blank');
+          break;
+      }
+    } catch (error: any) {
+      console.error('Error exporting to Google:', error);
+      if (error.message?.includes('authentication') || error.message?.includes('token')) {
+        alert(t(language, 'googleDrive.authRequired'));
+      } else {
+        alert(t(language, 'googleDrive.exportError') + '\n' + error.message);
+      }
+    } finally {
+      setIsExportingToGoogle(false);
+      setShowGoogleOptions(false);
+    }
   };
 
   return (
@@ -256,9 +293,52 @@ export const CVPreview: React.FC<CVPreviewProps> = ({ cvData, optimizations, lan
         <button className="btn btn-primary" onClick={() => handleDownload('docx')}>
           📥 {t(language, 'preview.downloadDocx')}
         </button>
-        <button className="btn btn-secondary" onClick={handleGoogleDoc}>
-          📄 {t(language, 'preview.exportGoogleDocs')}
-        </button>
+        <div className="google-export-container" style={{ position: 'relative', display: 'inline-block' }}>
+          <button 
+            className="btn btn-secondary" 
+            onClick={() => setShowGoogleOptions(!showGoogleOptions)}
+            disabled={isExportingToGoogle}
+          >
+            {isExportingToGoogle ? '⏳' : '☁️'} {t(language, 'preview.exportGoogle')}
+          </button>
+          {showGoogleOptions && (
+            <div className="google-export-dropdown" style={{
+              position: 'absolute',
+              top: '100%',
+              left: 0,
+              marginTop: '4px',
+              backgroundColor: 'white',
+              border: '1px solid #ddd',
+              borderRadius: '8px',
+              boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+              zIndex: 1000,
+              minWidth: '200px',
+              padding: '8px'
+            }}>
+              <button 
+                className="btn btn-secondary" 
+                style={{ width: '100%', marginBottom: '4px', justifyContent: 'flex-start' }}
+                onClick={() => handleGoogleExport('docs')}
+              >
+                📄 {t(language, 'preview.exportGoogleDocs')}
+              </button>
+              <button 
+                className="btn btn-secondary" 
+                style={{ width: '100%', marginBottom: '4px', justifyContent: 'flex-start' }}
+                onClick={() => handleGoogleExport('sheets')}
+              >
+                📊 {t(language, 'preview.exportGoogleSheets')}
+              </button>
+              <button 
+                className="btn btn-secondary" 
+                style={{ width: '100%', justifyContent: 'flex-start' }}
+                onClick={() => handleGoogleExport('slides')}
+              >
+                📽️ {t(language, 'preview.exportGoogleSlides')}
+              </button>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

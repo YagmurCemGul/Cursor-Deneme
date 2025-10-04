@@ -15,6 +15,7 @@ import { CVPreview } from './components/CVPreview';
 import { CoverLetter } from './components/CoverLetter';
 import { ProfileManager } from './components/ProfileManager';
 import { AISettings } from './components/AISettings';
+import { GoogleDriveSettings } from './components/GoogleDriveSettings';
 import { aiService } from './utils/aiService';
 import { StorageService } from './utils/storage';
 import { t } from './i18n';
@@ -390,10 +391,16 @@ const App: React.FC = () => {
         )}
         
         {activeTab === 'settings' && (
-          <AISettings 
-            language={language}
-            onConfigChange={initializeAIService}
-          />
+          <>
+            <AISettings 
+              language={language}
+              onConfigChange={initializeAIService}
+            />
+            
+            <GoogleDriveSettings 
+              language={language}
+            />
+          </>
         )}
       </div>
     </div>
