@@ -28,11 +28,12 @@ export const JobDescriptionInput: React.FC<JobDescriptionInputProps> = ({
       return;
     }
 
+    const trimmedCategory = saveCategory.trim();
     const jobDesc: SavedJobDescription = {
       id: Date.now().toString(),
       name: saveName.trim(),
       description: value,
-      category: saveCategory.trim() || undefined,
+      ...(trimmedCategory ? { category: trimmedCategory } : {}),
       tags: saveTags.split(',').map((t) => t.trim()).filter(Boolean),
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),

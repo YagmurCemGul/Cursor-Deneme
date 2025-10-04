@@ -1,24 +1,36 @@
 import React, { useRef, useState, useEffect } from 'react';
 import { t, Lang } from '../i18n';
+import { PhotoFilters } from '../types';
 
 interface PhotoCropperProps {
   imageDataUrl: string;
-  onCrop: (croppedDataUrl: string) => void;
+  onCrop: (croppedDataUrl: string, filters?: PhotoFilters) => void;
   onCancel: () => void;
   language: Lang;
+  initialFilters?: PhotoFilters;
 }
+
+const DEFAULT_FILTERS: PhotoFilters = {
+  brightness: 100,
+  contrast: 100,
+  saturation: 100,
+  grayscale: 0,
+};
 
 export const PhotoCropper: React.FC<PhotoCropperProps> = ({
   imageDataUrl,
   onCrop,
   onCancel,
   language,
+  initialFilters,
 }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [image, setImage] = useState<HTMLImageElement | null>(null);
   const [crop, setCrop] = useState({ x: 0, y: 0, size: 200 });
   const [dragging, setDragging] = useState(false);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
+  const [filters, setFilters] = useState<PhotoFilters>(initialFilters || DEFAULT_FILTERS);
+  const [showFilters, setShowFilters] = useState(false);
 
   useEffect(() => {
     const img = new Image();
@@ -51,21 +63,30 @@ export const PhotoCropper: React.FC<PhotoCropperProps> = ({
     canvas.width = displayWidth;
     canvas.height = displayHeight;
 
+    // Apply filters to context
+    const filterString = `brightness(${filters.brightness}%) contrast(${filters.contrast}%) saturate(${filters.saturation}%) grayscale(${filters.grayscale}%)`;
+    ctx.filter = filterString;
+
     // Draw image
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     ctx.drawImage(image, 0, 0, displayWidth, displayHeight);
+
+    // Reset filter for overlay
+    ctx.filter = 'none';
 
     // Draw crop overlay
     ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    // Clear crop area
+    // Clear crop area and redraw with filters
     const cropX = crop.x * scale;
     const cropY = crop.y * scale;
     const cropSize = crop.size * scale;
 
     ctx.clearRect(cropX, cropY, cropSize, cropSize);
+    ctx.filter = filterString;
     ctx.drawImage(image, crop.x, crop.y, crop.size, crop.size, cropX, cropY, cropSize, cropSize);
+    ctx.filter = 'none';
 
     // Draw crop border
     ctx.strokeStyle = '#667eea';
@@ -88,7 +109,7 @@ export const PhotoCropper: React.FC<PhotoCropperProps> = ({
       handleSize,
       handleSize
     );
-  }, [image, crop]);
+  }, [image, crop, filters]);
 
   const handleMouseDown = (e: React.MouseEvent<HTMLCanvasElement>) => {
     if (!canvasRef.current || !image) return;
@@ -150,12 +171,24 @@ export const PhotoCropper: React.FC<PhotoCropperProps> = ({
     canvas.width = outputSize;
     canvas.height = outputSize;
 
+    // Apply filters
+    const filterString = `brightness(${filters.brightness}%) contrast(${filters.contrast}%) saturate(${filters.saturation}%) grayscale(${filters.grayscale}%)`;
+    ctx.filter = filterString;
+
     // Draw cropped area
     ctx.drawImage(image, crop.x, crop.y, crop.size, crop.size, 0, 0, outputSize, outputSize);
 
     // Convert to data URL with compression
     const croppedDataUrl = canvas.toDataURL('image/jpeg', 0.9);
-    onCrop(croppedDataUrl);
+    onCrop(croppedDataUrl, filters);
+  };
+
+  const resetFilters = () => {
+    setFilters(DEFAULT_FILTERS);
+  };
+
+  const applyBlackAndWhite = () => {
+    setFilters({ ...filters, grayscale: 100, saturation: 0 });
   };
 
   return (
@@ -189,7 +222,70 @@ export const PhotoCropper: React.FC<PhotoCropperProps> = ({
             <button className="btn btn-secondary" onClick={() => handleZoom(20)}>
               🔍+ {t(language, 'personal.photoCropZoomIn')}
             </button>
+            <button 
+              className="btn btn-secondary" 
+              onClick={() => setShowFilters(!showFilters)}
+            >
+              🎨 {t(language, 'personal.photoFilters')}
+            </button>
           </div>
+
+          {showFilters && (
+            <div className="photo-filters-panel">
+              <div className="filter-group">
+                <label>{t(language, 'personal.photoBrightness')}: {filters.brightness}%</label>
+                <input
+                  type="range"
+                  min="0"
+                  max="200"
+                  value={filters.brightness}
+                  onChange={(e) => setFilters({ ...filters, brightness: parseInt(e.target.value) })}
+                />
+              </div>
+
+              <div className="filter-group">
+                <label>{t(language, 'personal.photoContrast')}: {filters.contrast}%</label>
+                <input
+                  type="range"
+                  min="0"
+                  max="200"
+                  value={filters.contrast}
+                  onChange={(e) => setFilters({ ...filters, contrast: parseInt(e.target.value) })}
+                />
+              </div>
+
+              <div className="filter-group">
+                <label>{t(language, 'personal.photoSaturation')}: {filters.saturation}%</label>
+                <input
+                  type="range"
+                  min="0"
+                  max="200"
+                  value={filters.saturation}
+                  onChange={(e) => setFilters({ ...filters, saturation: parseInt(e.target.value) })}
+                />
+              </div>
+
+              <div className="filter-group">
+                <label>{t(language, 'personal.photoGrayscale')}: {filters.grayscale}%</label>
+                <input
+                  type="range"
+                  min="0"
+                  max="100"
+                  value={filters.grayscale}
+                  onChange={(e) => setFilters({ ...filters, grayscale: parseInt(e.target.value) })}
+                />
+              </div>
+
+              <div className="filter-presets">
+                <button className="btn btn-secondary btn-sm" onClick={applyBlackAndWhite}>
+                  {t(language, 'personal.photoBlackWhite')}
+                </button>
+                <button className="btn btn-secondary btn-sm" onClick={resetFilters}>
+                  {t(language, 'personal.photoResetFilters')}
+                </button>
+              </div>
+            </div>
+          )}
         </div>
 
         <div className="photo-cropper-footer">

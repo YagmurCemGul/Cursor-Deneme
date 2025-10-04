@@ -1,3 +1,17 @@
+export interface PhotoFilters {
+  brightness: number; // 0-200, default 100
+  contrast: number; // 0-200, default 100
+  saturation: number; // 0-200, default 100
+  grayscale: number; // 0-100, default 0 (0 = color, 100 = full grayscale)
+}
+
+export interface PhotoHistoryItem {
+  id: string;
+  dataUrl: string;
+  timestamp: number;
+  filters?: PhotoFilters;
+}
+
 export interface PersonalInfo {
   firstName: string;
   middleName: string;
@@ -11,6 +25,8 @@ export interface PersonalInfo {
   countryCode: string;
   summary: string;
   photoDataUrl?: string; // base64 data URL for profile photo
+  photoFilters?: PhotoFilters; // Applied filters
+  photoHistory?: PhotoHistoryItem[]; // History of uploaded photos
 }
 
 export interface Experience {

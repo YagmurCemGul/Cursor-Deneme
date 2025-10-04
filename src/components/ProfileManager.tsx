@@ -27,7 +27,7 @@ export const ProfileManager: React.FC<ProfileManagerProps> = ({
   const [, setTemplates] = useState<CVTemplate[]>([]);
   const [, setIsEditingName] = useState(false);
   const [activeTab, setActiveTab] = useState<'profiles' | 'templates'>('profiles');
-  const [searchQuery, setSearchQuery] = useState('');
+  const [_searchQuery, _setSearchQuery] = useState('');
   const [showFilters, setShowFilters] = useState(false);
   const [selectedProfileVersions, setSelectedProfileVersions] = useState<string | null>(null);
   const [profileVersions, setProfileVersions] = useState<ProfileVersion[]>([]);
@@ -197,7 +197,6 @@ export const ProfileManager: React.FC<ProfileManagerProps> = ({
       sortBy: 'updatedAt',
       sortOrder: 'desc'
     });
-    setSearchQuery('');
   };
 
   return (

@@ -219,6 +219,21 @@ const dict: Record<string, Record<Lang, string>> = {
   'personal.photoCropZoomIn': { en: 'Zoom In', tr: 'Yakınlaştır' },
   'personal.photoCropApply': { en: 'Save & Apply', tr: 'Kaydet ve Uygula' },
   'personal.photoCropCancel': { en: 'Cancel', tr: 'İptal' },
+  'personal.photoFilters': { en: 'Filters', tr: 'Filtreler' },
+  'personal.photoBrightness': { en: 'Brightness', tr: 'Parlaklık' },
+  'personal.photoContrast': { en: 'Contrast', tr: 'Kontrast' },
+  'personal.photoSaturation': { en: 'Saturation', tr: 'Doygunluk' },
+  'personal.photoGrayscale': { en: 'Grayscale', tr: 'Gri Tonlama' },
+  'personal.photoBlackWhite': { en: 'Black & White', tr: 'Siyah Beyaz' },
+  'personal.photoResetFilters': { en: 'Reset Filters', tr: 'Filtreleri Sıfırla' },
+  'personal.photoHistory': { en: 'Photo History', tr: 'Fotoğraf Geçmişi' },
+  'personal.photoBatchUpload': { en: 'Batch Upload', tr: 'Toplu Yükleme' },
+  'personal.photoSelectMultiple': { en: 'Select Multiple Photos', tr: 'Birden Fazla Fotoğraf Seç' },
+  'personal.photoRemoveBg': { en: 'Remove Background (AI)', tr: 'Arka Planı Kaldır (YZ)' },
+  'personal.photoRemovingBg': { en: 'Removing background...', tr: 'Arka plan kaldırılıyor...' },
+  'personal.photoHistoryEmpty': { en: 'No photo history', tr: 'Fotoğraf geçmişi yok' },
+  'personal.photoRestore': { en: 'Restore', tr: 'Geri Yükle' },
+  'personal.photoHistoryTitle': { en: 'Photo History', tr: 'Fotoğraf Geçmişi' },
 
   // URL Validation Messages
   'validation.url.invalid': {
