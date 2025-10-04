@@ -184,3 +184,47 @@ export interface SavedJobDescription {
   updatedAt: string;
   usageCount?: number;
 }
+
+// Template Enhancement Features
+export interface TemplateMetadata {
+  id: string;
+  isFavorite: boolean;
+  usageCount: number;
+  lastUsed?: string;
+  industry?: string;
+  context?: string[];
+  customFields?: Record<string, any>;
+}
+
+export interface EnhancedCVTemplate extends CVTemplate {
+  metadata?: TemplateMetadata;
+  industry?: string[];
+  tags?: string[];
+  contextRelevance?: number;
+}
+
+export interface TemplateUsageAnalytics {
+  id: string;
+  templateId: string;
+  templateType: 'cv' | 'cover-letter' | 'description';
+  timestamp: string;
+  context?: {
+    industry?: string;
+    jobTitle?: string;
+    section?: string;
+  };
+  userId?: string;
+}
+
+export interface CustomTemplate {
+  id: string;
+  name: string;
+  type: 'cv' | 'cover-letter' | 'description';
+  content: string;
+  preview?: string;
+  industry?: string[];
+  tags?: string[];
+  createdAt: string;
+  updatedAt: string;
+  metadata?: TemplateMetadata;
+}

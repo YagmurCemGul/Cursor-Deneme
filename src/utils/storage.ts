@@ -226,4 +226,84 @@ export class StorageService {
       await chrome.storage.local.set({ jobDescriptions });
     }
   }
+
+  // Template Enhancement Features
+  static async saveTemplateMetadata(templateId: string, metadata: import('../types').TemplateMetadata): Promise<void> {
+    const { templatesMetadata = {} } = await chrome.storage.local.get('templatesMetadata');
+    templatesMetadata[templateId] = metadata;
+    await chrome.storage.local.set({ templatesMetadata });
+  }
+
+  static async getTemplateMetadata(templateId: string): Promise<import('../types').TemplateMetadata | null> {
+    const { templatesMetadata = {} } = await chrome.storage.local.get('templatesMetadata');
+    return templatesMetadata[templateId] || null;
+  }
+
+  static async getAllTemplatesMetadata(): Promise<Record<string, import('../types').TemplateMetadata>> {
+    const { templatesMetadata = {} } = await chrome.storage.local.get('templatesMetadata');
+    return templatesMetadata;
+  }
+
+  static async toggleTemplateFavorite(templateId: string): Promise<void> {
+    const metadata = await this.getTemplateMetadata(templateId) || {
+      id: templateId,
+      isFavorite: false,
+      usageCount: 0,
+    };
+    metadata.isFavorite = !metadata.isFavorite;
+    await this.saveTemplateMetadata(templateId, metadata);
+  }
+
+  static async recordTemplateUsage(analytics: import('../types').TemplateUsageAnalytics): Promise<void> {
+    const { templateUsageAnalytics = [] } = await chrome.storage.local.get('templateUsageAnalytics');
+    templateUsageAnalytics.push(analytics);
+    
+    // Keep only last 500 analytics entries
+    const trimmed = templateUsageAnalytics.slice(-500);
+    await chrome.storage.local.set({ templateUsageAnalytics: trimmed });
+
+    // Update template metadata usage count
+    const metadata = await this.getTemplateMetadata(analytics.templateId) || {
+      id: analytics.templateId,
+      isFavorite: false,
+      usageCount: 0,
+    };
+    metadata.usageCount = (metadata.usageCount || 0) + 1;
+    metadata.lastUsed = analytics.timestamp;
+    metadata.industry = analytics.context?.industry;
+    await this.saveTemplateMetadata(analytics.templateId, metadata);
+  }
+
+  static async getTemplateUsageAnalytics(): Promise<import('../types').TemplateUsageAnalytics[]> {
+    const { templateUsageAnalytics = [] } = await chrome.storage.local.get('templateUsageAnalytics');
+    return templateUsageAnalytics.sort((a: import('../types').TemplateUsageAnalytics, b: import('../types').TemplateUsageAnalytics) => 
+      new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+    );
+  }
+
+  static async saveCustomTemplate(template: import('../types').CustomTemplate): Promise<void> {
+    const { customTemplates = [] } = await chrome.storage.local.get('customTemplates');
+    const existingIndex = customTemplates.findIndex((t: import('../types').CustomTemplate) => t.id === template.id);
+
+    if (existingIndex >= 0) {
+      customTemplates[existingIndex] = { ...template, updatedAt: new Date().toISOString() };
+    } else {
+      customTemplates.push(template);
+    }
+
+    await chrome.storage.local.set({ customTemplates });
+  }
+
+  static async getCustomTemplates(type?: 'cv' | 'cover-letter' | 'description'): Promise<import('../types').CustomTemplate[]> {
+    const { customTemplates = [] } = await chrome.storage.local.get('customTemplates');
+    return type 
+      ? customTemplates.filter((t: import('../types').CustomTemplate) => t.type === type)
+      : customTemplates;
+  }
+
+  static async deleteCustomTemplate(templateId: string): Promise<void> {
+    const { customTemplates = [] } = await chrome.storage.local.get('customTemplates');
+    const filtered = customTemplates.filter((t: import('../types').CustomTemplate) => t.id !== templateId);
+    await chrome.storage.local.set({ customTemplates: filtered });
+  }
 }
