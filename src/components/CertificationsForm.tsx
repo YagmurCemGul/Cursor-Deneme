@@ -193,15 +193,20 @@ export const CertificationsForm: React.FC<CertificationsFormProps> = ({ certific
                       if (e.key === 'Enter') {
                         e.preventDefault();
                         const value = (e.target as HTMLInputElement).value;
-                        value.split(',').map(s => s.trim()).filter(Boolean).forEach(s => handleUpdate(cert.id, 'skills', [...cert.skills, s]));
+                        const newSkills = value.split(/[,;|]/).map(s => s.trim()).filter(Boolean);
+                        const uniqueSkills = Array.from(new Set([...cert.skills, ...newSkills]));
+                        handleUpdate(cert.id, 'skills', uniqueSkills);
                         (e.target as HTMLInputElement).value = '';
                       }
                     }}
                     onPaste={(e) => {
                       const text = e.clipboardData.getData('text');
-                      if (text.includes(',')) {
+                      if (text.includes(',') || text.includes(';') || text.includes('|')) {
                         e.preventDefault();
-                        text.split(',').map(s => s.trim()).filter(Boolean).forEach(s => handleUpdate(cert.id, 'skills', [...cert.skills, s]));
+                        const newSkills = text.split(/[,;|]/).map(s => s.trim()).filter(Boolean);
+                        const uniqueSkills = Array.from(new Set([...cert.skills, ...newSkills]));
+                        handleUpdate(cert.id, 'skills', uniqueSkills);
+                        (e.target as HTMLInputElement).value = '';
                       }
                     }}
                     style={{ flex: 1 }}

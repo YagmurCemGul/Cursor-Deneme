@@ -221,9 +221,10 @@ export const EducationForm: React.FC<EducationFormProps> = ({ education, onChang
                     }}
                     onPaste={(e) => {
                       const text = e.clipboardData.getData('text');
-                      if (text.includes(',')) {
+                      if (text.includes(',') || text.includes(';') || text.includes('|')) {
                         e.preventDefault();
-                        text.split(',').map(s => s.trim()).filter(Boolean).forEach(s => handleAddSkill(edu.id, s));
+                        text.split(/[,;|]/).map(s => s.trim()).filter(Boolean).forEach(s => handleAddSkill(edu.id, s));
+                        (e.target as HTMLInputElement).value = '';
                       }
                     }}
                     style={{ flex: 1 }}

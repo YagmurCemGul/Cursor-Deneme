@@ -44,11 +44,12 @@ export const SkillsForm: React.FC<SkillsFormProps> = ({ skills, onChange, langua
           onKeyPress={handleKeyPress}
           onPaste={(e) => {
             const text = e.clipboardData.getData('text');
-            if (text.includes(',')) {
+            if (text.includes(',') || text.includes(';') || text.includes('|')) {
               e.preventDefault();
-              const newOnes = text.split(',').map(s => s.trim()).filter(Boolean);
+              const newOnes = text.split(/[,;|]/).map(s => s.trim()).filter(Boolean);
               const unique = Array.from(new Set([...skills, ...newOnes]));
               onChange(unique);
+              setNewSkill('');
             }
           }}
           style={{ flex: 1 }}
