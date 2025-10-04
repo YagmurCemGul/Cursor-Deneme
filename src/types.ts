@@ -40,6 +40,9 @@ export interface Education {
   activities: string;
   description: string;
   skills: string[];
+  country?: string;
+  city?: string;
+  location?: string;
 }
 
 export interface Certification {
@@ -53,6 +56,9 @@ export interface Certification {
   credentialUrl: string;
   description?: string;
   skills: string[];
+  country?: string;
+  city?: string;
+  location?: string;
 }
 
 export interface Project {
@@ -64,6 +70,9 @@ export interface Project {
   endDate: string;
   currentlyWorking: boolean;
   associatedWith: string;
+  country?: string;
+  city?: string;
+  location?: string;
 }
 
 export interface CVData {
