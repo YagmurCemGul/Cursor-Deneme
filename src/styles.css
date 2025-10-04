@@ -1530,6 +1530,58 @@ body:has(.app-container.dark) {
   background-color: #78350f;
 }
 
+/* Provider Transition Animations */
+.provider-transition-enter {
+  opacity: 0;
+  transform: translateY(-10px);
+}
+
+.provider-transition-enter-active {
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 300ms ease-in-out, transform 300ms ease-in-out;
+}
+
+.provider-transition-exit {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.provider-transition-exit-active {
+  opacity: 0;
+  transform: translateY(-10px);
+  transition: opacity 200ms ease-in-out, transform 200ms ease-in-out;
+}
+
+.provider-card-transition {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.provider-card-enter {
+  opacity: 0;
+  transform: scale(0.95) translateY(-10px);
+}
+
+.provider-card-enter-active {
+  opacity: 1;
+  transform: scale(1) translateY(0);
+}
+
+@keyframes providerFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.provider-content-animated {
+  animation: providerFadeIn 0.4s ease-out;
+}
+
 .app-container.dark .email-suggestions {
   background: #0f172a;
   border-color: #1f2a44;
