@@ -1298,6 +1298,31 @@ body:has(.app-container.dark) {
   color: #e2e8f0;
 }
 
+.photo-cropper-instructions {
+  background: #f1f5f9;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  padding: 12px 16px;
+  margin-bottom: 16px;
+  text-align: center;
+}
+
+.app-container.dark .photo-cropper-instructions {
+  background: #1e293b;
+  border-color: #334155;
+}
+
+.photo-cropper-instructions p {
+  margin: 0;
+  font-size: 14px;
+  color: #475569;
+  font-weight: 500;
+}
+
+.app-container.dark .photo-cropper-instructions p {
+  color: #94a3b8;
+}
+
 .photo-cropper-content {
   display: flex;
   flex-direction: column;

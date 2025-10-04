@@ -179,7 +179,7 @@ export const PersonalInfoForm: React.FC<PersonalInfoFormProps> = ({ data, onChan
     // Validate file type
     const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
     if (!validTypes.includes(file.type)) {
-      setPhotoError('Please upload a valid image file (JPEG, PNG, or WebP)');
+      setPhotoError(t(language, 'personal.photoInvalidType'));
       setPhotoLoading(false);
       return;
     }
@@ -187,7 +187,7 @@ export const PersonalInfoForm: React.FC<PersonalInfoFormProps> = ({ data, onChan
     // Validate file size (max 10MB before compression)
     const maxSize = 10 * 1024 * 1024;
     if (file.size > maxSize) {
-      setPhotoError('Image is too large. Please upload an image smaller than 10MB.');
+      setPhotoError(t(language, 'personal.photoTooLarge'));
       setPhotoLoading(false);
       return;
     }
@@ -202,7 +202,7 @@ export const PersonalInfoForm: React.FC<PersonalInfoFormProps> = ({ data, onChan
       };
       reader.readAsDataURL(file);
     } catch (error) {
-      setPhotoError('Error processing image. Please try another file.');
+      setPhotoError(t(language, 'personal.photoProcessError'));
       console.error('Image processing error:', error);
       setPhotoLoading(false);
     } finally {
@@ -227,7 +227,7 @@ export const PersonalInfoForm: React.FC<PersonalInfoFormProps> = ({ data, onChan
       const compressedDataUrl = await compressImage(file, 0.3);
       onChange({ ...data, photoDataUrl: compressedDataUrl });
     } catch (error) {
-      setPhotoError('Error processing cropped image. Please try again.');
+      setPhotoError(t(language, 'personal.photoProcessError'));
       console.error('Crop processing error:', error);
     } finally {
       setPhotoLoading(false);
@@ -369,7 +369,7 @@ export const PersonalInfoForm: React.FC<PersonalInfoFormProps> = ({ data, onChan
               onClick={(e) => { e.preventDefault(); fileInputRef.current?.click(); }}
               disabled={photoLoading}
             >
-              {data.photoDataUrl ? '🔄 Change' : '📤 ' + t(language, 'personal.upload')}
+              {data.photoDataUrl ? '🔄 ' + t(language, 'personal.change') : '📤 ' + t(language, 'personal.upload')}
             </button>
             {data.photoDataUrl && (
               <>
@@ -382,7 +382,7 @@ export const PersonalInfoForm: React.FC<PersonalInfoFormProps> = ({ data, onChan
                   }}
                   disabled={photoLoading}
                 >
-                  ✂️ Edit Photo
+                  ✂️ {t(language, 'personal.editPhoto')}
                 </button>
                 <button 
                   className="btn btn-danger" 
@@ -414,7 +414,7 @@ export const PersonalInfoForm: React.FC<PersonalInfoFormProps> = ({ data, onChan
         )}
         {data.photoDataUrl && !photoError && (
           <div className="validation-message success" style={{ marginTop: '8px' }}>
-            ✓ Photo uploaded successfully (optimized for ATS)
+            ✓ {t(language, 'personal.photoUploadSuccess')}
           </div>
         )}
         {showCropper && tempPhotoUrl && (
@@ -422,6 +422,7 @@ export const PersonalInfoForm: React.FC<PersonalInfoFormProps> = ({ data, onChan
             imageDataUrl={tempPhotoUrl}
             onCrop={handleCropComplete}
             onCancel={handleCropCancel}
+            language={language}
           />
         )}
       </div>
