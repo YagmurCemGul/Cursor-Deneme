@@ -79,6 +79,14 @@ export const AISettings: React.FC<AISettingsProps> = ({ language, onConfigChange
   };
 
   const handleProviderChange = (newProvider: AIProvider) => {
+    // Add smooth transition
+    const apiKeyInput = document.querySelector('.provider-content-animated');
+    if (apiKeyInput) {
+      apiKeyInput.classList.remove('provider-content-animated');
+      void (apiKeyInput as HTMLElement).offsetWidth; // Force reflow
+      apiKeyInput.classList.add('provider-content-animated');
+    }
+    
     setProvider(newProvider);
     // Set default model for the new provider
     const defaultModel = MODEL_OPTIONS[newProvider][0]?.value || '';
@@ -210,7 +218,7 @@ export const AISettings: React.FC<AISettingsProps> = ({ language, onConfigChange
         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
           {/* OpenAI */}
           <div
-            className={`card ${provider === 'openai' ? 'selected' : ''}`}
+            className={`card provider-card-transition ${provider === 'openai' ? 'selected' : ''}`}
             onClick={() => handleProviderChange('openai')}
             style={{ cursor: 'pointer', padding: '16px' }}
           >
@@ -231,7 +239,7 @@ export const AISettings: React.FC<AISettingsProps> = ({ language, onConfigChange
 
           {/* Gemini */}
           <div
-            className={`card ${provider === 'gemini' ? 'selected' : ''}`}
+            className={`card provider-card-transition ${provider === 'gemini' ? 'selected' : ''}`}
             onClick={() => handleProviderChange('gemini')}
             style={{ cursor: 'pointer', padding: '16px' }}
           >
@@ -252,7 +260,7 @@ export const AISettings: React.FC<AISettingsProps> = ({ language, onConfigChange
 
           {/* Claude */}
           <div
-            className={`card ${provider === 'claude' ? 'selected' : ''}`}
+            className={`card provider-card-transition ${provider === 'claude' ? 'selected' : ''}`}
             onClick={() => handleProviderChange('claude')}
             style={{ cursor: 'pointer', padding: '16px' }}
           >
@@ -274,7 +282,7 @@ export const AISettings: React.FC<AISettingsProps> = ({ language, onConfigChange
       </div>
 
       {/* API Key Input */}
-      <div style={{ marginBottom: '24px' }}>
+      <div className="provider-content-animated" style={{ marginBottom: '24px' }}>
         <label className="form-label">{t(language, 'settings.apiKey')} *</label>
         <div style={{ display: 'flex', gap: '8px', marginBottom: '8px' }}>
           <input

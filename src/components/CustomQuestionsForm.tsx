@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { CustomQuestion } from '../types';
 import { t, Lang } from '../i18n';
+import { RichTextEditor } from './RichTextEditor';
 
 interface CustomQuestionsFormProps {
   questions: CustomQuestion[];
@@ -18,6 +19,10 @@ export const CustomQuestionsForm: React.FC<CustomQuestionsFormProps> = ({
   const [newQuestionType, setNewQuestionType] = useState<CustomQuestion['type']>('text');
   const [newQuestionOptions, setNewQuestionOptions] = useState<string[]>([]);
   const [currentOptionText, setCurrentOptionText] = useState('');
+  const [newQuestionRequired, setNewQuestionRequired] = useState(false);
+  const [newQuestionMaxLength, setNewQuestionMaxLength] = useState<number | undefined>(undefined);
+  const [autoSaveMessage, setAutoSaveMessage] = useState('');
+  const autoSaveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Normalize questions on mount to ensure proper answer initialization
   React.useEffect(() => {
@@ -33,6 +38,27 @@ export const CustomQuestionsForm: React.FC<CustomQuestionsFormProps> = ({
     }
   }, []);
 
+  // Auto-save functionality with debouncing
+  useEffect(() => {
+    if (autoSaveTimeoutRef.current) {
+      clearTimeout(autoSaveTimeoutRef.current);
+    }
+
+    if (questions.length > 0) {
+      autoSaveTimeoutRef.current = setTimeout(() => {
+        // Trigger auto-save message
+        setAutoSaveMessage(t(language, 'questions.autoSaved'));
+        setTimeout(() => setAutoSaveMessage(''), 2000);
+      }, 1000); // Auto-save after 1 second of inactivity
+    }
+
+    return () => {
+      if (autoSaveTimeoutRef.current) {
+        clearTimeout(autoSaveTimeoutRef.current);
+      }
+    };
+  }, [questions, language]);
+
   const requiresOptions = (type: CustomQuestion['type']) => {
     return type === 'choice' || type === 'selection' || type === 'checkbox';
   };
@@ -46,7 +72,7 @@ export const CustomQuestionsForm: React.FC<CustomQuestionsFormProps> = ({
         answer: Array.isArray(question.answer) ? question.answer : [],
       };
     } else {
-      // Text, form_group, fieldset, choice, selection should have string answer
+      // Text, form_group, fieldset, choice, selection, file_upload should have string answer
       return {
         ...question,
         answer: typeof question.answer === 'string' ? question.answer : '',
@@ -72,6 +98,12 @@ export const CustomQuestionsForm: React.FC<CustomQuestionsFormProps> = ({
       setNewQuestionOptions([]);
       setCurrentOptionText('');
     }
+    // Set default max length for form_group and fieldset
+    if (type === 'form_group' || type === 'fieldset') {
+      setNewQuestionMaxLength(1000);
+    } else {
+      setNewQuestionMaxLength(undefined);
+    }
   };
 
   const handleAdd = () => {
@@ -89,6 +121,8 @@ export const CustomQuestionsForm: React.FC<CustomQuestionsFormProps> = ({
       type: newQuestionType,
       options: requiresOptions(newQuestionType) ? newQuestionOptions : undefined,
       answer: newQuestionType === 'checkbox' ? [] : '',
+      required: newQuestionRequired,
+      ...(newQuestionMaxLength !== undefined && { maxLength: newQuestionMaxLength }),
     };
 
     onChange([...questions, newQuestion]);
@@ -96,10 +130,12 @@ export const CustomQuestionsForm: React.FC<CustomQuestionsFormProps> = ({
     setNewQuestionType('text');
     setNewQuestionOptions([]);
     setCurrentOptionText('');
+    setNewQuestionRequired(false);
+    setNewQuestionMaxLength(undefined);
     setIsAdding(false);
   };
 
-  const handleUpdate = (id: string, field: keyof CustomQuestion, value: string | string[]) => {
+  const handleUpdate = (id: string, field: keyof CustomQuestion, value: any) => {
     onChange(questions.map((q) => (q.id === id ? { ...q, [field]: value } : q)));
   };
 
@@ -107,46 +143,181 @@ export const CustomQuestionsForm: React.FC<CustomQuestionsFormProps> = ({
     onChange(questions.filter((q) => q.id !== id));
   };
 
+  const handleFileUpload = (questionId: string, event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    // Max file size: 10MB
+    if (file.size > 10 * 1024 * 1024) {
+      alert('File is too large. Maximum size is 10MB.');
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const dataUrl = e.target?.result as string;
+      const fileData = {
+        name: file.name,
+        size: file.size,
+        type: file.type,
+        dataUrl,
+      };
+      handleUpdate(questionId, 'fileData', fileData);
+      handleUpdate(questionId, 'answer', file.name);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const validateAnswer = (question: CustomQuestion): boolean => {
+    if (!question.required) return true;
+
+    if (question.type === 'checkbox') {
+      return Array.isArray(question.answer) && question.answer.length > 0;
+    } else if (question.type === 'file_upload') {
+      return !!question.fileData;
+    } else {
+      return typeof question.answer === 'string' && question.answer.trim() !== '';
+    }
+  };
+
+  const getCharacterCount = (text: string, maxLength?: number) => {
+    const count = text.length;
+    if (!maxLength) return null;
+
+    const remaining = maxLength - count;
+    const isOver = remaining < 0;
+
+    return {
+      count,
+      remaining: Math.abs(remaining),
+      isOver,
+    };
+  };
+
   const renderAnswerInput = (question: CustomQuestion) => {
+    const isInvalid = !validateAnswer(question);
+
     switch (question.type) {
-      case 'text':
-      case 'form_group':
-      case 'fieldset': {
-        // Ensure answer is always a string for text-based inputs
+      case 'text': {
         const textAnswer = Array.isArray(question.answer) ? '' : question.answer || '';
         return (
-          <textarea
-            className="form-textarea"
-            value={textAnswer}
-            onChange={(e) => handleUpdate(question.id, 'answer', e.target.value)}
-            placeholder={t(language, 'questions.answerPlaceholder')}
-            rows={question.type === 'text' ? 3 : 5}
-          />
+          <div>
+            <textarea
+              className={`form-textarea ${isInvalid ? 'input-error' : ''}`}
+              value={textAnswer}
+              onChange={(e) => handleUpdate(question.id, 'answer', e.target.value)}
+              placeholder={t(language, 'questions.answerPlaceholder')}
+              rows={3}
+            />
+            {isInvalid && (
+              <div style={{ color: 'var(--danger, #dc3545)', fontSize: '0.85em', marginTop: '4px' }}>
+                ⚠️ {t(language, 'questions.validationRequired')}
+              </div>
+            )}
+          </div>
+        );
+      }
+
+      case 'form_group': {
+        const textAnswer = Array.isArray(question.answer) ? '' : question.answer || '';
+        const charInfo = getCharacterCount(textAnswer, question.maxLength);
+
+        return (
+          <div>
+            <RichTextEditor
+              value={textAnswer}
+              onChange={(value) => handleUpdate(question.id, 'answer', value)}
+              placeholder={t(language, 'questions.answerPlaceholder')}
+              language={language}
+              maxLength={question.maxLength || 2000}
+              showWordCount={false}
+            />
+            {charInfo && (
+              <div
+                style={{
+                  fontSize: '0.85em',
+                  marginTop: '4px',
+                  color: charInfo.isOver ? 'var(--danger, #dc3545)' : 'var(--text-secondary)',
+                }}
+              >
+                {charInfo.isOver
+                  ? t(language, 'questions.charactersOver', { over: charInfo.remaining })
+                  : t(language, 'questions.charactersRemaining', { remaining: charInfo.remaining })}
+              </div>
+            )}
+            {isInvalid && (
+              <div style={{ color: 'var(--danger, #dc3545)', fontSize: '0.85em', marginTop: '4px' }}>
+                ⚠️ {t(language, 'questions.validationRequired')}
+              </div>
+            )}
+          </div>
+        );
+      }
+
+      case 'fieldset': {
+        const textAnswer = Array.isArray(question.answer) ? '' : question.answer || '';
+        const charInfo = getCharacterCount(textAnswer, question.maxLength);
+
+        return (
+          <div>
+            <textarea
+              className={`form-textarea ${isInvalid ? 'input-error' : ''}`}
+              value={textAnswer}
+              onChange={(e) => handleUpdate(question.id, 'answer', e.target.value)}
+              placeholder={t(language, 'questions.answerPlaceholder')}
+              rows={5}
+              maxLength={question.maxLength}
+            />
+            {charInfo && (
+              <div
+                style={{
+                  fontSize: '0.85em',
+                  marginTop: '4px',
+                  color: charInfo.isOver ? 'var(--danger, #dc3545)' : 'var(--text-secondary)',
+                }}
+              >
+                {charInfo.isOver
+                  ? t(language, 'questions.charactersOver', { over: charInfo.remaining })
+                  : t(language, 'questions.charactersRemaining', { remaining: charInfo.remaining })}
+              </div>
+            )}
+            {isInvalid && (
+              <div style={{ color: 'var(--danger, #dc3545)', fontSize: '0.85em', marginTop: '4px' }}>
+                ⚠️ {t(language, 'questions.validationRequired')}
+              </div>
+            )}
+          </div>
         );
       }
 
       case 'choice':
       case 'selection': {
-        // Ensure answer is a string for radio inputs
         const radioAnswer = Array.isArray(question.answer) ? '' : question.answer || '';
         return (
-          <div className="radio-group">
-            {question.options && question.options.length > 0 ? (
-              question.options.map((option, idx) => (
-                <div key={idx} className="radio-item">
-                  <input
-                    type="radio"
-                    id={`${question.id}-${idx}`}
-                    name={question.id}
-                    checked={radioAnswer === option}
-                    onChange={() => handleUpdate(question.id, 'answer', option)}
-                  />
-                  <label htmlFor={`${question.id}-${idx}`}>{option}</label>
+          <div>
+            <div className="radio-group">
+              {question.options && question.options.length > 0 ? (
+                question.options.map((option, idx) => (
+                  <div key={idx} className="radio-item">
+                    <input
+                      type="radio"
+                      id={`${question.id}-${idx}`}
+                      name={question.id}
+                      checked={radioAnswer === option}
+                      onChange={() => handleUpdate(question.id, 'answer', option)}
+                    />
+                    <label htmlFor={`${question.id}-${idx}`}>{option}</label>
+                  </div>
+                ))
+              ) : (
+                <div style={{ color: 'var(--text-secondary)', fontStyle: 'italic' }}>
+                  {t(language, 'questions.optionsRequired')}
                 </div>
-              ))
-            ) : (
-              <div style={{ color: 'var(--text-secondary)', fontStyle: 'italic' }}>
-                {t(language, 'questions.optionsRequired')}
+              )}
+            </div>
+            {isInvalid && (
+              <div style={{ color: 'var(--danger, #dc3545)', fontSize: '0.85em', marginTop: '4px' }}>
+                ⚠️ {t(language, 'questions.validationRequired')}
               </div>
             )}
           </div>
@@ -154,30 +325,111 @@ export const CustomQuestionsForm: React.FC<CustomQuestionsFormProps> = ({
       }
 
       case 'checkbox': {
-        // Ensure answer is an array for checkbox inputs
         const checkboxAnswers = Array.isArray(question.answer) ? question.answer : [];
         return (
-          <div className="checkbox-group">
-            {question.options && question.options.length > 0 ? (
-              question.options.map((option, idx) => (
-                <div key={idx} className="checkbox-item">
-                  <input
-                    type="checkbox"
-                    id={`${question.id}-${idx}`}
-                    checked={checkboxAnswers.includes(option)}
-                    onChange={(e) => {
-                      const newAnswers = e.target.checked
-                        ? [...checkboxAnswers, option]
-                        : checkboxAnswers.filter((a) => a !== option);
-                      handleUpdate(question.id, 'answer', newAnswers);
-                    }}
-                  />
-                  <label htmlFor={`${question.id}-${idx}`}>{option}</label>
+          <div>
+            <div className="checkbox-group">
+              {question.options && question.options.length > 0 ? (
+                question.options.map((option, idx) => (
+                  <div key={idx} className="checkbox-item">
+                    <input
+                      type="checkbox"
+                      id={`${question.id}-${idx}`}
+                      checked={checkboxAnswers.includes(option)}
+                      onChange={(e) => {
+                        const newAnswers = e.target.checked
+                          ? [...checkboxAnswers, option]
+                          : checkboxAnswers.filter((a) => a !== option);
+                        handleUpdate(question.id, 'answer', newAnswers);
+                      }}
+                    />
+                    <label htmlFor={`${question.id}-${idx}`}>{option}</label>
+                  </div>
+                ))
+              ) : (
+                <div style={{ color: 'var(--text-secondary)', fontStyle: 'italic' }}>
+                  {t(language, 'questions.optionsRequired')}
                 </div>
-              ))
+              )}
+            </div>
+            {isInvalid && (
+              <div style={{ color: 'var(--danger, #dc3545)', fontSize: '0.85em', marginTop: '4px' }}>
+                ⚠️ {t(language, 'questions.validationRequired')}
+              </div>
+            )}
+          </div>
+        );
+      }
+
+      case 'file_upload': {
+        return (
+          <div>
+            {question.fileData ? (
+              <div
+                style={{
+                  padding: '12px',
+                  backgroundColor: 'var(--bg-secondary)',
+                  border: '1px solid var(--border-color)',
+                  borderRadius: '6px',
+                  marginBottom: '8px',
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+                  <span style={{ fontSize: '1.5em' }}>📄</span>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontWeight: 500 }}>{question.fileData.name}</div>
+                    <div style={{ fontSize: '0.85em', color: 'var(--text-secondary)' }}>
+                      {(question.fileData.size / 1024).toFixed(2)} KB
+                    </div>
+                  </div>
+                </div>
+                <div style={{ display: 'flex', gap: '8px' }}>
+                  <label
+                    htmlFor={`file-change-${question.id}`}
+                    className="btn btn-secondary"
+                    style={{ cursor: 'pointer', fontSize: '0.9em' }}
+                  >
+                    {t(language, 'questions.changeFile')}
+                  </label>
+                  <button
+                    type="button"
+                    className="btn btn-danger"
+                    onClick={() => {
+                      handleUpdate(question.id, 'fileData', undefined);
+                      handleUpdate(question.id, 'answer', '');
+                    }}
+                    style={{ fontSize: '0.9em' }}
+                  >
+                    {t(language, 'questions.removeFile')}
+                  </button>
+                  <input
+                    id={`file-change-${question.id}`}
+                    type="file"
+                    style={{ display: 'none' }}
+                    onChange={(e) => handleFileUpload(question.id, e)}
+                  />
+                </div>
+              </div>
             ) : (
-              <div style={{ color: 'var(--text-secondary)', fontStyle: 'italic' }}>
-                {t(language, 'questions.optionsRequired')}
+              <div>
+                <label
+                  htmlFor={`file-upload-${question.id}`}
+                  className={`btn btn-primary ${isInvalid ? 'btn-outline-danger' : ''}`}
+                  style={{ cursor: 'pointer' }}
+                >
+                  📎 {t(language, 'questions.uploadFile')}
+                </label>
+                <input
+                  id={`file-upload-${question.id}`}
+                  type="file"
+                  style={{ display: 'none' }}
+                  onChange={(e) => handleFileUpload(question.id, e)}
+                />
+                {isInvalid && (
+                  <div style={{ color: 'var(--danger, #dc3545)', fontSize: '0.85em', marginTop: '4px' }}>
+                    ⚠️ {t(language, 'questions.validationRequired')}
+                  </div>
+                )}
               </div>
             )}
           </div>
@@ -197,6 +449,22 @@ export const CustomQuestionsForm: React.FC<CustomQuestionsFormProps> = ({
           {isAdding ? `✕ ${t(language, 'questions.cancel')}` : `+ ${t(language, 'questions.add')}`}
         </button>
       </h2>
+
+      {autoSaveMessage && (
+        <div
+          style={{
+            padding: '8px 12px',
+            backgroundColor: 'var(--success-bg, #d4edda)',
+            border: '1px solid var(--success-border, #c3e6cb)',
+            borderRadius: '6px',
+            marginBottom: '12px',
+            color: 'var(--success-text, #155724)',
+            fontSize: '0.9em',
+          }}
+        >
+          ✓ {autoSaveMessage}
+        </div>
+      )}
 
       {isAdding && (
         <div className="card add-question-card">
@@ -224,8 +492,34 @@ export const CustomQuestionsForm: React.FC<CustomQuestionsFormProps> = ({
               <option value="fieldset">{t(language, 'questions.fieldset')}</option>
               <option value="selection">{t(language, 'questions.selection')}</option>
               <option value="checkbox">{t(language, 'questions.checkbox')}</option>
+              <option value="file_upload">{t(language, 'questions.fileUpload')}</option>
             </select>
           </div>
+
+          <div className="form-group">
+            <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
+              <input
+                type="checkbox"
+                checked={newQuestionRequired}
+                onChange={(e) => setNewQuestionRequired(e.target.checked)}
+              />
+              <span>{t(language, 'questions.makeRequired')}</span>
+            </label>
+          </div>
+
+          {(newQuestionType === 'form_group' || newQuestionType === 'fieldset') && (
+            <div className="form-group">
+              <label className="form-label">{t(language, 'questions.maxLength')}</label>
+              <input
+                type="number"
+                className="form-input"
+                value={newQuestionMaxLength || ''}
+                onChange={(e) => setNewQuestionMaxLength(e.target.value ? parseInt(e.target.value) : undefined)}
+                placeholder="e.g., 1000"
+                min="1"
+              />
+            </div>
+          )}
 
           {requiresOptions(newQuestionType) && (
             <div className="form-group">
@@ -305,12 +599,30 @@ export const CustomQuestionsForm: React.FC<CustomQuestionsFormProps> = ({
             <div key={question.id} className="card">
               <div className="card-header">
                 <div>
-                  <div className="card-title">{question.question}</div>
+                  <div className="card-title">
+                    {question.question}
+                    {question.required && (
+                      <span
+                        style={{
+                          marginLeft: '8px',
+                          color: 'var(--danger, #dc3545)',
+                          fontSize: '0.9em',
+                        }}
+                      >
+                        *
+                      </span>
+                    )}
+                  </div>
                   <div className="card-meta">
                     {t(language, 'questions.type')}: {question.type}
                     {question.options && question.options.length > 0 && (
                       <span style={{ marginLeft: '8px', color: 'var(--text-secondary)' }}>
                         ({question.options.length} {t(language, 'questions.options').toLowerCase()})
+                      </span>
+                    )}
+                    {question.maxLength && (
+                      <span style={{ marginLeft: '8px', color: 'var(--text-secondary)' }}>
+                        | {t(language, 'questions.maxLength')}: {question.maxLength}
                       </span>
                     )}
                   </div>
@@ -343,6 +655,9 @@ export const CustomQuestionsForm: React.FC<CustomQuestionsFormProps> = ({
               <div className="form-group">
                 <label className="form-label">
                   {t(language, 'questions.answer')}
+                  {question.required && (
+                    <span style={{ color: 'var(--danger, #dc3545)', marginLeft: '4px' }}>*</span>
+                  )}
                   {(question.type === 'form_group' || question.type === 'fieldset') && (
                     <span
                       style={{
