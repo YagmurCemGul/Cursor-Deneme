@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { CVData, SavedPrompt } from '../types';
 import { DocumentGenerator } from '../utils/documentGenerator';
 import { StorageService } from '../utils/storage';
+import { t, Lang } from '../i18n';
 
 interface CoverLetterProps {
   cvData: CVData;
@@ -9,6 +10,7 @@ interface CoverLetterProps {
   coverLetter: string;
   onGenerate: (extraPrompt: string) => void;
   isGenerating: boolean;
+  language: Lang;
 }
 
 export const CoverLetter: React.FC<CoverLetterProps> = ({ 
@@ -16,7 +18,8 @@ export const CoverLetter: React.FC<CoverLetterProps> = ({
   jobDescription, 
   coverLetter, 
   onGenerate,
-  isGenerating 
+  isGenerating,
+  language 
 }) => {
   const [extraPrompt, setExtraPrompt] = useState('');
   const [savedPrompts, setSavedPrompts] = useState<SavedPrompt[]>([]);
@@ -62,7 +65,7 @@ export const CoverLetter: React.FC<CoverLetterProps> = ({
 
   const handleCopy = () => {
     navigator.clipboard.writeText(coverLetter);
-    alert('Cover letter copied to clipboard!');
+    alert(t(language, 'cover.copied'));
   };
 
   const handleDownload = async (format: 'docx' | 'pdf') => {
@@ -77,35 +80,35 @@ export const CoverLetter: React.FC<CoverLetterProps> = ({
       }
     } catch (error) {
       console.error('Error generating document:', error);
-      alert('Error generating document. Please try again.');
+      alert(t(language, 'common.errorGeneratingDoc'));
     }
   };
 
   const handleGoogleDoc = () => {
-    alert('Google Docs export: This feature requires Google Docs API integration. The DOCX file can be uploaded to Google Drive and opened with Google Docs.');
+    alert(t(language, 'common.googleDocsMsg'));
   };
 
-  const folders = ['All', ...new Set(savedPrompts.map(p => p.folder))];
-  const filteredPrompts = selectedFolder === 'All' 
+  const folders = [t(language, 'common.all'), ...new Set(savedPrompts.map(p => p.folder))];
+  const filteredPrompts = selectedFolder === t(language, 'common.all') 
     ? savedPrompts 
     : savedPrompts.filter(p => p.folder === selectedFolder);
 
   return (
     <div className="section">
       <h2 className="section-title">
-        ✉️ Cover Letter
+        ✉️ {t(language, 'cover.section')}
       </h2>
       
       {/* Extra Prompt Input */}
       <div className="form-group">
         <label className="form-label">
-          Extra Instructions (Optional)
+          {t(language, 'cover.extraInstructions')}
         </label>
         <textarea
           className="form-textarea prompt-textarea"
           value={extraPrompt}
           onChange={(e) => setExtraPrompt(e.target.value)}
-          placeholder="Add any specific requirements or tone preferences for the cover letter..."
+          placeholder={t(language, 'cover.placeholder')}
         />
         <div className="button-group">
           <button 
@@ -113,13 +116,13 @@ export const CoverLetter: React.FC<CoverLetterProps> = ({
             onClick={() => onGenerate(extraPrompt)}
             disabled={isGenerating || !jobDescription}
           >
-            {isGenerating ? '⏳ Generating...' : '✨ Generate Cover Letter'}
+            {isGenerating ? `⏳ ${t(language, 'cover.generating')}` : `✨ ${t(language, 'cover.generate')}`}
           </button>
           <button 
             className="btn btn-secondary"
             onClick={() => setShowSavePrompt(!showSavePrompt)}
           >
-            💾 Save Prompt
+            💾 {t(language, 'cover.savePrompt')}
           </button>
         </div>
       </div>
@@ -128,32 +131,32 @@ export const CoverLetter: React.FC<CoverLetterProps> = ({
       {showSavePrompt && (
         <div className="card save-prompt-card">
           <h3 className="card-subtitle">
-            Save Prompt
+            {t(language, 'cover.savePromptTitle')}
           </h3>
           <div className="form-row">
             <div className="form-group">
-              <label className="form-label">Prompt Name</label>
+              <label className="form-label">{t(language, 'cover.promptName')}</label>
               <input
                 type="text"
                 className="form-input"
                 value={newPromptName}
                 onChange={(e) => setNewPromptName(e.target.value)}
-                placeholder="e.g., Formal Tone"
+                placeholder={t(language, 'cover.promptNamePlaceholder')}
               />
             </div>
             <div className="form-group">
-              <label className="form-label">Folder</label>
+              <label className="form-label">{t(language, 'cover.folder')}</label>
               <input
                 type="text"
                 className="form-input"
                 value={newPromptFolder}
                 onChange={(e) => setNewPromptFolder(e.target.value)}
-                placeholder="e.g., General, Tech Jobs"
+                placeholder={t(language, 'cover.folderPlaceholder')}
               />
             </div>
           </div>
           <button className="btn btn-success" onClick={handleSavePrompt}>
-            ✓ Save
+            ✓ {t(language, 'common.save')}
           </button>
         </div>
       )}
@@ -162,7 +165,7 @@ export const CoverLetter: React.FC<CoverLetterProps> = ({
       {savedPrompts.length > 0 && (
         <div className="saved-prompts-section">
           <h3 className="card-subtitle">
-            Saved Prompts
+            {t(language, 'cover.savedPrompts')}
           </h3>
           
           <div className="folder-selector">
@@ -192,7 +195,7 @@ export const CoverLetter: React.FC<CoverLetterProps> = ({
                       className="btn btn-secondary btn-icon"
                       onClick={() => handleLoadPrompt(prompt)}
                     >
-                      📥 Load
+                      📥 {t(language, 'cover.load')}
                     </button>
                     <button
                       className="btn btn-danger btn-icon"
@@ -215,7 +218,7 @@ export const CoverLetter: React.FC<CoverLetterProps> = ({
       {coverLetter && (
         <div className="preview-section">
           <h3 className="subsection-title">
-            Preview
+            {t(language, 'cover.preview')}
           </h3>
           
           <div className="preview-container cover-letter-preview">
@@ -224,16 +227,16 @@ export const CoverLetter: React.FC<CoverLetterProps> = ({
           
           <div className="download-options">
             <button className="btn btn-success" onClick={handleCopy}>
-              📋 Copy to Clipboard
+              📋 {t(language, 'cover.copyToClipboard')}
             </button>
             <button className="btn btn-primary" onClick={() => handleDownload('pdf')}>
-              📥 Download PDF
+              📥 {t(language, 'preview.downloadPdf')}
             </button>
             <button className="btn btn-primary" onClick={() => handleDownload('docx')}>
-              📥 Download DOCX
+              📥 {t(language, 'preview.downloadDocx')}
             </button>
             <button className="btn btn-secondary" onClick={handleGoogleDoc}>
-              📄 Export to Google Docs
+              📄 {t(language, 'preview.exportGoogleDocs')}
             </button>
           </div>
         </div>
@@ -243,7 +246,7 @@ export const CoverLetter: React.FC<CoverLetterProps> = ({
         <div className="empty-state empty-state-margin">
           <div className="empty-state-icon">✉️</div>
           <div className="empty-state-text">
-            No cover letter generated yet. Fill in your CV and job description, then click "Generate Cover Letter".
+            {t(language, 'cover.emptyState')}
           </div>
         </div>
       )}

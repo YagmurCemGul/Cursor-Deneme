@@ -1,12 +1,14 @@
 import React, { useState } from 'react';
 import { CustomQuestion } from '../types';
+import { t, Lang } from '../i18n';
 
 interface CustomQuestionsFormProps {
   questions: CustomQuestion[];
   onChange: (questions: CustomQuestion[]) => void;
+  language: Lang;
 }
 
-export const CustomQuestionsForm: React.FC<CustomQuestionsFormProps> = ({ questions, onChange }) => {
+export const CustomQuestionsForm: React.FC<CustomQuestionsFormProps> = ({ questions, onChange, language }) => {
   const [isAdding, setIsAdding] = useState(false);
   const [newQuestionText, setNewQuestionText] = useState('');
   const [newQuestionType, setNewQuestionType] = useState<CustomQuestion['type']>('text');
@@ -48,7 +50,7 @@ export const CustomQuestionsForm: React.FC<CustomQuestionsFormProps> = ({ questi
             className="form-textarea"
             value={question.answer as string}
             onChange={(e) => handleUpdate(question.id, 'answer', e.target.value)}
-            placeholder="Your answer..."
+            placeholder={t(language, 'questions.answerPlaceholder')}
           />
         );
       
@@ -102,43 +104,43 @@ export const CustomQuestionsForm: React.FC<CustomQuestionsFormProps> = ({ questi
   return (
     <div className="section">
       <h2 className="section-title">
-        ❓ Additional Questions
+        ❓ {t(language, 'questions.section')}
         <button className="btn btn-primary btn-icon" onClick={() => setIsAdding(!isAdding)}>
-          {isAdding ? '✕ Cancel' : '+ Add Question'}
+          {isAdding ? `✕ ${t(language, 'questions.cancel')}` : `+ ${t(language, 'questions.add')}`}
         </button>
       </h2>
       
       {isAdding && (
         <div className="card add-question-card">
           <div className="form-group">
-            <label className="form-label">Question Text</label>
+            <label className="form-label">{t(language, 'questions.questionText')}</label>
             <input
               type="text"
               className="form-input"
               value={newQuestionText}
               onChange={(e) => setNewQuestionText(e.target.value)}
-              placeholder="Enter your custom question..."
+              placeholder={t(language, 'questions.questionPlaceholder')}
             />
           </div>
           
           <div className="form-group">
-            <label className="form-label">Question Type</label>
+            <label className="form-label">{t(language, 'questions.questionType')}</label>
             <select
               className="form-select"
               value={newQuestionType}
               onChange={(e) => setNewQuestionType(e.target.value as CustomQuestion['type'])}
             >
-              <option value="text">Text Input</option>
-              <option value="form_group">Form Group (Multi-line)</option>
-              <option value="choice">Choice (Radio)</option>
-              <option value="fieldset">Fieldset</option>
-              <option value="selection">Selection Group</option>
-              <option value="checkbox">Checkbox Group</option>
+              <option value="text">{t(language, 'questions.textInput')}</option>
+              <option value="form_group">{t(language, 'questions.formGroup')}</option>
+              <option value="choice">{t(language, 'questions.choice')}</option>
+              <option value="fieldset">{t(language, 'questions.fieldset')}</option>
+              <option value="selection">{t(language, 'questions.selection')}</option>
+              <option value="checkbox">{t(language, 'questions.checkbox')}</option>
             </select>
           </div>
           
           <button className="btn btn-success" onClick={handleAdd}>
-            ✓ Add Question
+            ✓ {t(language, 'questions.add')}
           </button>
         </div>
       )}
@@ -146,7 +148,7 @@ export const CustomQuestionsForm: React.FC<CustomQuestionsFormProps> = ({ questi
       {questions.length === 0 ? (
         <div className="empty-state">
           <div className="empty-state-icon">❓</div>
-          <div className="empty-state-text">No custom questions added. Add questions to capture additional information!</div>
+          <div className="empty-state-text">{t(language, 'questions.emptyState')}</div>
         </div>
       ) : (
         <div className="card-list">
@@ -155,7 +157,7 @@ export const CustomQuestionsForm: React.FC<CustomQuestionsFormProps> = ({ questi
               <div className="card-header">
                 <div>
                   <div className="card-title">{question.question}</div>
-                  <div className="card-meta">Type: {question.type}</div>
+                  <div className="card-meta">{t(language, 'questions.type')}: {question.type}</div>
                 </div>
                 <button
                   className="btn btn-danger btn-icon"
@@ -166,7 +168,7 @@ export const CustomQuestionsForm: React.FC<CustomQuestionsFormProps> = ({ questi
               </div>
               
               <div className="form-group">
-                <label className="form-label">Answer</label>
+                <label className="form-label">{t(language, 'questions.answer')}</label>
                 {renderAnswerInput(question)}
               </div>
             </div>

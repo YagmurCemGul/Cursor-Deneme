@@ -1,12 +1,14 @@
 import React from 'react';
 import { Project } from '../types';
+import { t, Lang } from '../i18n';
 
 interface ProjectsFormProps {
   projects: Project[];
   onChange: (projects: Project[]) => void;
+  language: Lang;
 }
 
-export const ProjectsForm: React.FC<ProjectsFormProps> = ({ projects, onChange }) => {
+export const ProjectsForm: React.FC<ProjectsFormProps> = ({ projects, onChange, language }) => {
   const handleAdd = () => {
     const newProject: Project = {
       id: Date.now().toString(),
@@ -49,16 +51,16 @@ export const ProjectsForm: React.FC<ProjectsFormProps> = ({ projects, onChange }
   return (
     <div className="section">
       <h2 className="section-title">
-        🚀 Projects
+        🚀 {t(language, 'projects.section')}
         <button className="btn btn-primary btn-icon" onClick={handleAdd}>
-          + Add Project
+          + {t(language, 'projects.add')}
         </button>
       </h2>
       
       {projects.length === 0 ? (
         <div className="empty-state">
           <div className="empty-state-icon">🚀</div>
-          <div className="empty-state-text">No projects added yet. Click "Add Project" to get started!</div>
+          <div className="empty-state-text">{t(language, 'projects.emptyState')}</div>
         </div>
       ) : (
         <div className="card-list">
@@ -66,18 +68,18 @@ export const ProjectsForm: React.FC<ProjectsFormProps> = ({ projects, onChange }
             <div key={proj.id} className="experience-item">
               <div className="experience-item-header">
                 <span style={{ fontWeight: 600, color: '#64748b' }}>
-                  Project #{index + 1}
+                  {t(language, 'projects.number')} #{index + 1}
                 </span>
                 <button 
                   className="btn btn-danger btn-icon"
                   onClick={() => handleRemove(proj.id)}
                 >
-                  🗑️ Remove
+                  🗑️ {t(language, 'common.remove')}
                 </button>
               </div>
               
               <div className="form-group">
-                <label className="form-label">Project Name *</label>
+                <label className="form-label">{t(language, 'projects.name')} *</label>
                 <input
                   type="text"
                   className="form-input"
@@ -88,12 +90,12 @@ export const ProjectsForm: React.FC<ProjectsFormProps> = ({ projects, onChange }
               </div>
               
               <div className="form-group">
-                <label className="form-label">Description</label>
+                <label className="form-label">{t(language, 'projects.description')}</label>
                 <textarea
                   className="form-textarea"
                   value={proj.description}
                   onChange={(e) => handleUpdate(proj.id, 'description', e.target.value)}
-                  placeholder={'Use bullets like:\n• Built ...\n• Improved ...'}
+                  placeholder={t(language, 'projects.descriptionPlaceholder')}
                   onPaste={(e) => {
                     const text = e.clipboardData.getData('text');
                     if (text.includes('•') || text.includes('\n- ') || text.includes('\n* ')) {
@@ -109,13 +111,13 @@ export const ProjectsForm: React.FC<ProjectsFormProps> = ({ projects, onChange }
                   }}
                 />
                 <div>
-                  <button className="btn btn-secondary" onClick={(e) => { e.preventDefault(); handleUpdate(proj.id, 'description', (proj.description ? proj.description + '\n' : '') + '• '); }}>+ Add Bullet</button>
+                  <button className="btn btn-secondary" onClick={(e) => { e.preventDefault(); handleUpdate(proj.id, 'description', (proj.description ? proj.description + '\n' : '') + '• '); }}>+ {t(language, 'experience.addBullet')}</button>
                 </div>
               </div>
               
               <div className="form-row">
                 <div className="form-group">
-                  <label className="form-label">Start Date</label>
+                  <label className="form-label">{t(language, 'projects.start')}</label>
                   <input
                     type="month"
                     className="form-input"
@@ -125,7 +127,7 @@ export const ProjectsForm: React.FC<ProjectsFormProps> = ({ projects, onChange }
                 </div>
                 
                 <div className="form-group">
-                  <label className="form-label">End Date</label>
+                  <label className="form-label">{t(language, 'projects.end')}</label>
                   <input
                     type="month"
                     className="form-input"
@@ -145,29 +147,29 @@ export const ProjectsForm: React.FC<ProjectsFormProps> = ({ projects, onChange }
                     onChange={(e) => handleUpdate(proj.id, 'currentlyWorking', e.target.checked)}
                   />
                   <label htmlFor={`currently-working-${proj.id}`}>
-                    I am currently working on this project
+                    {t(language, 'projects.currently')}
                   </label>
                 </div>
               </div>
               
               <div className="form-group">
-                <label className="form-label">Associated With</label>
+                <label className="form-label">{t(language, 'projects.associated')}</label>
                 <input
                   type="text"
                   className="form-input"
                   value={proj.associatedWith}
                   onChange={(e) => handleUpdate(proj.id, 'associatedWith', e.target.value)}
-                  placeholder="Company, School, or Organization"
+                  placeholder={t(language, 'projects.associatedPlaceholder')}
                 />
               </div>
               
               <div className="form-group">
-                <label className="form-label">Skills</label>
+                <label className="form-label">{t(language, 'projects.skills')}</label>
                 <div className="skills-input-container">
                   <input
                     type="text"
                     className="form-input"
-                    placeholder="Add a skill or paste: skill1, skill2"
+                    placeholder={t(language, 'experience.skillsPlaceholder')}
                     onKeyPress={(e) => {
                       if (e.key === 'Enter') {
                         e.preventDefault();
@@ -205,7 +207,7 @@ export const ProjectsForm: React.FC<ProjectsFormProps> = ({ projects, onChange }
           ))}
           {/* Add button at the bottom of all projects */}
           <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '1rem' }}>
-            <button className="btn btn-primary btn-icon" onClick={handleAdd}>+ Add Project</button>
+            <button className="btn btn-primary btn-icon" onClick={handleAdd}>+ {t(language, 'projects.add')}</button>
           </div>
         </div>
       )}

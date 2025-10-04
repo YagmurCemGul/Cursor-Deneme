@@ -1,12 +1,14 @@
 import React, { useRef, useState } from 'react';
 import { PersonalInfo } from '../types';
+import { t, Lang } from '../i18n';
 
 interface PersonalInfoFormProps {
   data: PersonalInfo;
   onChange: (data: PersonalInfo) => void;
+  language: Lang;
 }
 
-export const PersonalInfoForm: React.FC<PersonalInfoFormProps> = ({ data, onChange }) => {
+export const PersonalInfoForm: React.FC<PersonalInfoFormProps> = ({ data, onChange, language }) => {
   const [emailValidation, setEmailValidation] = useState<{ isValid: boolean; message: string }>({ isValid: true, message: '' });
   const [emailSuggestions, setEmailSuggestions] = useState<string[]>([]);
   const [showEmailSuggestions, setShowEmailSuggestions] = useState(false);
@@ -33,14 +35,14 @@ export const PersonalInfoForm: React.FC<PersonalInfoFormProps> = ({ data, onChan
     }
     
     if (!emailRegex.test(email)) {
-      setEmailValidation({ isValid: false, message: 'Invalid email format' });
+      setEmailValidation({ isValid: false, message: t(language, 'personal.invalidEmailFormat') });
       return;
     }
     
     // Check for common typos in domain
     const [localPart, domain] = email.split('@');
     if (!domain || !localPart) {
-      setEmailValidation({ isValid: false, message: 'Invalid email format' });
+      setEmailValidation({ isValid: false, message: t(language, 'personal.invalidEmailFormat') });
       return;
     }
     
@@ -52,12 +54,12 @@ export const PersonalInfoForm: React.FC<PersonalInfoFormProps> = ({ data, onChan
     if (domainSuggestions.length > 0 && !commonDomains.includes(domain) && domainSuggestions[0]) {
       setEmailValidation({ 
         isValid: false, 
-        message: `Did you mean ${localPart}@${domainSuggestions[0]}?` 
+        message: `${t(language, 'personal.didYouMean')} ${localPart}@${domainSuggestions[0]}?` 
       });
       return;
     }
     
-    setEmailValidation({ isValid: true, message: 'Valid email address' });
+    setEmailValidation({ isValid: true, message: t(language, 'personal.validEmail') });
   };
 
   const calculateLevenshteinDistance = (str1: string, str2: string): number => {
@@ -131,12 +133,12 @@ export const PersonalInfoForm: React.FC<PersonalInfoFormProps> = ({ data, onChan
   return (
     <div className="section">
       <h2 className="section-title">
-        👤 Personal Information
+        👤 {t(language, 'personal.section')}
       </h2>
       
       <div className="form-row-3">
         <div className="form-group">
-          <label className="form-label">First Name *</label>
+          <label className="form-label">{t(language, 'personal.firstName')} *</label>
           <input
             type="text"
             className="form-input"
@@ -147,7 +149,7 @@ export const PersonalInfoForm: React.FC<PersonalInfoFormProps> = ({ data, onChan
         </div>
         
         <div className="form-group">
-          <label className="form-label">Middle Name</label>
+          <label className="form-label">{t(language, 'personal.middleName')}</label>
           <input
             type="text"
             className="form-input"
@@ -158,7 +160,7 @@ export const PersonalInfoForm: React.FC<PersonalInfoFormProps> = ({ data, onChan
         </div>
         
         <div className="form-group">
-          <label className="form-label">Last Name *</label>
+          <label className="form-label">{t(language, 'personal.lastName')} *</label>
           <input
             type="text"
             className="form-input"
@@ -171,7 +173,7 @@ export const PersonalInfoForm: React.FC<PersonalInfoFormProps> = ({ data, onChan
       
       <div className="form-row">
       <div className="form-group">
-        <label className="form-label">Email *</label>
+        <label className="form-label">{t(language, 'personal.email')} *</label>
         <div className="email-input-wrapper">
           <input
             type="email"
@@ -205,7 +207,7 @@ export const PersonalInfoForm: React.FC<PersonalInfoFormProps> = ({ data, onChan
       </div>
         
         <div className="form-group">
-          <label className="form-label">Phone Number *</label>
+          <label className="form-label">{t(language, 'personal.phoneNumber')} *</label>
           <div className="phone-input-group">
             <input
               type="text"
@@ -226,7 +228,7 @@ export const PersonalInfoForm: React.FC<PersonalInfoFormProps> = ({ data, onChan
       </div>
       
       <div className="form-group">
-        <label className="form-label">LinkedIn Profile</label>
+        <label className="form-label">{t(language, 'personal.linkedin')}</label>
         <div className="input-prefix">
           <span className="input-prefix-text">https://www.linkedin.com/in/</span>
           <input
@@ -239,7 +241,7 @@ export const PersonalInfoForm: React.FC<PersonalInfoFormProps> = ({ data, onChan
       </div>
 
       <div className="form-group">
-        <label className="form-label">Profile Photo</label>
+        <label className="form-label">{t(language, 'personal.photo')}</label>
         <div className="photo-upload-container">
           {data.photoDataUrl ? (
             <img src={data.photoDataUrl} alt="Profile" className="photo-preview" />
@@ -247,9 +249,9 @@ export const PersonalInfoForm: React.FC<PersonalInfoFormProps> = ({ data, onChan
             <div className="photo-placeholder">📷</div>
           )}
           <div className="photo-actions">
-            <button className="btn btn-secondary" onClick={(e) => { e.preventDefault(); fileInputRef.current?.click(); }}>Upload</button>
+            <button className="btn btn-secondary" onClick={(e) => { e.preventDefault(); fileInputRef.current?.click(); }}>{t(language, 'personal.upload')}</button>
             {data.photoDataUrl && (
-              <button className="btn btn-danger danger-btn-spacing" onClick={(e) => { e.preventDefault(); onChange({ ...data }); }}>Remove</button>
+              <button className="btn btn-danger danger-btn-spacing" onClick={(e) => { e.preventDefault(); onChange({ ...data }); }}>{t(language, 'personal.remove')}</button>
             )}
             <input ref={fileInputRef} type="file" accept="image/*" onChange={handlePhotoSelect} style={{ display: 'none' }} />
           </div>
@@ -257,7 +259,7 @@ export const PersonalInfoForm: React.FC<PersonalInfoFormProps> = ({ data, onChan
       </div>
       
       <div className="form-group">
-        <label className="form-label">GitHub Profile</label>
+        <label className="form-label">{t(language, 'personal.github')}</label>
         <div className="input-prefix">
           <span className="input-prefix-text">https://github.com/</span>
           <input
@@ -271,7 +273,7 @@ export const PersonalInfoForm: React.FC<PersonalInfoFormProps> = ({ data, onChan
       
       <div className="form-row">
         <div className="form-group">
-          <label className="form-label">Portfolio Website</label>
+          <label className="form-label">{t(language, 'personal.portfolio')}</label>
           <input
             type="url"
             className="form-input"
@@ -282,7 +284,7 @@ export const PersonalInfoForm: React.FC<PersonalInfoFormProps> = ({ data, onChan
         </div>
         
         <div className="form-group">
-          <label className="form-label">WhatsApp Link</label>
+          <label className="form-label">{t(language, 'personal.whatsapp')}</label>
           <input
             type="url"
             className="form-input"
@@ -302,14 +304,14 @@ export const PersonalInfoForm: React.FC<PersonalInfoFormProps> = ({ data, onChan
                 }
               }}
             >
-              Build from phone
+              {t(language, 'personal.buildFromPhone')}
             </button>
           </div>
         </div>
       </div>
       
       <div className="form-group">
-        <label className="form-label">Professional Summary</label>
+        <label className="form-label">{t(language, 'personal.summary')}</label>
         <textarea
           className="form-textarea"
           value={data.summary}

@@ -1,13 +1,15 @@
 import React from 'react';
 import { Education } from '../types';
 import { degrees } from '../data/degrees';
+import { t, Lang } from '../i18n';
 
 interface EducationFormProps {
   education: Education[];
   onChange: (education: Education[]) => void;
+  language: Lang;
 }
 
-export const EducationForm: React.FC<EducationFormProps> = ({ education, onChange }) => {
+export const EducationForm: React.FC<EducationFormProps> = ({ education, onChange, language }) => {
   const handleAdd = () => {
     const newEducation: Education = {
       id: Date.now().toString(),
@@ -53,16 +55,16 @@ export const EducationForm: React.FC<EducationFormProps> = ({ education, onChang
   return (
     <div className="section">
       <h2 className="section-title">
-        🎓 Education
+        🎓 {t(language, 'education.section')}
         <button className="btn btn-primary btn-icon" onClick={handleAdd}>
-          + Add Education
+          + {t(language, 'education.add')}
         </button>
       </h2>
       
       {education.length === 0 ? (
         <div className="empty-state">
           <div className="empty-state-icon">🎓</div>
-          <div className="empty-state-text">No education added yet. Click "Add Education" to get started!</div>
+          <div className="empty-state-text">{t(language, 'education.emptyState')}</div>
         </div>
       ) : (
         <div className="card-list">
@@ -70,18 +72,18 @@ export const EducationForm: React.FC<EducationFormProps> = ({ education, onChang
             <div key={edu.id} className="experience-item">
               <div className="experience-item-header">
                 <span style={{ fontWeight: 600, color: '#64748b' }}>
-                  Education #{index + 1}
+                  {t(language, 'education.number')} #{index + 1}
                 </span>
                 <button 
                   className="btn btn-danger btn-icon"
                   onClick={() => handleRemove(edu.id)}
                 >
-                  🗑️ Remove
+                  🗑️ {t(language, 'common.remove')}
                 </button>
               </div>
               
               <div className="form-group">
-                <label className="form-label">School *</label>
+                <label className="form-label">{t(language, 'education.school')} *</label>
                 <input
                   type="text"
                   className="form-input"
@@ -93,13 +95,13 @@ export const EducationForm: React.FC<EducationFormProps> = ({ education, onChang
               
               <div className="form-row">
                 <div className="form-group">
-                  <label className="form-label">Degree *</label>
+                  <label className="form-label">{t(language, 'education.degree')} *</label>
                   <select
                     className="form-select"
                     value={edu.degree}
                     onChange={(e) => handleUpdate(edu.id, 'degree', e.target.value)}
                   >
-                    <option value="">Select Degree</option>
+                    <option value="">{t(language, 'education.selectDegree')}</option>
                     {degrees.map((d) => (
                       <option key={d} value={d}>{d}</option>
                     ))}
@@ -107,7 +109,7 @@ export const EducationForm: React.FC<EducationFormProps> = ({ education, onChang
                 </div>
                 
                 <div className="form-group">
-                  <label className="form-label">Field of Study *</label>
+                  <label className="form-label">{t(language, 'education.field')} *</label>
                   <input
                     type="text"
                     className="form-input"
@@ -120,7 +122,7 @@ export const EducationForm: React.FC<EducationFormProps> = ({ education, onChang
               
               <div className="form-row">
                 <div className="form-group">
-                  <label className="form-label">Start Date</label>
+                  <label className="form-label">{t(language, 'education.start')}</label>
                   <input
                     type="month"
                     className="form-input"
@@ -130,7 +132,7 @@ export const EducationForm: React.FC<EducationFormProps> = ({ education, onChang
                 </div>
                 
                 <div className="form-group">
-                  <label className="form-label">End Date (or expected)</label>
+                  <label className="form-label">{t(language, 'education.end')}</label>
                   <input
                     type="month"
                     className="form-input"
@@ -149,13 +151,13 @@ export const EducationForm: React.FC<EducationFormProps> = ({ education, onChang
                     checked={!!edu.currentlyStudying}
                     onChange={(e) => handleUpdate(edu.id, 'currentlyStudying', e.target.checked)}
                   />
-                  <label htmlFor={`current-${edu.id}`}>I am currently studying</label>
+                  <label htmlFor={`current-${edu.id}`}>{t(language, 'education.currentlyStudying')}</label>
                 </div>
               </div>
               
               <div className="form-row">
                 <div className="form-group">
-                  <label className="form-label">Grade / GPA</label>
+                  <label className="form-label">{t(language, 'education.gradeLabel')}</label>
                   <input
                     type="text"
                     className="form-input"
@@ -166,7 +168,7 @@ export const EducationForm: React.FC<EducationFormProps> = ({ education, onChang
                 </div>
                 
                 <div className="form-group">
-                  <label className="form-label">Activities and Societies</label>
+                  <label className="form-label">{t(language, 'education.activitiesLabel')}</label>
                   <input
                     type="text"
                     className="form-input"
@@ -178,12 +180,12 @@ export const EducationForm: React.FC<EducationFormProps> = ({ education, onChang
               </div>
               
               <div className="form-group">
-                <label className="form-label">Description</label>
+                <label className="form-label">{t(language, 'education.description')}</label>
                 <textarea
                   className="form-textarea"
                   value={edu.description}
                   onChange={(e) => handleUpdate(edu.id, 'description', e.target.value)}
-                  placeholder={'Use bullets like:\n• Coursework: ...\n• Achievement: ...'}
+                  placeholder={t(language, 'education.descriptionPlaceholder')}
                   onPaste={(e) => {
                     const text = e.clipboardData.getData('text');
                     if (text.includes('•') || text.includes('\n- ') || text.includes('\n* ')) {
@@ -199,17 +201,17 @@ export const EducationForm: React.FC<EducationFormProps> = ({ education, onChang
                   }}
                 />
                 <div>
-                  <button className="btn btn-secondary" onClick={(e) => { e.preventDefault(); handleUpdate(edu.id, 'description', (edu.description ? edu.description + '\n' : '') + '• '); }}>+ Add Bullet</button>
+                  <button className="btn btn-secondary" onClick={(e) => { e.preventDefault(); handleUpdate(edu.id, 'description', (edu.description ? edu.description + '\n' : '') + '• '); }}>+ {t(language, 'experience.addBullet')}</button>
                 </div>
               </div>
               
               <div className="form-group">
-                <label className="form-label">Skills</label>
+                <label className="form-label">{t(language, 'education.skills')}</label>
                 <div className="skills-input-container">
                   <input
                     type="text"
                     className="form-input"
-                    placeholder="Add a skill or paste: skill1, skill2"
+                    placeholder={t(language, 'experience.skillsPlaceholder')}
                     onKeyPress={(e) => {
                       if (e.key === 'Enter') {
                         e.preventDefault();
@@ -247,7 +249,7 @@ export const EducationForm: React.FC<EducationFormProps> = ({ education, onChang
           ))}
           {/* Add button at the bottom of all education */}
           <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '1rem' }}>
-            <button className="btn btn-primary btn-icon" onClick={handleAdd}>+ Add Education</button>
+            <button className="btn btn-primary btn-icon" onClick={handleAdd}>+ {t(language, 'education.add')}</button>
           </div>
         </div>
       )}

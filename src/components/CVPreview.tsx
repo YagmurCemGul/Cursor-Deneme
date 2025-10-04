@@ -1,13 +1,15 @@
 import React from 'react';
 import { CVData, ATSOptimization } from '../types';
 import { DocumentGenerator } from '../utils/documentGenerator';
+import { t, Lang } from '../i18n';
 
 interface CVPreviewProps {
   cvData: CVData;
   optimizations: ATSOptimization[];
+  language: Lang;
 }
 
-export const CVPreview: React.FC<CVPreviewProps> = ({ cvData, optimizations }) => {
+export const CVPreview: React.FC<CVPreviewProps> = ({ cvData, optimizations, language }) => {
   const [template, setTemplate] = React.useState<'Classic' | 'Modern' | 'Compact'>('Classic');
   const highlightOptimized = (text: string): React.ReactNode => {
     if (!text) return null;
@@ -44,18 +46,18 @@ export const CVPreview: React.FC<CVPreviewProps> = ({ cvData, optimizations }) =
       }
     } catch (error) {
       console.error('Error generating document:', error);
-      alert('Error generating document. Please try again.');
+      alert(t(language, 'common.errorGeneratingDoc'));
     }
   };
 
   const handleGoogleDoc = () => {
-    alert('Google Docs export: This feature requires Google Docs API integration. The DOCX file can be uploaded to Google Drive and opened with Google Docs.');
+    alert(t(language, 'common.googleDocsMsg'));
   };
 
   return (
     <div className="section">
       <h2 className="section-title">
-        👁️ CV Preview
+        👁️ {t(language, 'preview.title')}
       </h2>
       
       <div className={`preview-container template-${template.toLowerCase()}`}>
@@ -88,7 +90,7 @@ export const CVPreview: React.FC<CVPreviewProps> = ({ cvData, optimizations }) =
         {/* Summary */}
         {cvData.personalInfo.summary && (
           <div className="preview-section">
-            <div className="preview-section-title">Summary</div>
+            <div className="preview-section-title">{t(language, 'preview.summary')}</div>
             <div className="preview-item-description">{highlightOptimized(cvData.personalInfo.summary)}</div>
           </div>
         )}
@@ -96,7 +98,7 @@ export const CVPreview: React.FC<CVPreviewProps> = ({ cvData, optimizations }) =
         {/* Skills */}
         {cvData.skills.length > 0 && (
           <div className="preview-section">
-            <div className="preview-section-title">Skills</div>
+            <div className="preview-section-title">{t(language, 'preview.skills')}</div>
             <div className="preview-item-description">
               {cvData.skills.join(' • ')}
             </div>
@@ -106,7 +108,7 @@ export const CVPreview: React.FC<CVPreviewProps> = ({ cvData, optimizations }) =
         {/* Experience */}
         {cvData.experience.length > 0 && (
           <div className="preview-section">
-            <div className="preview-section-title">Experience</div>
+            <div className="preview-section-title">{t(language, 'preview.experienceTitle')}</div>
             {cvData.experience.map((exp) => (
               <div key={exp.id} className="preview-item">
                 <div className="preview-item-title">
@@ -137,7 +139,7 @@ export const CVPreview: React.FC<CVPreviewProps> = ({ cvData, optimizations }) =
         {/* Education */}
         {cvData.education.length > 0 && (
           <div className="preview-section">
-            <div className="preview-section-title">Education</div>
+            <div className="preview-section-title">{t(language, 'preview.educationTitle')}</div>
             {cvData.education.map((edu) => (
               <div key={edu.id} className="preview-item">
                 <div className="preview-item-title">
@@ -167,7 +169,7 @@ export const CVPreview: React.FC<CVPreviewProps> = ({ cvData, optimizations }) =
         {/* Certifications */}
         {cvData.certifications.length > 0 && (
           <div className="preview-section">
-            <div className="preview-section-title">Certifications</div>
+            <div className="preview-section-title">{t(language, 'preview.certificationsTitle')}</div>
             {cvData.certifications.map((cert) => (
               <div key={cert.id} className="preview-item">
                 <div className="preview-item-title">
@@ -175,8 +177,8 @@ export const CVPreview: React.FC<CVPreviewProps> = ({ cvData, optimizations }) =
                 </div>
                 <div className="preview-item-subtitle">
                   {cert.issuingOrganization}
-                  {cert.issueDate && ` | Issued: ${cert.issueDate}`}
-                  {cert.credentialId && ` | ID: ${cert.credentialId}`}
+                  {cert.issueDate && ` | ${t(language, 'preview.issued')}: ${cert.issueDate}`}
+                  {cert.credentialId && ` | ${t(language, 'preview.id')}: ${cert.credentialId}`}
                 </div>
               </div>
             ))}
@@ -186,7 +188,7 @@ export const CVPreview: React.FC<CVPreviewProps> = ({ cvData, optimizations }) =
         {/* Projects */}
         {cvData.projects.length > 0 && (
           <div className="preview-section">
-            <div className="preview-section-title">Projects</div>
+            <div className="preview-section-title">{t(language, 'preview.projectsTitle')}</div>
             {cvData.projects.map((proj) => (
               <div key={proj.id} className="preview-item">
                 <div className="preview-item-title">
@@ -214,19 +216,19 @@ export const CVPreview: React.FC<CVPreviewProps> = ({ cvData, optimizations }) =
       
       <div className="download-options">
         <button className="btn btn-primary" onClick={() => handleDownload('pdf')}>
-          📥 Download PDF
+          📥 {t(language, 'preview.downloadPdf')}
         </button>
         <button className="btn btn-primary" onClick={() => handleDownload('docx')}>
-          📥 Download DOCX
+          📥 {t(language, 'preview.downloadDocx')}
         </button>
         {/* Template selector */}
         <select className="form-select" style={{ minWidth: 180 }} title="Template" value={template} onChange={(e) => setTemplate(e.target.value as 'Classic' | 'Modern' | 'Compact')}>
-          <option value="Classic">Classic</option>
-          <option value="Modern">Modern</option>
-          <option value="Compact">Compact</option>
+          <option value="Classic">{t(language, 'preview.classic')}</option>
+          <option value="Modern">{t(language, 'preview.modern')}</option>
+          <option value="Compact">{t(language, 'preview.compact')}</option>
         </select>
         <button className="btn btn-secondary" onClick={handleGoogleDoc}>
-          📄 Export to Google Docs
+          📄 {t(language, 'preview.exportGoogleDocs')}
         </button>
       </div>
     </div>

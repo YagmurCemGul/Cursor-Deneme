@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
+import { t, Lang } from '../i18n';
 
 interface SkillsFormProps {
   skills: string[];
   onChange: (skills: string[]) => void;
+  language: Lang;
 }
 
-export const SkillsForm: React.FC<SkillsFormProps> = ({ skills, onChange }) => {
+export const SkillsForm: React.FC<SkillsFormProps> = ({ skills, onChange, language }) => {
   const [newSkill, setNewSkill] = useState('');
 
   const handleAddSkill = () => {
@@ -29,14 +31,14 @@ export const SkillsForm: React.FC<SkillsFormProps> = ({ skills, onChange }) => {
   return (
     <div className="section">
       <h2 className="section-title">
-        ⚡ Skills
+        ⚡ {t(language, 'skills.section')}
       </h2>
       
       <div className="skills-input-container">
         <input
           type="text"
           className="form-input"
-          placeholder="Add a skill (e.g., JavaScript) or paste: skill1, skill2"
+          placeholder={t(language, 'skills.placeholder')}
           value={newSkill}
           onChange={(e) => setNewSkill(e.target.value)}
           onKeyPress={handleKeyPress}
@@ -52,7 +54,7 @@ export const SkillsForm: React.FC<SkillsFormProps> = ({ skills, onChange }) => {
           style={{ flex: 1 }}
         />
         <button className="btn btn-primary" onClick={handleAddSkill}>
-          + Add Skill
+          + {t(language, 'skills.addSkillBtn')}
         </button>
       </div>
       
@@ -75,7 +77,7 @@ export const SkillsForm: React.FC<SkillsFormProps> = ({ skills, onChange }) => {
       {skills.length === 0 && (
         <div className="empty-state">
           <div className="empty-state-icon">⚡</div>
-          <div className="empty-state-text">No skills added yet. Add your key skills to make your CV stand out!</div>
+          <div className="empty-state-text">{t(language, 'skills.emptyState')}</div>
         </div>
       )}
     </div>
