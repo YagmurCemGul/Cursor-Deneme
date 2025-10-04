@@ -226,4 +226,52 @@ export class StorageService {
       await chrome.storage.local.set({ jobDescriptions });
     }
   }
+
+  // Job Description Templates
+  static async saveJobTemplate(template: any): Promise<void> {
+    const { jobTemplates = [] } = await chrome.storage.local.get('jobTemplates');
+    const existingIndex = jobTemplates.findIndex((t: any) => t.id === template.id);
+
+    if (existingIndex >= 0) {
+      jobTemplates[existingIndex] = { ...template, updatedAt: new Date().toISOString() };
+    } else {
+      jobTemplates.push(template);
+    }
+
+    await chrome.storage.local.set({ jobTemplates });
+  }
+
+  static async getJobTemplates(): Promise<any[]> {
+    const { jobTemplates = [] } = await chrome.storage.local.get('jobTemplates');
+    return jobTemplates.sort((a: any, b: any) => 
+      new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
+    );
+  }
+
+  static async updateJobTemplate(template: any): Promise<void> {
+    const { jobTemplates = [] } = await chrome.storage.local.get('jobTemplates');
+    const index = jobTemplates.findIndex((t: any) => t.id === template.id);
+    
+    if (index >= 0) {
+      jobTemplates[index] = { ...template, updatedAt: new Date().toISOString() };
+      await chrome.storage.local.set({ jobTemplates });
+    }
+  }
+
+  static async deleteJobTemplate(templateId: string): Promise<void> {
+    const { jobTemplates = [] } = await chrome.storage.local.get('jobTemplates');
+    const filtered = jobTemplates.filter((t: any) => t.id !== templateId);
+    await chrome.storage.local.set({ jobTemplates: filtered });
+  }
+
+  static async incrementTemplateUsage(templateId: string): Promise<void> {
+    const { jobTemplates = [] } = await chrome.storage.local.get('jobTemplates');
+    const template = jobTemplates.find((t: any) => t.id === templateId);
+    
+    if (template) {
+      template.usageCount = (template.usageCount || 0) + 1;
+      template.updatedAt = new Date().toISOString();
+      await chrome.storage.local.set({ jobTemplates });
+    }
+  }
 }
