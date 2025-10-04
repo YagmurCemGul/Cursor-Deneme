@@ -249,10 +249,11 @@ export const defaultCVTemplates: CVTemplateStyle[] = [
   }
 ];
 
-export const getTemplateById = (id: string): CVTemplateStyle | undefined => {
-  return defaultCVTemplates.find(template => template.id === id);
+export const getTemplateById = (id: string): CVTemplateStyle => {
+  const template = defaultCVTemplates.find(t => t.id === id);
+  return template ?? defaultCVTemplates[0]!;
 };
 
 export const getDefaultTemplate = (): CVTemplateStyle => {
-  return defaultCVTemplates[0]; // Classic Professional
+  return defaultCVTemplates[0]!; // Classic Professional
 };

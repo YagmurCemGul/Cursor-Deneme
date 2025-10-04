@@ -3,10 +3,11 @@ import { saveAs } from 'file-saver';
 import jsPDF from 'jspdf';
 import { CVData, ATSOptimization } from '../types';
 import { getTemplateById, getDefaultTemplate } from '../data/cvTemplates';
+import { getCoverLetterTemplateById, getDefaultCoverLetterTemplate } from '../data/coverLetterTemplates';
 
 export class DocumentGenerator {
-  static async generateDOCX(cvData: CVData, _optimizations: ATSOptimization[], fileName: string, templateId?: string): Promise<void> {
-    const template = templateId ? getTemplateById(templateId) || getDefaultTemplate() : getDefaultTemplate();
+  static async generateDOCX(cvData: CVData, _optimizations: ATSOptimization[], fileName: string, _templateId?: string): Promise<void> {
+    // const template = templateId ? getTemplateById(templateId) || getDefaultTemplate() : getDefaultTemplate();
     // const _appliedOptimizations = optimizations.filter(o => o.applied);
     
     const doc = new Document({
@@ -125,7 +126,7 @@ export class DocumentGenerator {
   }
 
   static async generatePDF(cvData: CVData, _optimizations: ATSOptimization[], fileName: string, templateId?: string): Promise<void> {
-    const template = templateId ? getTemplateById(templateId) || getDefaultTemplate() : getDefaultTemplate();
+    const template = templateId ? getTemplateById(templateId) : getDefaultTemplate();
     const doc = new jsPDF();
     let yPosition = 20;
     
@@ -172,7 +173,7 @@ export class DocumentGenerator {
     }
     
     // Apply section spacing from template
-    const sectionSpacing = template.layout.sectionSpacing || 16;
+    const sectionSpacing = template?.layout?.sectionSpacing || 16;
     
     // Summary - section headings use accent color
     if (cvData.personalInfo.summary) {
@@ -288,17 +289,78 @@ export class DocumentGenerator {
     doc.save(fileName);
   }
 
-  static async generateCoverLetterDOCX(coverLetter: string, _name: string, fileName: string): Promise<void> {
-    const paragraphs = coverLetter.split('\n\n').map(para => 
-      new Paragraph({
-        text: para.trim(),
+  static async generateCoverLetterDOCX(coverLetter: string, name: string, fileName: string, templateId?: string): Promise<void> {
+    const template = templateId ? getCoverLetterTemplateById(templateId) : getDefaultCoverLetterTemplate();
+    
+    // Split into lines and paragraphs
+    const lines = coverLetter.split('\n');
+    const paragraphs: Paragraph[] = [];
+    
+    // Add date if template includes it
+    if (template.style.includeDate && lines[0]) {
+      paragraphs.push(new Paragraph({
+        text: lines[0],
+        alignment: template.style.headerFormat === 'center' ? AlignmentType.CENTER : 
+                   template.style.headerFormat === 'right' ? AlignmentType.RIGHT : 
+                   AlignmentType.LEFT,
         spacing: { after: 200 },
-      })
-    );
+      }));
+      lines.shift();
+    }
+    
+    // Process rest of the content
+    let currentParagraph = '';
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i].trim();
+      
+      if (line === '') {
+        if (currentParagraph) {
+          // Check if it's a closing or signature
+          const isClosing = currentParagraph.match(/^(Sincerely|Best regards|Regards|Thank you)/i);
+          const isSignature = currentParagraph === name;
+          
+          const alignment = template.style.headerFormat === 'center' && (isClosing || isSignature) ? 
+            AlignmentType.CENTER : AlignmentType.LEFT;
+          
+          paragraphs.push(new Paragraph({
+            text: currentParagraph,
+            spacing: { after: template.style.paragraphSpacing * 20 },
+            alignment: alignment,
+          }));
+          currentParagraph = '';
+        }
+      } else {
+        currentParagraph += (currentParagraph ? ' ' : '') + line;
+      }
+    }
+    
+    // Add last paragraph if exists
+    if (currentParagraph) {
+      const isClosing = currentParagraph.match(/^(Sincerely|Best regards|Regards|Thank you)/i);
+      const isSignature = currentParagraph === name;
+      
+      const alignment = template.style.headerFormat === 'center' && (isClosing || isSignature) ? 
+        AlignmentType.CENTER : AlignmentType.LEFT;
+      
+      paragraphs.push(new Paragraph({
+        text: currentParagraph,
+        spacing: { after: template.style.paragraphSpacing * 20 },
+        alignment: alignment,
+      }));
+    }
 
     const doc = new Document({
       sections: [{
-        properties: {},
+        properties: {
+          page: {
+            margin: {
+              top: 1440, // 1 inch
+              right: 1440,
+              bottom: 1440,
+              left: 1440,
+            },
+          },
+        },
         children: paragraphs,
       }],
     });
@@ -307,26 +369,97 @@ export class DocumentGenerator {
     saveAs(blob, fileName);
   }
 
-  static async generateCoverLetterPDF(coverLetter: string, _name: string, fileName: string): Promise<void> {
+  static async generateCoverLetterPDF(coverLetter: string, name: string, fileName: string, templateId?: string): Promise<void> {
+    const template = templateId ? getCoverLetterTemplateById(templateId) : getDefaultCoverLetterTemplate();
     const doc = new jsPDF();
     let yPosition = 20;
     
-    doc.setFontSize(10);
-    doc.setFont('helvetica', 'normal');
+    // Helper to convert hex to RGB
+    const hexToRgb = (hex: string): [number, number, number] => {
+      const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+      return result 
+        ? [parseInt(result[1], 16), parseInt(result[2], 16), parseInt(result[3], 16)]
+        : [0, 0, 0];
+    };
     
-    const paragraphs = coverLetter.split('\n\n');
+    // Set font based on template
+    const fontFamily = (template.style.fontFamily || 'Arial').includes('Times') ? 'times' : 
+                       (template.style.fontFamily || 'Arial').includes('Georgia') ? 'times' : 
+                       (template.style.fontFamily || 'Arial').includes('Courier') || (template.style.fontFamily || 'Arial').includes('monospace') ? 'courier' :
+                       'helvetica';
     
-    paragraphs.forEach((para) => {
-      const lines = doc.splitTextToSize(para.trim(), 170);
+    doc.setFont(fontFamily, 'normal');
+    doc.setFontSize(template.style.fontSize);
+    
+    const textColor = hexToRgb(template.colors.text);
+    doc.setTextColor(textColor[0], textColor[1], textColor[2]);
+    
+    // Parse and render content
+    const lines = coverLetter.split('\n');
+    let currentParagraph = '';
+    
+    const renderParagraph = (text: string, isDate = false, isClosing = false, isSignature = false) => {
+      if (!text.trim()) return;
       
-      if (yPosition + lines.length * 5 > 280) {
+      // Determine alignment
+      let align: 'left' | 'center' | 'right' = 'left';
+      if (template.style.headerFormat === 'center' && (isDate || isClosing || isSignature)) {
+        align = 'center';
+      } else if (template.style.headerFormat === 'right' && isDate) {
+        align = 'right';
+      }
+      
+      // Apply special formatting for signature
+      if (isSignature || isClosing) {
+        doc.setFont(fontFamily, isSignature ? 'bold' : 'italic');
+      }
+      
+      const maxWidth = 170;
+      const textLines = doc.splitTextToSize(text.trim(), maxWidth);
+      
+      // Check for page break
+      if (yPosition + textLines.length * (template.style.fontSize * 0.5) > 280) {
         doc.addPage();
         yPosition = 20;
       }
       
-      doc.text(lines, 20, yPosition);
-      yPosition += lines.length * 5 + 8;
-    });
+      // Render lines
+      const xPosition = align === 'center' ? 105 : align === 'right' ? 190 : 20;
+      doc.text(textLines, xPosition, yPosition, { align });
+      
+      yPosition += textLines.length * (template.style.fontSize * 0.5) + template.style.paragraphSpacing;
+      
+      // Reset font
+      if (isSignature || isClosing) {
+        doc.setFont(fontFamily, 'normal');
+      }
+    };
+    
+    // Process content
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i].trim();
+      
+      if (line === '') {
+        if (currentParagraph) {
+          // Determine paragraph type
+          const isDate = i < 3 && !!currentParagraph.match(/\d{4}/);
+          const isClosing = !!currentParagraph.match(/^(Sincerely|Best regards|Regards|Thank you)/i);
+          const isSignature = currentParagraph === name;
+          
+          renderParagraph(currentParagraph, isDate, isClosing, isSignature);
+          currentParagraph = '';
+        }
+      } else {
+        currentParagraph += (currentParagraph ? ' ' : '') + line;
+      }
+    }
+    
+    // Render last paragraph
+    if (currentParagraph) {
+      const isClosing = !!currentParagraph.match(/^(Sincerely|Best regards|Regards|Thank you)/i);
+      const isSignature = currentParagraph === name;
+      renderParagraph(currentParagraph, false, isClosing, isSignature);
+    }
     
     doc.save(fileName);
   }

@@ -3,6 +3,7 @@ import { CVData, SavedPrompt } from '../types';
 import { DocumentGenerator } from '../utils/documentGenerator';
 import { StorageService } from '../utils/storage';
 import { t, Lang } from '../i18n';
+import { defaultCoverLetterTemplates } from '../data/coverLetterTemplates';
 
 interface CoverLetterProps {
   cvData: CVData;
@@ -27,6 +28,8 @@ export const CoverLetter: React.FC<CoverLetterProps> = ({
   const [newPromptName, setNewPromptName] = useState('');
   const [newPromptFolder, setNewPromptFolder] = useState('General');
   const [selectedFolder, setSelectedFolder] = useState('All');
+  const [selectedTemplateId, setSelectedTemplateId] = useState<string>('classic');
+  const [showTemplateSelector, setShowTemplateSelector] = useState(false);
 
   React.useEffect(() => {
     loadPrompts();
@@ -74,15 +77,17 @@ export const CoverLetter: React.FC<CoverLetterProps> = ({
     
     try {
       if (format === 'docx') {
-        await DocumentGenerator.generateCoverLetterDOCX(coverLetter, name, fileName);
+        await DocumentGenerator.generateCoverLetterDOCX(coverLetter, name, fileName, selectedTemplateId);
       } else if (format === 'pdf') {
-        await DocumentGenerator.generateCoverLetterPDF(coverLetter, name, fileName);
+        await DocumentGenerator.generateCoverLetterPDF(coverLetter, name, fileName, selectedTemplateId);
       }
     } catch (error) {
       console.error('Error generating document:', error);
       alert(t(language, 'common.errorGeneratingDoc'));
     }
   };
+
+  const selectedTemplate = defaultCoverLetterTemplates.find(t => t.id === selectedTemplateId)!;
 
   const handleGoogleDoc = () => {
     alert(t(language, 'common.googleDocsMsg'));
@@ -214,16 +219,73 @@ export const CoverLetter: React.FC<CoverLetterProps> = ({
         </div>
       )}
       
-      {/* Cover Letter Preview */}
+      {/* Template Selector */}
       {coverLetter && (
-        <div className="preview-section">
-          <h3 className="subsection-title">
-            {t(language, 'cover.preview')}
-          </h3>
-          
-          <div className="preview-container cover-letter-preview">
-            {coverLetter}
+        <>
+          <div className="template-selector-section">
+            <div className="template-selector-header">
+              <h3 className="subsection-title">
+                {t(language, 'coverTemplates.title')}
+              </h3>
+              <button 
+                className="btn btn-secondary btn-sm"
+                onClick={() => setShowTemplateSelector(!showTemplateSelector)}
+              >
+                {showTemplateSelector ? '▼' : '▶'} {selectedTemplate?.preview} {selectedTemplate?.name}
+              </button>
+            </div>
+            
+            {showTemplateSelector && (
+              <div className="template-grid">
+                {defaultCoverLetterTemplates.map(template => (
+                  <div 
+                    key={template.id}
+                    className={`template-card ${selectedTemplateId === template.id ? 'selected' : ''}`}
+                    onClick={() => {
+                      setSelectedTemplateId(template.id);
+                      setShowTemplateSelector(false);
+                    }}
+                  >
+                    <div className="template-card-header">
+                      <div className="template-preview">{template.preview}</div>
+                      <div className="template-info">
+                        <div className="template-name">{template.name}</div>
+                        <div className="template-description">{template.description}</div>
+                      </div>
+                    </div>
+                    <div className="template-features">
+                      {template.features.map((feature, idx) => (
+                        <span key={idx} className="feature-tag">✓ {feature}</span>
+                      ))}
+                    </div>
+                    {selectedTemplateId === template.id && (
+                      <div className="template-selected-badge">
+                        ✓ {t(language, 'templates.selected')}
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
+          
+          {/* Cover Letter Preview */}
+          <div className="preview-section">
+            <h3 className="subsection-title">
+              {t(language, 'cover.preview')}
+            </h3>
+            
+            <div 
+              className="preview-container cover-letter-preview"
+              style={{
+                fontFamily: selectedTemplate?.style.fontFamily,
+                fontSize: `${selectedTemplate?.style.fontSize}px`,
+                lineHeight: selectedTemplate?.style.lineHeight,
+                color: selectedTemplate?.colors.text
+              }}
+            >
+              {coverLetter}
+            </div>
           
           <div className="download-options">
             <button className="btn btn-success" onClick={handleCopy}>
@@ -239,7 +301,8 @@ export const CoverLetter: React.FC<CoverLetterProps> = ({
               📄 {t(language, 'preview.exportGoogleDocs')}
             </button>
           </div>
-        </div>
+          </div>
+        </>
       )}
       
       {!coverLetter && (
