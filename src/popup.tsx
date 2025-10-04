@@ -30,7 +30,7 @@ import './styles.css';
 
 type TabType = 'cv-info' | 'optimize' | 'cover-letter' | 'profiles' | 'settings' | 'analytics';
 type Theme = 'light' | 'dark' | 'system';
-type Language = 'en' | 'tr';
+type Language = 'en' | 'tr' | 'de' | 'es' | 'fr';
 
 const App: React.FC = () => {
   const [activeTab, setActiveTab] = useState<TabType>('cv-info');
@@ -487,6 +487,9 @@ const App: React.FC = () => {
           >
             <option value="en">🌐 English</option>
             <option value="tr">🌐 Türkçe</option>
+            <option value="de">🌐 Deutsch</option>
+            <option value="es">🌐 Español</option>
+            <option value="fr">🌐 Français</option>
           </select>
           <select
             className="form-select"

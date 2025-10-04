@@ -1,10 +1,10 @@
 import React from 'react';
 import { Education } from '../types';
-import { getDegrees } from '../data/degreesI18n';
 import { t, Lang } from '../i18n';
 import { RichTextEditor } from './RichTextEditor';
 import { LocationSelector } from './LocationSelector';
 import { DateInput } from './DateInput';
+import { DegreeSelector } from './DegreeSelector';
 
 interface EducationFormProps {
   education: Education[];
@@ -13,7 +13,6 @@ interface EducationFormProps {
 }
 
 export const EducationForm: React.FC<EducationFormProps> = ({ education, onChange, language }) => {
-  const degrees = getDegrees(language);
 
   const handleAdd = () => {
     const newEducation: Education = {
@@ -102,22 +101,6 @@ export const EducationForm: React.FC<EducationFormProps> = ({ education, onChang
 
               <div className="form-row">
                 <div className="form-group">
-                  <label className="form-label">{t(language, 'education.degree')} *</label>
-                  <select
-                    className="form-select"
-                    value={edu.degree}
-                    onChange={(e) => handleUpdate(edu.id, 'degree', e.target.value)}
-                  >
-                    <option value="">{t(language, 'education.selectDegree')}</option>
-                    {degrees.map((d) => (
-                      <option key={d} value={d}>
-                        {d}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div className="form-group">
                   <label className="form-label">{t(language, 'education.field')} *</label>
                   <input
                     type="text"
@@ -127,6 +110,17 @@ export const EducationForm: React.FC<EducationFormProps> = ({ education, onChang
                     placeholder="Computer Science"
                   />
                 </div>
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">{t(language, 'education.degree')} *</label>
+                <DegreeSelector
+                  value={edu.degree}
+                  onChange={(value) => handleUpdate(edu.id, 'degree', value)}
+                  language={language}
+                  fieldOfStudy={edu.fieldOfStudy}
+                  placeholder={t(language, 'education.selectDegree')}
+                />
               </div>
 
               <div className="form-row">

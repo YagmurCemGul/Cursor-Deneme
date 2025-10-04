@@ -1,4 +1,4 @@
-export type Lang = 'en' | 'tr';
+export type Lang = 'en' | 'tr' | 'de' | 'es' | 'fr';
 
 const dict: Record<string, Record<Lang, string>> = {
   'app.title': { en: 'AI CV & Cover Letter Optimizer', tr: 'YZ CV ve Niyet Mektubu Optimizasyonu' },
@@ -939,9 +939,26 @@ const dict: Record<string, Record<Lang, string>> = {
   'jobLibrary.saveSuccess': { en: 'Job description saved successfully!', tr: 'İş tanımı başarıyla kaydedildi!' },
   'jobLibrary.saveError': { en: 'Please provide a name and description', tr: 'Lütfen bir isim ve açıklama girin' },
   'jobLibrary.usedTimes': { en: 'Used {count} times', tr: '{count} kez kullanıldı' },
-  'common.loading': { en: 'Loading...', tr: 'Yükleniyor...' },
-  'common.edit': { en: 'Edit', tr: 'Düzenle' },
-  'common.delete': { en: 'Delete', tr: 'Sil' },
+  'common.loading': { en: 'Loading...', tr: 'Yükleniyor...', de: 'Laden...', es: 'Cargando...', fr: 'Chargement...' },
+  'common.edit': { en: 'Edit', tr: 'Düzenle', de: 'Bearbeiten', es: 'Editar', fr: 'Modifier' },
+  'common.delete': { en: 'Delete', tr: 'Sil', de: 'Löschen', es: 'Eliminar', fr: 'Supprimer' },
+  
+  // Degree Selector
+  'degree.countryRegion': { en: 'Country/Region', tr: 'Ülke/Bölge', de: 'Land/Region', es: 'País/Región', fr: 'Pays/Région' },
+  'degree.allCountries': { en: 'All', tr: 'Tümü', de: 'Alle', es: 'Todos', fr: 'Tous' },
+  'degree.selectOrType': { en: 'Select or type degree...', tr: 'Derece seçin veya yazın...', de: 'Abschluss wählen oder eingeben...', es: 'Seleccionar o escribir título...', fr: 'Sélectionner ou saisir diplôme...' },
+  'degree.verificationService': { en: 'Verification Service', tr: 'Doğrulama Servisi', de: 'Überprüfungsdienst', es: 'Servicio de Verificación', fr: 'Service de Vérification' },
+  'degree.suggestedDegrees': { en: 'Suggested Degrees', tr: 'Önerilen Dereceler', de: 'Empfohlene Abschlüsse', es: 'Títulos Sugeridos', fr: 'Diplômes Suggérés' },
+  'degree.customDegreeNote': { en: 'will be added as custom degree', tr: 'özel derece olarak eklenecek', de: 'wird als benutzerdefinierter Abschluss hinzugefügt', es: 'se agregará como título personalizado', fr: 'sera ajouté comme diplôme personnalisé' },
+  'degree.noDegreesFound': { en: 'No degrees found', tr: 'Derece bulunamadı', de: 'Keine Abschlüsse gefunden', es: 'No se encontraron títulos', fr: 'Aucun diplôme trouvé' },
+  'degree.customInputHelp': { en: 'Type custom degree name if not in list', tr: 'Listede yoksa özel derece adı yazabilirsiniz', de: 'Geben Sie einen benutzerdefinierten Abschlussnamen ein, falls nicht in der Liste', es: 'Escriba el nombre del título personalizado si no está en la lista', fr: 'Saisissez le nom du diplôme personnalisé s\'il n\'est pas dans la liste' },
+  
+  // Language Names
+  'lang.english': { en: 'English', tr: 'İngilizce', de: 'Englisch', es: 'Inglés', fr: 'Anglais' },
+  'lang.turkish': { en: 'Turkish', tr: 'Türkçe', de: 'Türkisch', es: 'Turco', fr: 'Turc' },
+  'lang.german': { en: 'German', tr: 'Almanca', de: 'Deutsch', es: 'Alemán', fr: 'Allemand' },
+  'lang.spanish': { en: 'Spanish', tr: 'İspanyolca', de: 'Spanisch', es: 'Español', fr: 'Espagnol' },
+  'lang.french': { en: 'French', tr: 'Fransızca', de: 'Französisch', es: 'Francés', fr: 'Français' },
 };
 
 export function t(lang: Lang, key: string, params?: Record<string, any>): string {
@@ -956,3 +973,11 @@ export function t(lang: Lang, key: string, params?: Record<string, any>): string
   
   return text;
 }
+
+export const languageNames: Record<Lang, string> = {
+  en: 'English',
+  tr: 'Türkçe',
+  de: 'Deutsch',
+  es: 'Español',
+  fr: 'Français',
+};
