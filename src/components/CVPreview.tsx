@@ -7,10 +7,23 @@ interface CVPreviewProps {
   cvData: CVData;
   optimizations: ATSOptimization[];
   language: Lang;
+  focusedOptimizationId?: string | null;
 }
 
-export const CVPreview: React.FC<CVPreviewProps> = ({ cvData, optimizations, language }) => {
+export const CVPreview: React.FC<CVPreviewProps> = ({ cvData, optimizations, language, focusedOptimizationId }) => {
   const [template, setTemplate] = React.useState<'Classic' | 'Modern' | 'Compact'>('Classic');
+  const highlightRefs = React.useRef<Map<string, HTMLElement>>(new Map());
+  
+  // Scroll to focused optimization
+  React.useEffect(() => {
+    if (focusedOptimizationId) {
+      const element = highlightRefs.current.get(focusedOptimizationId);
+      if (element) {
+        element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+    }
+  }, [focusedOptimizationId]);
+  
   const highlightOptimized = (text: string): React.ReactNode => {
     if (!text) return null;
     const applied = optimizations.filter(o => o.applied);
@@ -23,7 +36,28 @@ export const CVPreview: React.FC<CVPreviewProps> = ({ cvData, optimizations, lan
         const segments = p.split(new RegExp(`(${escapeRegExp(opt.optimizedText)})`, 'i'));
         segments.forEach((seg, i) => {
           if (i % 2 === 1) {
-            nextParts.push(<mark key={`opt-${idx}-${i}`} style={{ backgroundColor: '#fef08a' }}>{seg}</mark>);
+            const isFocused = opt.id === focusedOptimizationId;
+            nextParts.push(
+              <mark 
+                key={`opt-${idx}-${i}`} 
+                ref={(el) => {
+                  if (el && i === 1) { // Only set ref for the first occurrence
+                    highlightRefs.current.set(opt.id, el);
+                  }
+                }}
+                className={isFocused ? 'highlight-focused' : 'highlight-default'}
+                style={{ 
+                  backgroundColor: isFocused ? '#10b981' : '#fef08a',
+                  color: isFocused ? 'white' : 'inherit',
+                  fontWeight: isFocused ? '600' : 'normal',
+                  padding: isFocused ? '2px 4px' : '0',
+                  borderRadius: isFocused ? '3px' : '0',
+                  transition: 'all 0.3s ease'
+                }}
+              >
+                {seg}
+              </mark>
+            );
           } else {
             nextParts.push(seg);
           }

@@ -56,6 +56,7 @@ const App: React.FC = () => {
   const [theme, setTheme] = useState<Theme>('light');
   const [language, setLanguage] = useState<Language>('en');
   const [systemPrefersDark, setSystemPrefersDark] = useState(false);
+  const [focusedOptimizationId, setFocusedOptimizationId] = useState<string | null>(null);
 
   useEffect(() => {
     loadInitial();
@@ -316,12 +317,15 @@ const App: React.FC = () => {
               optimizations={optimizations}
               onChange={setOptimizations}
               language={language}
+              onOptimizationFocus={setFocusedOptimizationId}
+              focusedOptimizationId={focusedOptimizationId}
             />
             
             <CVPreview 
               cvData={cvData}
               optimizations={optimizations}
               language={language}
+              focusedOptimizationId={focusedOptimizationId}
             />
           </>
         )}

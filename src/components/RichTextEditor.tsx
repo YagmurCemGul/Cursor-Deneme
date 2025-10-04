@@ -91,8 +91,8 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
     const lines = beforeCursor.split('\n');
     let lastNumber = 0;
     for (let i = lines.length - 1; i >= 0; i--) {
-      const match = lines[i].match(/^(\d+)\.\s/);
-      if (match) {
+      const match = lines[i]?.match(/^(\d+)\.\s/);
+      if (match && match[1]) {
         lastNumber = parseInt(match[1]);
         break;
       }

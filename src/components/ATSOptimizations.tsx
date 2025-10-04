@@ -6,9 +6,11 @@ interface ATSOptimizationsProps {
   optimizations: ATSOptimization[];
   onChange: (optimizations: ATSOptimization[]) => void;
   language: Lang;
+  onOptimizationFocus: (id: string | null) => void;
+  focusedOptimizationId: string | null;
 }
 
-export const ATSOptimizations: React.FC<ATSOptimizationsProps> = ({ optimizations, onChange, language }) => {
+export const ATSOptimizations: React.FC<ATSOptimizationsProps> = ({ optimizations, onChange, language, onOptimizationFocus, focusedOptimizationId }) => {
   const toggleOptimization = (id: string) => {
     onChange(optimizations.map(opt => 
       opt.id === id ? { ...opt, applied: !opt.applied } : opt
@@ -82,7 +84,12 @@ export const ATSOptimizations: React.FC<ATSOptimizationsProps> = ({ optimization
                   
                   <div>
                     <div className="text-label">{t(language, 'opt.optimized')}</div>
-                    <div className="text-box text-optimized">
+                    <div 
+                      className={`text-box text-optimized ${focusedOptimizationId === opt.id ? 'text-optimized-focused' : ''}`}
+                      onClick={() => onOptimizationFocus(focusedOptimizationId === opt.id ? null : opt.id)}
+                      style={{ cursor: 'pointer' }}
+                      title={opt.applied ? t(language, 'opt.clickToHighlight') : t(language, 'opt.applyFirstToHighlight')}
+                    >
                       {opt.optimizedText}
                     </div>
                   </div>
