@@ -1,12 +1,14 @@
 import React, { useRef, useState, useEffect } from 'react';
+import { t, Lang } from '../i18n';
 
 interface PhotoCropperProps {
   imageDataUrl: string;
   onCrop: (croppedDataUrl: string) => void;
   onCancel: () => void;
+  language: Lang;
 }
 
-export const PhotoCropper: React.FC<PhotoCropperProps> = ({ imageDataUrl, onCrop, onCancel }) => {
+export const PhotoCropper: React.FC<PhotoCropperProps> = ({ imageDataUrl, onCrop, onCancel, language }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [image, setImage] = useState<HTMLImageElement | null>(null);
   const [crop, setCrop] = useState({ x: 0, y: 0, size: 200 });
@@ -158,8 +160,12 @@ export const PhotoCropper: React.FC<PhotoCropperProps> = ({ imageDataUrl, onCrop
     <div className="photo-cropper-overlay" onClick={onCancel}>
       <div className="photo-cropper-modal" onClick={(e) => e.stopPropagation()}>
         <div className="photo-cropper-header">
-          <h3>Crop Photo</h3>
+          <h3>🖼️ {t(language, 'personal.photoCropTitle')}</h3>
           <button className="btn btn-secondary btn-icon" onClick={onCancel}>×</button>
+        </div>
+        
+        <div className="photo-cropper-instructions">
+          <p>👆 {t(language, 'personal.photoCropInstructions')}</p>
         </div>
         
         <div className="photo-cropper-content">
@@ -174,17 +180,21 @@ export const PhotoCropper: React.FC<PhotoCropperProps> = ({ imageDataUrl, onCrop
           
           <div className="photo-cropper-controls">
             <button className="btn btn-secondary" onClick={() => handleZoom(-20)}>
-              🔍− Zoom Out
+              🔍− {t(language, 'personal.photoCropZoomOut')}
             </button>
             <button className="btn btn-secondary" onClick={() => handleZoom(20)}>
-              🔍+ Zoom In
+              🔍+ {t(language, 'personal.photoCropZoomIn')}
             </button>
           </div>
         </div>
         
         <div className="photo-cropper-footer">
-          <button className="btn btn-secondary" onClick={onCancel}>Cancel</button>
-          <button className="btn btn-primary" onClick={handleCrop}>Apply Crop</button>
+          <button className="btn btn-secondary" onClick={onCancel}>
+            {t(language, 'personal.photoCropCancel')}
+          </button>
+          <button className="btn btn-primary" onClick={handleCrop}>
+            ✔️ {t(language, 'personal.photoCropApply')}
+          </button>
         </div>
       </div>
     </div>
