@@ -150,6 +150,8 @@ const dict: Record<string, Record<Lang, string>> = {
   'opt.detailsTitle': { en: 'Optimization Details', tr: 'Optimizasyon Detayları' },
   'opt.original': { en: 'Original', tr: 'Orijinal' },
   'opt.optimized': { en: 'Optimized', tr: 'Optimize Edilmiş' },
+  'opt.clickToHighlight': { en: 'Click to highlight in CV preview', tr: 'CV önizlemede vurgulamak için tıklayın' },
+  'opt.applyFirstToHighlight': { en: 'Apply this optimization first to highlight it in the preview', tr: 'Önizlemede vurgulamak için önce bu optimizasyonu uygulayın' },
   
   'preview.title': { en: 'CV Preview', tr: 'CV Önizleme' },
   'preview.downloadPdf': { en: 'Download PDF', tr: 'PDF İndir' },
