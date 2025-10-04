@@ -4,7 +4,12 @@ import { DocumentGenerator } from '../utils/documentGenerator';
 import { GoogleDriveService } from '../utils/googleDriveService';
 import { StorageService } from '../utils/storage';
 import { t, Lang } from '../i18n';
-import { defaultCoverLetterTemplates } from '../data/coverLetterTemplates';
+import { 
+  defaultCoverLetterTemplates,
+  getCoverLetterTemplateNameKey,
+  getCoverLetterTemplateDescriptionKey,
+  getCoverLetterFeatureI18nKey
+} from '../data/coverLetterTemplates';
 
 interface CoverLetterProps {
   cvData: CVData;
@@ -251,7 +256,7 @@ export const CoverLetter: React.FC<CoverLetterProps> = ({
                 className="btn btn-secondary btn-sm"
                 onClick={() => setShowTemplateSelector(!showTemplateSelector)}
               >
-                {showTemplateSelector ? '▼' : '▶'} {selectedTemplate?.preview} {selectedTemplate?.name}
+                {showTemplateSelector ? '▼' : '▶'} {selectedTemplate?.preview} {t(language, getCoverLetterTemplateNameKey(selectedTemplate?.id || 'classic'))}
               </button>
             </div>
             
@@ -269,13 +274,13 @@ export const CoverLetter: React.FC<CoverLetterProps> = ({
                     <div className="template-card-header">
                       <div className="template-preview">{template.preview}</div>
                       <div className="template-info">
-                        <div className="template-name">{template.name}</div>
-                        <div className="template-description">{template.description}</div>
+                        <div className="template-name">{t(language, getCoverLetterTemplateNameKey(template.id))}</div>
+                        <div className="template-description">{t(language, getCoverLetterTemplateDescriptionKey(template.id))}</div>
                       </div>
                     </div>
                     <div className="template-features">
                       {template.features.map((feature, idx) => (
-                        <span key={idx} className="feature-tag">✓ {feature}</span>
+                        <span key={idx} className="feature-tag">✓ {t(language, getCoverLetterFeatureI18nKey(feature))}</span>
                       ))}
                     </div>
                     {selectedTemplateId === template.id && (
