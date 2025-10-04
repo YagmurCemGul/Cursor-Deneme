@@ -1,6 +1,6 @@
-export type Lang = 'en' | 'tr' | 'de' | 'es' | 'fr';
+export type Lang = 'en' | 'tr' | 'de' | 'es' | 'fr' | 'zh' | 'ar' | 'pt' | 'ja' | 'ko' | 'it' | 'nl';
 
-const dict: Record<string, Record<Lang, string>> = {
+const dict: Record<string, Partial<Record<Lang, string>>> = {
   'app.title': { en: 'AI CV & Cover Letter Optimizer', tr: 'YZ CV ve Niyet Mektubu Optimizasyonu' },
   'app.subtitle': {
     en: 'ATS-Optimized Resumes & Cover Letters Powered by AI',
@@ -954,11 +954,27 @@ const dict: Record<string, Record<Lang, string>> = {
   'degree.customInputHelp': { en: 'Type custom degree name if not in list', tr: 'Listede yoksa özel derece adı yazabilirsiniz', de: 'Geben Sie einen benutzerdefinierten Abschlussnamen ein, falls nicht in der Liste', es: 'Escriba el nombre del título personalizado si no está en la lista', fr: 'Saisissez le nom du diplôme personnalisé s\'il n\'est pas dans la liste' },
   
   // Language Names
-  'lang.english': { en: 'English', tr: 'İngilizce', de: 'Englisch', es: 'Inglés', fr: 'Anglais' },
-  'lang.turkish': { en: 'Turkish', tr: 'Türkçe', de: 'Türkisch', es: 'Turco', fr: 'Turc' },
-  'lang.german': { en: 'German', tr: 'Almanca', de: 'Deutsch', es: 'Alemán', fr: 'Allemand' },
-  'lang.spanish': { en: 'Spanish', tr: 'İspanyolca', de: 'Spanisch', es: 'Español', fr: 'Espagnol' },
-  'lang.french': { en: 'French', tr: 'Fransızca', de: 'Französisch', es: 'Francés', fr: 'Français' },
+  'lang.english': { en: 'English', tr: 'İngilizce', de: 'Englisch', es: 'Inglés', fr: 'Anglais', zh: '英语', ar: 'الإنجليزية', pt: 'Inglês', ja: '英語', ko: '영어', it: 'Inglese', nl: 'Engels' },
+  'lang.turkish': { en: 'Turkish', tr: 'Türkçe', de: 'Türkisch', es: 'Turco', fr: 'Turc', zh: '土耳其语', ar: 'التركية', pt: 'Turco', ja: 'トルコ語', ko: '터키어', it: 'Turco', nl: 'Turks' },
+  'lang.german': { en: 'German', tr: 'Almanca', de: 'Deutsch', es: 'Alemán', fr: 'Allemand', zh: '德语', ar: 'الألمانية', pt: 'Alemão', ja: 'ドイツ語', ko: '독일어', it: 'Tedesco', nl: 'Duits' },
+  'lang.spanish': { en: 'Spanish', tr: 'İspanyolca', de: 'Spanisch', es: 'Español', fr: 'Espagnol', zh: '西班牙语', ar: 'الإسبانية', pt: 'Espanhol', ja: 'スペイン語', ko: '스페인어', it: 'Spagnolo', nl: 'Spaans' },
+  'lang.french': { en: 'French', tr: 'Fransızca', de: 'Französisch', es: 'Francés', fr: 'Français', zh: '法语', ar: 'الفرنسية', pt: 'Francês', ja: 'フランス語', ko: '프랑스어', it: 'Francese', nl: 'Frans' },
+  'lang.chinese': { en: 'Chinese', tr: 'Çince', de: 'Chinesisch', es: 'Chino', fr: 'Chinois', zh: '中文', ar: 'الصينية', pt: 'Chinês', ja: '中国語', ko: '중국어', it: 'Cinese', nl: 'Chinees' },
+  'lang.arabic': { en: 'Arabic', tr: 'Arapça', de: 'Arabisch', es: 'Árabe', fr: 'Arabe', zh: '阿拉伯语', ar: 'العربية', pt: 'Árabe', ja: 'アラビア語', ko: '아랍어', it: 'Arabo', nl: 'Arabisch' },
+  'lang.portuguese': { en: 'Portuguese', tr: 'Portekizce', de: 'Portugiesisch', es: 'Portugués', fr: 'Portugais', zh: '葡萄牙语', ar: 'البرتغالية', pt: 'Português', ja: 'ポルトガル語', ko: '포르투갈어', it: 'Portoghese', nl: 'Portugees' },
+  'lang.japanese': { en: 'Japanese', tr: 'Japonca', de: 'Japanisch', es: 'Japonés', fr: 'Japonais', zh: '日语', ar: 'اليابانية', pt: 'Japonês', ja: '日本語', ko: '일본어', it: 'Giapponese', nl: 'Japans' },
+  'lang.korean': { en: 'Korean', tr: 'Korece', de: 'Koreanisch', es: 'Coreano', fr: 'Coréen', zh: '韩语', ar: 'الكورية', pt: 'Coreano', ja: '韓国語', ko: '한국어', it: 'Coreano', nl: 'Koreaans' },
+  'lang.italian': { en: 'Italian', tr: 'İtalyanca', de: 'Italienisch', es: 'Italiano', fr: 'Italien', zh: '意大利语', ar: 'الإيطالية', pt: 'Italiano', ja: 'イタリア語', ko: '이탈리아어', it: 'Italiano', nl: 'Italiaans' },
+  'lang.dutch': { en: 'Dutch', tr: 'Hollandaca', de: 'Niederländisch', es: 'Holandés', fr: 'Néerlandais', zh: '荷兰语', ar: 'الهولندية', pt: 'Holandês', ja: 'オランダ語', ko: '네덜란드어', it: 'Olandese', nl: 'Nederlands' },
+
+  // Degree Equivalency
+  'degree.equivalency': { en: 'Equivalent Degrees', tr: 'Eşdeğer Dereceler', de: 'Äquivalente Abschlüsse', es: 'Títulos Equivalentes', fr: 'Diplômes Équivalents', zh: '同等学位', ar: 'الدرجات المكافئة', pt: 'Diplomas Equivalentes' },
+  'degree.accreditation': { en: 'Accreditation', tr: 'Akreditasyon', de: 'Akkreditierung', es: 'Acreditación', fr: 'Accréditation', zh: '认证', ar: 'الاعتماد', pt: 'Acreditação' },
+  'degree.institutions': { en: 'Institutions', tr: 'Kurumlar', de: 'Institutionen', es: 'Instituciones', fr: 'Institutions', zh: '机构', ar: 'المؤسسات', pt: 'Instituições' },
+  'degree.historicalName': { en: 'Historical Name', tr: 'Eski Ad', de: 'Historischer Name', es: 'Nombre Histórico', fr: 'Nom Historique', zh: '历史名称', ar: 'الاسم التاريخي', pt: 'Nome Histórico' },
+  'degree.similarity': { en: 'Similarity', tr: 'Benzerlik', de: 'Ähnlichkeit', es: 'Similitud', fr: 'Similarité', zh: '相似度', ar: 'التشابه', pt: 'Similaridade' },
+  'degree.aiWarning': { en: 'Field Mismatch Warning', tr: 'Alan Uyumsuzluğu Uyarısı', de: 'Feldkonflikt-Warnung', es: 'Advertencia de Incompatibilidad', fr: 'Avertissement de Discordance', zh: '字段不匹配警告', ar: 'تحذير عدم تطابق المجال', pt: 'Aviso de Incompatibilidade' },
+  'degree.viewEquivalent': { en: 'View Equivalent', tr: 'Eşdeğeri Görüntüle', de: 'Äquivalent Anzeigen', es: 'Ver Equivalente', fr: 'Voir Équivalent', zh: '查看同等学位', ar: 'عرض المكافئ', pt: 'Ver Equivalente' },
 };
 
 export function t(lang: Lang, key: string, params?: Record<string, any>): string {
@@ -980,4 +996,11 @@ export const languageNames: Record<Lang, string> = {
   de: 'Deutsch',
   es: 'Español',
   fr: 'Français',
+  zh: '中文',
+  ar: 'العربية',
+  pt: 'Português',
+  ja: '日本語',
+  ko: '한국어',
+  it: 'Italiano',
+  nl: 'Nederlands',
 };

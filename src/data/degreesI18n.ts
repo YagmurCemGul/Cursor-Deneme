@@ -1,7 +1,27 @@
 import { Lang } from '../i18n';
 
-export type DegreeCountry = 'US' | 'UK' | 'EU' | 'TR' | 'GLOBAL';
-export type ExpandedLang = Lang | 'de' | 'es' | 'fr';
+export type DegreeCountry = 'US' | 'UK' | 'EU' | 'TR' | 'IN' | 'CA' | 'AU' | 'GLOBAL';
+export type ExpandedLang = Lang | 'de' | 'es' | 'fr' | 'zh' | 'ar' | 'pt' | 'ja' | 'ko' | 'it' | 'nl';
+
+export interface DegreeEquivalency {
+  country: DegreeCountry;
+  degreeName: string;
+  similarity: number; // 0-100%
+  notes?: string;
+}
+
+export interface AccreditationInfo {
+  body: string;
+  country: DegreeCountry;
+  url?: string;
+  type: 'national' | 'regional' | 'professional';
+}
+
+export interface InstitutionInfo {
+  country: DegreeCountry;
+  searchUrl?: string;
+  exampleInstitutions?: string[];
+}
 
 export interface DegreeOption {
   en: string;
@@ -9,6 +29,13 @@ export interface DegreeOption {
   de?: string;
   es?: string;
   fr?: string;
+  zh?: string; // Chinese (Simplified)
+  ar?: string; // Arabic
+  pt?: string; // Portuguese
+  ja?: string; // Japanese
+  ko?: string; // Korean
+  it?: string; // Italian
+  nl?: string; // Dutch
   fullName?: string;
   description?: string;
   countries: DegreeCountry[];
@@ -16,6 +43,14 @@ export interface DegreeOption {
   relatedFields?: string[];
   verificationLinks?: {
     [country: string]: string;
+  };
+  equivalentDegrees?: DegreeEquivalency[];
+  accreditation?: AccreditationInfo[];
+  institutions?: InstitutionInfo[];
+  historicalNames?: string[]; // Deprecated/old names for this degree
+  aiValidation?: {
+    requiredFields?: string[];
+    incompatibleFields?: string[];
   };
 }
 
@@ -164,11 +199,26 @@ export const degreeOptions: DegreeOption[] = [
     de: 'Bachelor of Laws (LLB)',
     es: 'Licenciatura en Derecho (LLB)',
     fr: 'Licence en Droit (LLB)',
+    zh: '法学士 (LLB)',
+    ar: 'بكالوريوس القانون (LLB)',
+    pt: 'Bacharelado em Direito (LLB)',
     fullName: 'Bachelor of Laws / Legum Baccalaureus',
     description: 'Undergraduate degree in law',
-    countries: ['UK', 'EU', 'GLOBAL'],
+    countries: ['UK', 'EU', 'IN', 'AU', 'CA', 'GLOBAL'],
     category: 'bachelor',
     relatedFields: ['law', 'legal', 'jurisprudence'],
+    equivalentDegrees: [
+      { country: 'US', degreeName: 'Juris Doctor (JD)', similarity: 75, notes: 'JD is a professional doctorate in US, while LLB is undergraduate in other countries' },
+    ],
+    historicalNames: ['Bachelor of Law', 'LL.B.'],
+    accreditation: [
+      { body: 'SRA', country: 'UK', url: 'https://www.sra.org.uk/', type: 'professional' },
+      { body: 'Bar Council', country: 'UK', url: 'https://www.barcouncil.org.uk/', type: 'professional' },
+    ],
+    aiValidation: {
+      requiredFields: ['law', 'legal', 'jurisprudence'],
+      incompatibleFields: ['engineering', 'medicine', 'science'],
+    },
   },
   {
     en: 'Bachelor of Medicine, Bachelor of Surgery (MBBS)',
@@ -236,11 +286,203 @@ export const degreeOptions: DegreeOption[] = [
     de: 'Bachelor of Nursing (BN)',
     es: 'Licenciatura en Enfermería (BN)',
     fr: 'Licence en Sciences Infirmières (BN)',
+    zh: '护理学学士 (BN)',
+    ar: 'بكالوريوس التمريض (BN)',
+    pt: 'Bacharelado em Enfermagem (BN)',
     fullName: 'Bachelor of Nursing',
     description: 'Undergraduate degree in nursing',
     countries: ['GLOBAL'],
     category: 'bachelor',
     relatedFields: ['nursing', 'healthcare', 'medical'],
+    accreditation: [
+      { body: 'ACEN', country: 'US', url: 'https://www.acenursing.org/', type: 'national' },
+      { body: 'NMC', country: 'UK', url: 'https://www.nmc.org.uk/', type: 'national' },
+    ],
+  },
+
+  // India-Specific Degrees
+  {
+    en: 'Bachelor of Technology (B.Tech)',
+    tr: 'Teknoloji Lisansı (B.Tech)',
+    de: 'Bachelor of Technology (B.Tech)',
+    es: 'Licenciatura en Tecnología (B.Tech)',
+    fr: 'Licence en Technologie (B.Tech)',
+    zh: '技术学士 (B.Tech)',
+    ar: 'بكالوريوس التكنولوجيا (B.Tech)',
+    pt: 'Bacharelado em Tecnologia (B.Tech)',
+    fullName: 'Bachelor of Technology',
+    description: 'Four-year undergraduate engineering degree (India)',
+    countries: ['IN', 'GLOBAL'],
+    category: 'bachelor',
+    relatedFields: ['engineering', 'technology', 'computer science'],
+    verificationLinks: {
+      IN: 'https://www.aicte-india.org/',
+    },
+    equivalentDegrees: [
+      { country: 'US', degreeName: 'Bachelor of Science (BSc)', similarity: 90, notes: 'Similar to BSc in Engineering' },
+      { country: 'UK', degreeName: 'Bachelor of Engineering (BEng)', similarity: 95 },
+    ],
+    accreditation: [
+      { body: 'AICTE', country: 'IN', url: 'https://www.aicte-india.org/', type: 'national' },
+      { body: 'NBA', country: 'IN', url: 'https://www.nbaind.org/', type: 'national' },
+    ],
+    institutions: [
+      {
+        country: 'IN',
+        searchUrl: 'https://www.ugc.ac.in/',
+        exampleInstitutions: ['IIT', 'NIT', 'BITS Pilani'],
+      },
+    ],
+    aiValidation: {
+      requiredFields: ['engineering', 'technology', 'computer science', 'electronics'],
+      incompatibleFields: ['arts', 'humanities', 'social sciences'],
+    },
+  },
+  {
+    en: 'Bachelor of Engineering (B.E.)',
+    tr: 'Mühendislik Lisansı (B.E.)',
+    de: 'Bachelor of Engineering (B.E.)',
+    es: 'Ingeniería (B.E.)',
+    fr: 'Licence en Ingénierie (B.E.)',
+    zh: '工学士 (B.E.)',
+    ar: 'بكالوريوس الهندسة (B.E.)',
+    pt: 'Bacharelado em Engenharia (B.E.)',
+    fullName: 'Bachelor of Engineering',
+    description: 'Four-year undergraduate engineering degree (India)',
+    countries: ['IN', 'GLOBAL'],
+    category: 'bachelor',
+    relatedFields: ['engineering', 'mechanical', 'civil', 'electrical'],
+    verificationLinks: {
+      IN: 'https://www.aicte-india.org/',
+    },
+    equivalentDegrees: [
+      { country: 'IN', degreeName: 'Bachelor of Technology (B.Tech)', similarity: 98 },
+      { country: 'UK', degreeName: 'Bachelor of Engineering (BEng)', similarity: 95 },
+    ],
+    accreditation: [
+      { body: 'AICTE', country: 'IN', url: 'https://www.aicte-india.org/', type: 'national' },
+    ],
+  },
+  {
+    en: 'Master of Technology (M.Tech)',
+    tr: 'Teknoloji Yüksek Lisansı (M.Tech)',
+    de: 'Master of Technology (M.Tech)',
+    es: 'Maestría en Tecnología (M.Tech)',
+    fr: 'Master en Technologie (M.Tech)',
+    zh: '技术硕士 (M.Tech)',
+    ar: 'ماجستير التكنولوجيا (M.Tech)',
+    pt: 'Mestrado em Tecnologia (M.Tech)',
+    fullName: 'Master of Technology',
+    description: 'Two-year postgraduate degree in technology (India)',
+    countries: ['IN', 'GLOBAL'],
+    category: 'master',
+    relatedFields: ['technology', 'engineering', 'computer science'],
+    equivalentDegrees: [
+      { country: 'US', degreeName: 'Master of Science (MSc)', similarity: 90 },
+      { country: 'UK', degreeName: 'Master of Engineering (MEng)', similarity: 92 },
+    ],
+    accreditation: [
+      { body: 'AICTE', country: 'IN', url: 'https://www.aicte-india.org/', type: 'national' },
+    ],
+  },
+
+  // Canada-Specific Degrees
+  {
+    en: 'Honours Bachelor Degree',
+    tr: 'Onur Lisans Derecesi',
+    de: 'Honours Bachelor',
+    es: 'Licenciatura con Honores',
+    fr: 'Baccalauréat avec Distinction',
+    zh: '荣誉学士学位',
+    ar: 'درجة البكالوريوس مع مرتبة الشرف',
+    pt: 'Bacharelado com Honras',
+    fullName: 'Honours Bachelor Degree',
+    description: 'Four-year intensive undergraduate degree (Canada)',
+    countries: ['CA', 'GLOBAL'],
+    category: 'bachelor',
+    relatedFields: [],
+    verificationLinks: {
+      CA: 'https://www.cicic.ca/',
+    },
+    equivalentDegrees: [
+      { country: 'US', degreeName: "Bachelor's Degree", similarity: 95, notes: 'More rigorous than standard BA/BSc' },
+      { country: 'UK', degreeName: "Bachelor's Degree", similarity: 95 },
+    ],
+    historicalNames: ['4-year Bachelor with Honours'],
+    institutions: [
+      {
+        country: 'CA',
+        searchUrl: 'https://www.univcan.ca/',
+        exampleInstitutions: ['University of Toronto', 'McGill University', 'UBC'],
+      },
+    ],
+  },
+  {
+    en: 'Graduate Diploma',
+    tr: 'Lisansüstü Diploma',
+    de: 'Graduate Diploma',
+    es: 'Diploma de Posgrado',
+    fr: 'Diplôme d\'Études Supérieures',
+    zh: '研究生文凭',
+    ar: 'دبلوم الدراسات العليا',
+    pt: 'Diploma de Pós-Graduação',
+    fullName: 'Graduate Diploma',
+    description: 'Post-bachelor qualification (Canada/Australia)',
+    countries: ['CA', 'AU', 'GLOBAL'],
+    category: 'professional',
+    relatedFields: [],
+    equivalentDegrees: [
+      { country: 'US', degreeName: 'Graduate Certificate', similarity: 85 },
+    ],
+  },
+
+  // Australia-Specific Degrees
+  {
+    en: 'Bachelor (Honours)',
+    tr: 'Onur Lisans Derecesi',
+    de: 'Bachelor mit Auszeichnung',
+    es: 'Licenciatura con Honores',
+    fr: 'Licence avec Mention',
+    zh: '荣誉学士',
+    ar: 'بكالوريوس مع مرتبة الشرف',
+    pt: 'Bacharelado com Honras',
+    fullName: 'Bachelor with Honours',
+    description: 'Four-year degree or 3-year + 1 honours year (Australia)',
+    countries: ['AU', 'GLOBAL'],
+    category: 'bachelor',
+    relatedFields: [],
+    verificationLinks: {
+      AU: 'https://www.aqf.edu.au/',
+    },
+    equivalentDegrees: [
+      { country: 'CA', degreeName: 'Honours Bachelor Degree', similarity: 98 },
+      { country: 'UK', degreeName: 'Honours Degree', similarity: 95 },
+    ],
+    institutions: [
+      {
+        country: 'AU',
+        searchUrl: 'https://www.universitiesaustralia.edu.au/',
+        exampleInstitutions: ['ANU', 'University of Melbourne', 'University of Sydney'],
+      },
+    ],
+  },
+  {
+    en: 'Graduate Certificate (Australia)',
+    tr: 'Lisansüstü Sertifika',
+    de: 'Graduate Certificate',
+    es: 'Certificado de Posgrado',
+    fr: 'Certificat de Troisième Cycle',
+    zh: '研究生证书',
+    ar: 'شهادة الدراسات العليا',
+    pt: 'Certificado de Pós-Graduação',
+    fullName: 'Graduate Certificate',
+    description: 'Six-month postgraduate qualification (Australia)',
+    countries: ['AU', 'GLOBAL'],
+    category: 'professional',
+    relatedFields: [],
+    verificationLinks: {
+      AU: 'https://www.aqf.edu.au/',
+    },
   },
 
   // Master's Degrees (Yüksek Lisans)
@@ -298,11 +540,34 @@ export const degreeOptions: DegreeOption[] = [
     de: 'Master of Business Administration (MBA)',
     es: 'Maestría en Administración de Empresas (MBA)',
     fr: 'Master en Administration des Affaires (MBA)',
+    zh: '工商管理硕士 (MBA)',
+    ar: 'ماجستير إدارة الأعمال (MBA)',
+    pt: 'Mestrado em Administração de Empresas (MBA)',
+    ja: '経営学修士 (MBA)',
+    ko: '경영학석사 (MBA)',
+    it: 'Master in Amministrazione Aziendale (MBA)',
+    nl: 'Master in Bedrijfskunde (MBA)',
     fullName: 'Master of Business Administration',
     description: 'Postgraduate degree in business administration',
     countries: ['GLOBAL'],
     category: 'master',
     relatedFields: ['business', 'management', 'leadership', 'finance'],
+    historicalNames: ['M.B.A.', 'Masters in Business Administration'],
+    accreditation: [
+      { body: 'AACSB', country: 'GLOBAL', url: 'https://www.aacsb.edu/', type: 'professional' },
+      { body: 'AMBA', country: 'UK', url: 'https://www.associationofmbas.com/', type: 'professional' },
+      { body: 'EQUIS', country: 'EU', url: 'https://www.efmdglobal.org/accreditations/business-school-accreditation/equis/', type: 'professional' },
+    ],
+    institutions: [
+      {
+        country: 'GLOBAL',
+        exampleInstitutions: ['Harvard Business School', 'Stanford GSB', 'Wharton', 'INSEAD', 'LBS'],
+      },
+    ],
+    aiValidation: {
+      requiredFields: ['business', 'management', 'finance', 'economics'],
+      incompatibleFields: [],
+    },
   },
   {
     en: 'Master of Technology (MTech)',
@@ -468,11 +733,26 @@ export const degreeOptions: DegreeOption[] = [
     de: 'Juris Doctor (JD)',
     es: 'Doctor en Jurisprudencia (JD)',
     fr: 'Docteur en Droit (JD)',
+    zh: '法律博士 (JD)',
+    ar: 'دكتوراه في القانون (JD)',
+    pt: 'Doutor em Direito (JD)',
     fullName: 'Juris Doctor',
-    description: 'Professional doctorate in law',
-    countries: ['US', 'GLOBAL'],
+    description: 'Professional doctorate in law (US)',
+    countries: ['US', 'CA', 'GLOBAL'],
     category: 'doctoral',
     relatedFields: ['law', 'legal'],
+    equivalentDegrees: [
+      { country: 'UK', degreeName: 'Bachelor of Laws (LLB)', similarity: 75, notes: 'LLB is undergraduate in UK, JD is professional doctorate in US' },
+      { country: 'EU', degreeName: 'Master of Laws (LLM)', similarity: 80 },
+    ],
+    historicalNames: ['Doctor of Law', 'Doctor of Jurisprudence', 'J.D.'],
+    accreditation: [
+      { body: 'ABA', country: 'US', url: 'https://www.americanbar.org/', type: 'national' },
+    ],
+    aiValidation: {
+      requiredFields: ['law', 'legal'],
+      incompatibleFields: ['engineering', 'medicine'],
+    },
   },
   {
     en: 'Doctor of Education (EdD)',
@@ -645,6 +925,110 @@ export function getVerificationLink(degreeName: string, country: string): string
   return degree?.verificationLinks?.[country];
 }
 
+export function getEquivalentDegrees(degreeName: string, targetCountry?: DegreeCountry): DegreeEquivalency[] {
+  const degree = getDegreeInfo(degreeName);
+  if (!degree?.equivalentDegrees) return [];
+  
+  if (targetCountry) {
+    return degree.equivalentDegrees.filter(eq => eq.country === targetCountry);
+  }
+  
+  return degree.equivalentDegrees;
+}
+
+export function getAccreditationBodies(degreeName: string, country?: DegreeCountry): AccreditationInfo[] {
+  const degree = getDegreeInfo(degreeName);
+  if (!degree?.accreditation) return [];
+  
+  if (country) {
+    return degree.accreditation.filter(acc => acc.country === country);
+  }
+  
+  return degree.accreditation;
+}
+
+export function getInstitutionInfo(degreeName: string, country?: DegreeCountry): InstitutionInfo | undefined {
+  const degree = getDegreeInfo(degreeName);
+  if (!degree?.institutions) return undefined;
+  
+  if (country) {
+    return degree.institutions.find(inst => inst.country === country);
+  }
+  
+  return degree.institutions[0];
+}
+
+export function validateDegreeFieldCombination(degreeName: string, fieldOfStudy: string): {
+  valid: boolean;
+  confidence: number;
+  warnings?: string[];
+} {
+  const degree = getDegreeInfo(degreeName);
+  if (!degree?.aiValidation || !fieldOfStudy) {
+    return { valid: true, confidence: 100 };
+  }
+  
+  const field = fieldOfStudy.toLowerCase();
+  const warnings: string[] = [];
+  let confidence = 100;
+  
+  // Check incompatible fields
+  if (degree.aiValidation.incompatibleFields) {
+    for (const incompatible of degree.aiValidation.incompatibleFields) {
+      if (field.includes(incompatible)) {
+        warnings.push(`This degree is typically not associated with ${incompatible} field`);
+        confidence -= 30;
+      }
+    }
+  }
+  
+  // Check required fields
+  if (degree.aiValidation.requiredFields) {
+    const hasRequiredField = degree.aiValidation.requiredFields.some(required => 
+      field.includes(required)
+    );
+    
+    if (!hasRequiredField && confidence === 100) {
+      warnings.push('Consider if this degree matches your field of study');
+      confidence -= 15;
+    }
+  }
+  
+  return {
+    valid: confidence > 50,
+    confidence: Math.max(0, confidence),
+    warnings: warnings.length > 0 ? warnings : undefined,
+  };
+}
+
+export function findHistoricalDegree(searchTerm: string): DegreeOption | undefined {
+  const search = searchTerm.toLowerCase().trim();
+  
+  for (const degree of degreeOptions) {
+    if (degree.historicalNames) {
+      for (const historical of degree.historicalNames) {
+        if (historical.toLowerCase() === search) {
+          return degree;
+        }
+      }
+    }
+  }
+  
+  return undefined;
+}
+
+export function findDegreeByName(name: string): DegreeOption | undefined {
+  // First try to find by exact match
+  let degree = getDegreeInfo(name);
+  
+  // If not found, try historical names
+  if (!degree) {
+    degree = findHistoricalDegree(name);
+  }
+  
+  return degree;
+}
+
 // Export degree categories for filtering
 export const degreeCategories = {
   'high-school': 'High School',
@@ -654,4 +1038,16 @@ export const degreeCategories = {
   'doctoral': 'Doctoral',
   'professional': 'Professional',
   'other': 'Other',
+};
+
+// Country names for display
+export const countryNames: Record<DegreeCountry, string> = {
+  GLOBAL: 'Global',
+  US: 'United States',
+  UK: 'United Kingdom',
+  EU: 'European Union',
+  TR: 'Turkey',
+  IN: 'India',
+  CA: 'Canada',
+  AU: 'Australia',
 };

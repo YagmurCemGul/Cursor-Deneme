@@ -6,8 +6,13 @@ import {
   getDegreeInfo,
   suggestDegreesByField,
   getVerificationLink,
+  getEquivalentDegrees,
+  getAccreditationBodies,
+  getInstitutionInfo,
+  validateDegreeFieldCombination,
   DegreeCountry,
   DegreeOption,
+  countryNames,
 } from '../data/degreesI18n';
 
 interface DegreeSelectorProps {
@@ -62,10 +67,16 @@ export const DegreeSelector: React.FC<DegreeSelectorProps> = ({
     });
   };
 
-  // Get verification link if available
+  // Get all enhanced information
   const currentDegreeInfo = value ? getDegreeInfoForDisplay(value) : null;
   const verificationLink = currentDegreeInfo
     ? getVerificationLink(currentDegreeInfo.en, selectedCountry)
+    : null;
+  const equivalentDegrees = currentDegreeInfo ? getEquivalentDegrees(currentDegreeInfo.en) : [];
+  const accreditationBodies = currentDegreeInfo ? getAccreditationBodies(currentDegreeInfo.en) : [];
+  const institutionInfo = currentDegreeInfo ? getInstitutionInfo(currentDegreeInfo.en, selectedCountry) : undefined;
+  const validation = fieldOfStudy && currentDegreeInfo
+    ? validateDegreeFieldCombination(currentDegreeInfo.en, fieldOfStudy)
     : null;
 
   // Close dropdown when clicking outside
@@ -123,7 +134,27 @@ export const DegreeSelector: React.FC<DegreeSelectorProps> = ({
 
   return (
     <div ref={containerRef} style={{ position: 'relative' }}>
-      {/* Country Filter */}
+        {/* AI Validation Warning */}
+        {validation && validation.warnings && validation.warnings.length > 0 && (
+          <div style={{
+            padding: '0.75rem',
+            backgroundColor: validation.confidence > 70 ? '#fef3c7' : '#fee2e2',
+            border: `1px solid ${validation.confidence > 70 ? '#fbbf24' : '#ef4444'}`,
+            borderRadius: '0.5rem',
+            marginBottom: '0.75rem',
+          }}>
+            <div style={{ fontSize: '0.875rem', fontWeight: 600, marginBottom: '0.25rem', color: '#78350f' }}>
+              ⚠️ {language === 'tr' ? 'Alan Uyarısı' : 'Field Warning'} ({validation.confidence}% {language === 'tr' ? 'Eşleşme' : 'Match'})
+            </div>
+            {validation.warnings.map((warning, idx) => (
+              <div key={idx} style={{ fontSize: '0.75rem', color: '#78350f' }}>
+                • {warning}
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Country Filter */}
       <div style={{ marginBottom: '0.5rem' }}>
         <label style={{ fontSize: '0.875rem', color: '#64748b', marginBottom: '0.25rem', display: 'block' }}>
           {(() => {
@@ -137,7 +168,7 @@ export const DegreeSelector: React.FC<DegreeSelectorProps> = ({
           })()}
         </label>
         <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-          {(['GLOBAL', 'US', 'UK', 'EU', 'TR'] as DegreeCountry[]).map((c) => (
+          {(['GLOBAL', 'US', 'UK', 'EU', 'TR', 'IN', 'CA', 'AU'] as DegreeCountry[]).map((c) => (
             <button
               key={c}
               type="button"
@@ -237,30 +268,84 @@ export const DegreeSelector: React.FC<DegreeSelectorProps> = ({
                 {currentDegreeInfo.description}
               </div>
             )}
+            
+            {/* Equivalent Degrees */}
+            {equivalentDegrees.length > 0 && (
+              <div style={{ marginTop: '0.5rem', paddingTop: '0.5rem', borderTop: '1px solid #e2e8f0' }}>
+                <div style={{ fontSize: '0.75rem', fontWeight: 600, color: '#64748b', marginBottom: '0.25rem' }}>
+                  🔄 {language === 'tr' ? 'Eşdeğer Dereceler' : 'Equivalent Degrees'}:
+                </div>
+                {equivalentDegrees.map((eq, idx) => (
+                  <div key={idx} style={{ fontSize: '0.7rem', color: '#64748b', marginLeft: '0.5rem' }}>
+                    • {countryNames[eq.country]}: {eq.degreeName} ({eq.similarity}% {language === 'tr' ? 'benzerlik' : 'similar'})
+                    {eq.notes && <div style={{ marginLeft: '1rem', fontStyle: 'italic' }}>→ {eq.notes}</div>}
+                  </div>
+                ))}
+              </div>
+            )}
+            
+            {/* Accreditation */}
+            {accreditationBodies.length > 0 && (
+              <div style={{ marginTop: '0.5rem', paddingTop: '0.5rem', borderTop: '1px solid #e2e8f0' }}>
+                <div style={{ fontSize: '0.75rem', fontWeight: 600, color: '#64748b', marginBottom: '0.25rem' }}>
+                  ✅ {language === 'tr' ? 'Akreditasyon' : 'Accreditation'}:
+                </div>
+                {accreditationBodies.map((acc, idx) => (
+                  <div key={idx} style={{ fontSize: '0.7rem', color: '#64748b', marginLeft: '0.5rem' }}>
+                    • {acc.body} ({countryNames[acc.country]})
+                    {acc.url && (
+                      <a href={acc.url} target="_blank" rel="noopener noreferrer" style={{ marginLeft: '0.25rem', color: '#3b82f6' }}>
+                        🔗
+                      </a>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+            
+            {/* Institutions */}
+            {institutionInfo && institutionInfo.exampleInstitutions && (
+              <div style={{ marginTop: '0.5rem', paddingTop: '0.5rem', borderTop: '1px solid #e2e8f0' }}>
+                <div style={{ fontSize: '0.75rem', fontWeight: 600, color: '#64748b', marginBottom: '0.25rem' }}>
+                  🏛️ {language === 'tr' ? 'Örnek Kurumlar' : 'Example Institutions'}:
+                </div>
+                <div style={{ fontSize: '0.7rem', color: '#64748b', marginLeft: '0.5rem' }}>
+                  {institutionInfo.exampleInstitutions.join(', ')}
+                </div>
+                {institutionInfo.searchUrl && (
+                  <a href={institutionInfo.searchUrl} target="_blank" rel="noopener noreferrer" style={{ fontSize: '0.7rem', color: '#3b82f6', marginLeft: '0.5rem' }}>
+                    🔍 {language === 'tr' ? 'Daha fazla ara' : 'Search more'}
+                  </a>
+                )}
+              </div>
+            )}
+            
             {verificationLink && (
-              <a
-                href={verificationLink}
-                target="_blank"
-                rel="noopener noreferrer"
-                style={{
-                  fontSize: '0.75rem',
-                  color: '#3b82f6',
-                  textDecoration: 'none',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '0.25rem',
-                }}
-              >
-                🔗 {(() => {
-                  switch (language) {
-                    case 'de': return 'Überprüfungsdienst';
-                    case 'es': return 'Servicio de Verificación';
-                    case 'fr': return 'Service de Vérification';
-                    case 'tr': return 'Doğrulama Servisi';
-                    default: return 'Verification Service';
-                  }
-                })()}
-              </a>
+              <div style={{ marginTop: '0.5rem', paddingTop: '0.5rem', borderTop: '1px solid #e2e8f0' }}>
+                <a
+                  href={verificationLink}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{
+                    fontSize: '0.75rem',
+                    color: '#3b82f6',
+                    textDecoration: 'none',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.25rem',
+                  }}
+                >
+                  🔗 {(() => {
+                    switch (language) {
+                      case 'de': return 'Überprüfungsdienst';
+                      case 'es': return 'Servicio de Verificación';
+                      case 'fr': return 'Service de Vérification';
+                      case 'tr': return 'Doğrulama Servisi';
+                      default: return 'Verification Service';
+                    }
+                  })()}
+                </a>
+              </div>
             )}
           </div>
         )}
