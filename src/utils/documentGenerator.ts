@@ -4,8 +4,8 @@ import jsPDF from 'jspdf';
 import { CVData, ATSOptimization } from '../types';
 
 export class DocumentGenerator {
-  static async generateDOCX(cvData: CVData, optimizations: ATSOptimization[], fileName: string): Promise<void> {
-    const appliedOptimizations = optimizations.filter(o => o.applied);
+  static async generateDOCX(cvData: CVData, _optimizations: ATSOptimization[], fileName: string): Promise<void> {
+    // const appliedOptimizations = optimizations.filter(o => o.applied);
     
     const doc = new Document({
       sections: [{
@@ -122,7 +122,7 @@ export class DocumentGenerator {
     saveAs(blob, fileName);
   }
 
-  static async generatePDF(cvData: CVData, optimizations: ATSOptimization[], fileName: string): Promise<void> {
+  static async generatePDF(cvData: CVData, _optimizations: ATSOptimization[], fileName: string): Promise<void> {
     const doc = new jsPDF();
     let yPosition = 20;
     
@@ -190,7 +190,7 @@ export class DocumentGenerator {
       doc.text('EXPERIENCE', 20, yPosition);
       yPosition += 7;
       
-      cvData.experience.forEach((exp, index) => {
+      cvData.experience.forEach((exp) => {
         if (yPosition > 250) {
           doc.addPage();
           yPosition = 20;
@@ -252,7 +252,7 @@ export class DocumentGenerator {
     doc.save(fileName);
   }
 
-  static async generateCoverLetterDOCX(coverLetter: string, name: string, fileName: string): Promise<void> {
+  static async generateCoverLetterDOCX(coverLetter: string, _name: string, fileName: string): Promise<void> {
     const paragraphs = coverLetter.split('\n\n').map(para => 
       new Paragraph({
         text: para.trim(),
@@ -271,7 +271,7 @@ export class DocumentGenerator {
     saveAs(blob, fileName);
   }
 
-  static async generateCoverLetterPDF(coverLetter: string, name: string, fileName: string): Promise<void> {
+  static async generateCoverLetterPDF(coverLetter: string, _name: string, fileName: string): Promise<void> {
     const doc = new jsPDF();
     let yPosition = 20;
     
@@ -280,7 +280,7 @@ export class DocumentGenerator {
     
     const paragraphs = coverLetter.split('\n\n');
     
-    paragraphs.forEach((para, index) => {
+    paragraphs.forEach((para) => {
       const lines = doc.splitTextToSize(para.trim(), 170);
       
       if (yPosition + lines.length * 5 > 280) {

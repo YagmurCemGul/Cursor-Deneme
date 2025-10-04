@@ -14,7 +14,7 @@ export const ATSOptimizations: React.FC<ATSOptimizationsProps> = ({ optimization
   };
 
   const appliedOptimizations = optimizations.filter(o => o.applied);
-  const removedOptimizations = optimizations.filter(o => !o.applied);
+  // const removedOptimizations = optimizations.filter(o => !o.applied);
 
   return (
     <div className="section">

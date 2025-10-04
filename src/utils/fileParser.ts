@@ -7,7 +7,7 @@ import pdfjsWorker from 'pdfjs-dist/build/pdf.worker.min.js';
 
 // Ensure the worker script is correctly referenced for pdf.js
 // This avoids "Setting up fake worker failed" errors.
-(pdfjsLib as any).GlobalWorkerOptions.workerSrc = pdfjsWorker as unknown as string;
+pdfjsLib.GlobalWorkerOptions.workerSrc = pdfjsWorker as unknown as string;
 import { CVData } from '../types';
 
 export class FileParser {
@@ -17,8 +17,7 @@ export class FileParser {
     try {
       // Prefer explicit worker script URL (UMD build) for broad compatibility
       const workerUrl = new URL('pdfjs-dist/build/pdf.worker.min.js', import.meta.url).toString();
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (pdfjsLib as any).GlobalWorkerOptions.workerSrc = workerUrl;
+      pdfjsLib.GlobalWorkerOptions.workerSrc = workerUrl;
     } catch (error) {
       // If the above fails (unlikely in modern bundlers), silently continue; parsing may still work
       // eslint-disable-next-line no-console
@@ -48,7 +47,7 @@ export class FileParser {
       for (let i = 1; i <= pdf.numPages; i++) {
         const page = await pdf.getPage(i);
         const textContent = await page.getTextContent();
-        const pageText = textContent.items.map((item: any) => item.str).join(' ');
+        const pageText = textContent.items.map((item) => item.str).join(' ');
         fullText += pageText + '\n';
       }
 

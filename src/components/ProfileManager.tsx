@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { CVProfile, CVTemplate } from '../types';
+import { CVProfile } from '../types';
 import { StorageService } from '../utils/storage';
 
 interface ProfileManagerProps {
@@ -16,26 +16,23 @@ export const ProfileManager: React.FC<ProfileManagerProps> = ({
   onProfileNameChange
 }) => {
   const [profiles, setProfiles] = useState<CVProfile[]>([]);
-  const [templates, setTemplates] = useState<CVTemplate[]>([]);
-  const [isEditingName, setIsEditingName] = useState(false);
+  // const [templates, setTemplates] = useState<CVTemplate[]>([]);
+  // const [isEditingName, setIsEditingName] = useState(false);
 
   useEffect(() => {
     loadData();
   }, []);
 
   const loadData = async () => {
-    const [loadedProfiles, loadedTemplates] = await Promise.all([
-      StorageService.getProfiles(),
-      StorageService.getTemplates()
-    ]);
+    const loadedProfiles = await StorageService.getProfiles();
     setProfiles(loadedProfiles);
-    setTemplates(loadedTemplates);
+    // setTemplates(loadedTemplates);
   };
 
   const handleSaveProfile = async () => {
     onSaveProfile(currentProfileName || 'Untitled Profile');
     await loadData();
-    setIsEditingName(false);
+    // setIsEditingName(false);
   };
 
   const handleDeleteProfile = async (profileId: string) => {

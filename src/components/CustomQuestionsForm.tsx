@@ -150,7 +150,7 @@ export const CustomQuestionsForm: React.FC<CustomQuestionsFormProps> = ({ questi
         </div>
       ) : (
         <div className="card-list">
-          {questions.map((question, index) => (
+          {questions.map((question) => (
             <div key={question.id} className="card">
               <div className="card-header">
                 <div>
