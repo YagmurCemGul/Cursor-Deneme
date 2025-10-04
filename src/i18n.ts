@@ -166,6 +166,42 @@ const dict: Record<string, Record<Lang, string>> = {
     en: 'Solution: Add your email as a test user in OAuth consent screen',
     tr: 'Çözüm: OAuth izin ekranında e-postanızı test kullanıcısı olarak ekleyin',
   },
+  'googleDrive.validateClientId': {
+    en: 'Validate Client ID',
+    tr: 'Client ID Doğrula',
+  },
+  'googleDrive.validating': {
+    en: 'Validating...',
+    tr: 'Doğrulanıyor...',
+  },
+  'googleDrive.validationSuccess': {
+    en: 'Client ID is valid!',
+    tr: 'Client ID geçerli!',
+  },
+  'googleDrive.validationFailed': {
+    en: 'Validation failed',
+    tr: 'Doğrulama başarısız',
+  },
+  'googleDrive.currentClientId': {
+    en: 'Current Client ID',
+    tr: 'Mevcut Client ID',
+  },
+  'googleDrive.validationDetails': {
+    en: 'Validation Details',
+    tr: 'Doğrulama Detayları',
+  },
+  'googleDrive.autoValidation': {
+    en: 'Automatic Client ID Validation',
+    tr: 'Otomatik Client ID Doğrulama',
+  },
+  'googleDrive.autoValidationDesc': {
+    en: 'Click the button below to verify your Google Client ID is properly configured with Google Cloud Console.',
+    tr: "Google Client ID'nizin Google Cloud Console ile düzgün yapılandırıldığını doğrulamak için aşağıdaki düğmeye tıklayın.",
+  },
+  'googleDrive.validationNote': {
+    en: 'Note: This will make a non-interactive API call to verify your credentials without requiring sign-in.',
+    tr: 'Not: Bu, kimlik bilgilerinizi giriş yapmadan doğrulamak için etkileşimli olmayan bir API çağrısı yapacaktır.',
+  },
   'common.errorOptimizing': {
     en: 'Error optimizing CV. Please try again.',
     tr: 'CV optimize edilirken hata oluştu. Lütfen tekrar deneyin.',

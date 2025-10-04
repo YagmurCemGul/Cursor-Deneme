@@ -79,6 +79,102 @@ export class GoogleDriveService {
   }
 
   /**
+   * Validate Client ID with Google Cloud Console API
+   * Makes an actual API call to verify the Client ID is valid and properly configured
+   */
+  static async validateClientIdWithAPI(): Promise<{
+    valid: boolean;
+    error?: string;
+    details?: string;
+  }> {
+    try {
+      // First do basic validation
+      const basicValidation = await this.validateOAuth2Config();
+      if (!basicValidation.valid) {
+        return {
+          valid: false,
+          error: basicValidation.error || 'Client ID validation failed',
+          details: 'Basic validation failed. Please check your manifest.json configuration.',
+        };
+      }
+
+      // Try to get an auth token (non-interactive) to test the Client ID
+      return new Promise((resolve) => {
+        chrome.identity.getAuthToken({ interactive: false }, (token) => {
+          if (chrome.runtime.lastError) {
+            const error = chrome.runtime.lastError;
+            const errorMessage = error.message || '';
+
+            // Analyze the error to provide helpful feedback
+            if (errorMessage.includes('bad client id')) {
+              resolve({
+                valid: false,
+                error: 'Invalid Client ID',
+                details:
+                  'The Client ID does not exist in Google Cloud Console or is not properly configured for this Chrome Extension.',
+              });
+            } else if (errorMessage.includes('invalid_client')) {
+              resolve({
+                valid: false,
+                error: 'Invalid OAuth2 Configuration',
+                details:
+                  'The OAuth2 client is not configured correctly. Make sure all required APIs are enabled in Google Cloud Console.',
+              });
+            } else if (errorMessage.includes('OAuth2 not granted or revoked')) {
+              // This is actually a good sign - it means the Client ID is valid
+              resolve({
+                valid: true,
+                details: 'Client ID is valid. Ready for authentication.',
+              });
+            } else {
+              resolve({
+                valid: false,
+                error: 'Validation Error',
+                details: errorMessage || 'Unable to validate Client ID.',
+              });
+            }
+            return;
+          }
+
+          // If we got a token without interaction, the Client ID is definitely valid
+          if (token) {
+            resolve({
+              valid: true,
+              details: 'Client ID is valid and already authenticated.',
+            });
+          } else {
+            resolve({
+              valid: false,
+              error: 'Unknown Error',
+              details: 'Unable to validate Client ID.',
+            });
+          }
+        });
+      });
+    } catch (error: any) {
+      logger.error('Client ID validation error:', error);
+      return {
+        valid: false,
+        error: 'Validation Failed',
+        details: error.message || 'An unexpected error occurred during validation.',
+      };
+    }
+  }
+
+  /**
+   * Get the current Client ID from manifest
+   */
+  static getClientId(): string | null {
+    try {
+      const manifest = chrome.runtime.getManifest();
+      return (manifest as any).oauth2?.client_id || null;
+    } catch (error) {
+      logger.error('Failed to get Client ID:', error);
+      return null;
+    }
+  }
+
+  /**
    * Initialize Google API client and authenticate
    */
   static async authenticate(): Promise<boolean> {
