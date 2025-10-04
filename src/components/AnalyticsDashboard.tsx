@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { OptimizationAnalytics } from '../types';
 import { StorageService } from '../utils/storage';
 import { t, Lang } from '../i18n';
+import { AnalyticsExporter, AnalyticsFilter, ExportFormat } from '../utils/analyticsExporter';
 
 interface AnalyticsDashboardProps {
   language: Lang;
@@ -9,7 +10,14 @@ interface AnalyticsDashboardProps {
 
 export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ language }) => {
   const [analytics, setAnalytics] = useState<OptimizationAnalytics[]>([]);
+  const [filteredAnalytics, setFilteredAnalytics] = useState<OptimizationAnalytics[]>([]);
   const [loading, setLoading] = useState(true);
+  const [showFilters, setShowFilters] = useState(false);
+  const [filter, setFilter] = useState<AnalyticsFilter>({});
+  const [dateRange, setDateRange] = useState<{ start: string; end: string }>({
+    start: '',
+    end: '',
+  });
 
   useEffect(() => {
     loadAnalytics();
@@ -20,11 +28,50 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ language
     try {
       const data = await StorageService.getAnalytics();
       setAnalytics(data);
+      setFilteredAnalytics(data);
     } catch (error) {
       console.error('Failed to load analytics:', error);
     } finally {
       setLoading(false);
     }
+  };
+
+  const applyFilters = () => {
+    const newFilter: AnalyticsFilter = {};
+
+    if (dateRange.start && dateRange.end) {
+      newFilter.dateRange = {
+        start: new Date(dateRange.start),
+        end: new Date(dateRange.end),
+      };
+    }
+
+    if (filter.aiProvider) {
+      newFilter.aiProvider = filter.aiProvider;
+    }
+
+    if (filter.categories && filter.categories.length > 0) {
+      newFilter.categories = filter.categories;
+    }
+
+    if (filter.minOptimizations) {
+      newFilter.minOptimizations = filter.minOptimizations;
+    }
+
+    const filtered = AnalyticsExporter.filterAnalytics(analytics, newFilter);
+    setFilteredAnalytics(filtered);
+    setFilter(newFilter);
+  };
+
+  const clearFilters = () => {
+    setDateRange({ start: '', end: '' });
+    setFilter({});
+    setFilteredAnalytics(analytics);
+  };
+
+  const handleExport = (format: ExportFormat) => {
+    AnalyticsExporter.exportAndDownload(filteredAnalytics, format, filter);
+    alert(language === 'en' ? `Exported to ${format.toUpperCase()}` : `${format.toUpperCase()} olarak dışa aktarıldı`);
   };
 
   const handleClearAnalytics = async () => {
@@ -34,13 +81,13 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ language
     }
   };
 
-  // Calculate statistics
-  const totalOptimizations = analytics.reduce((sum, a) => sum + a.optimizationsApplied, 0);
-  const averagePerSession = analytics.length > 0 ? (totalOptimizations / analytics.length).toFixed(1) : 0;
+  // Calculate statistics (use filtered data)
+  const totalOptimizations = filteredAnalytics.reduce((sum, a) => sum + a.optimizationsApplied, 0);
+  const averagePerSession = filteredAnalytics.length > 0 ? (totalOptimizations / filteredAnalytics.length).toFixed(1) : 0;
   
   // Get most optimized section
   const sectionCounts: Record<string, number> = {};
-  analytics.forEach(a => {
+  filteredAnalytics.forEach(a => {
     a.cvSections.forEach(section => {
       sectionCounts[section] = (sectionCounts[section] || 0) + 1;
     });
@@ -49,7 +96,7 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ language
 
   // Get category breakdown
   const categoryCounts: Record<string, number> = {};
-  analytics.forEach(a => {
+  filteredAnalytics.forEach(a => {
     a.categoriesOptimized.forEach(cat => {
       categoryCounts[cat] = (categoryCounts[cat] || 0) + 1;
     });
@@ -57,28 +104,28 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ language
 
   // AI Provider usage
   const providerCounts: Record<string, number> = {};
-  analytics.forEach(a => {
+  filteredAnalytics.forEach(a => {
     providerCounts[a.aiProvider] = (providerCounts[a.aiProvider] || 0) + 1;
   });
   const mostUsedProvider = Object.entries(providerCounts).sort((a, b) => b[1] - a[1])[0]?.[0] || '-';
 
   // Additional statistics
-  const totalSessions = analytics.length;
-  const avgJobDescLength = analytics.length > 0 
-    ? Math.round(analytics.reduce((sum, a) => sum + (a.jobDescriptionLength || 0), 0) / analytics.length) 
+  const totalSessions = filteredAnalytics.length;
+  const avgJobDescLength = filteredAnalytics.length > 0 
+    ? Math.round(filteredAnalytics.reduce((sum, a) => sum + (a.jobDescriptionLength || 0), 0) / filteredAnalytics.length) 
     : 0;
   
   // Date range statistics
   const now = new Date();
-  const last7Days = analytics.filter(a => new Date(a.timestamp) > new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000));
-  const last30Days = analytics.filter(a => new Date(a.timestamp) > new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000));
+  const last7Days = filteredAnalytics.filter(a => new Date(a.timestamp) > new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000));
+  const last30Days = filteredAnalytics.filter(a => new Date(a.timestamp) > new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000));
   
   const optimizationsLast7Days = last7Days.reduce((sum, a) => sum + a.optimizationsApplied, 0);
   const optimizationsLast30Days = last30Days.reduce((sum, a) => sum + a.optimizationsApplied, 0);
   
   // Success rate (percentage of applied optimizations)
-  const totalChanges = analytics.reduce((sum, a) => sum + a.changes.length, 0);
-  const appliedChanges = analytics.reduce((sum, a) => sum + a.changes.filter(c => c.applied).length, 0);
+  const totalChanges = filteredAnalytics.reduce((sum, a) => sum + a.changes.length, 0);
+  const appliedChanges = filteredAnalytics.reduce((sum, a) => sum + a.changes.filter(c => c.applied).length, 0);
   const successRate = totalChanges > 0 ? Math.round((appliedChanges / totalChanges) * 100) : 0;
 
   if (loading) {
@@ -108,7 +155,92 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ language
 
   return (
     <div className="section">
-      <h2 className="section-title">📊 {t(language, 'analytics.title')}</h2>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+        <h2 className="section-title" style={{ margin: 0 }}>📊 {t(language, 'analytics.title')}</h2>
+        <div style={{ display: 'flex', gap: '10px' }}>
+          <button className="btn btn-secondary" onClick={() => setShowFilters(!showFilters)}>
+            🔍 {language === 'en' ? 'Filters' : 'Filtreler'}
+          </button>
+          <button className="btn btn-primary" onClick={() => handleExport('json')}>
+            📥 JSON
+          </button>
+          <button className="btn btn-primary" onClick={() => handleExport('csv')}>
+            📥 CSV
+          </button>
+          <button className="btn btn-primary" onClick={() => handleExport('excel')}>
+            📥 Excel
+          </button>
+        </div>
+      </div>
+
+      {/* Filters */}
+      {showFilters && (
+        <div className="card" style={{ marginBottom: '20px', padding: '20px' }}>
+          <h3 className="card-subtitle">{language === 'en' ? 'Filter Analytics' : 'Analitikleri Filtrele'}</h3>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '15px', marginTop: '15px' }}>
+            <div className="form-group">
+              <label className="form-label">{language === 'en' ? 'Start Date' : 'Başlangıç'}</label>
+              <input
+                type="date"
+                className="form-input"
+                value={dateRange.start}
+                onChange={(e) => setDateRange({ ...dateRange, start: e.target.value })}
+              />
+            </div>
+
+            <div className="form-group">
+              <label className="form-label">{language === 'en' ? 'End Date' : 'Bitiş'}</label>
+              <input
+                type="date"
+                className="form-input"
+                value={dateRange.end}
+                onChange={(e) => setDateRange({ ...dateRange, end: e.target.value })}
+              />
+            </div>
+
+            <div className="form-group">
+              <label className="form-label">{language === 'en' ? 'AI Provider' : 'Yapay Zeka'}</label>
+              <select
+                className="form-select"
+                value={filter.aiProvider || ''}
+                onChange={(e) => setFilter({ ...filter, aiProvider: e.target.value as any })}
+              >
+                <option value="">{language === 'en' ? 'All' : 'Tümü'}</option>
+                <option value="openai">ChatGPT</option>
+                <option value="gemini">Gemini</option>
+                <option value="claude">Claude</option>
+              </select>
+            </div>
+
+            <div className="form-group">
+              <label className="form-label">{language === 'en' ? 'Min Optimizations' : 'Min Optimizasyon'}</label>
+              <input
+                type="number"
+                className="form-input"
+                value={filter.minOptimizations || ''}
+                onChange={(e) => setFilter({ ...filter, minOptimizations: Number(e.target.value) })}
+                placeholder="0"
+                min="0"
+              />
+            </div>
+          </div>
+
+          <div style={{ display: 'flex', gap: '10px', marginTop: '15px' }}>
+            <button className="btn btn-primary" onClick={applyFilters}>
+              ✓ {language === 'en' ? 'Apply Filters' : 'Filtreleri Uygula'}
+            </button>
+            <button className="btn btn-secondary" onClick={clearFilters}>
+              ✕ {language === 'en' ? 'Clear' : 'Temizle'}
+            </button>
+          </div>
+
+          {(filter.dateRange || filter.aiProvider || filter.minOptimizations) && (
+            <div style={{ marginTop: '15px', padding: '10px', backgroundColor: 'var(--bg-secondary)', borderRadius: '8px', fontSize: '13px' }}>
+              {language === 'en' ? 'Active filters:' : 'Aktif filtreler:'} {filteredAnalytics.length} / {analytics.length} {language === 'en' ? 'sessions' : 'oturum'}
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Overview Cards */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '15px', marginBottom: '20px' }}>
