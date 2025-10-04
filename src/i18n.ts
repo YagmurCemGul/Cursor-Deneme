@@ -344,18 +344,35 @@ const dict: Record<string, Record<Lang, string>> = {
   'editor.template': { en: 'Use Template', tr: 'Şablon Kullan' },
   'editor.templates': { en: 'Templates', tr: 'Şablonlar' },
   
-  // Description Templates
-  'templates.experience.improved': { en: '• Improved [metric] by [percentage]% through [method]', tr: '• [metrik]i [yöntem] ile %[yüzde] iyileştirdim' },
-  'templates.experience.led': { en: '• Led team of [number] to deliver [project/outcome]', tr: '• [proje/sonuç] sunmak için [sayı] kişilik ekibi yönettim' },
-  'templates.experience.developed': { en: '• Developed [feature/system] that resulted in [outcome]', tr: '• [sonuç] ile sonuçlanan [özellik/sistem] geliştirdim' },
-  'templates.experience.managed': { en: '• Managed [responsibility] achieving [result]', tr: '• [sorumluluk]u yönettim ve [sonuç] elde ettim' },
+  // Description Templates - Experience
+  'templates.experience.improved': { en: '• Improved [metric] by [percentage]% through [method]', tr: '• [Yöntem] kullanarak [metrik]i %[yüzde] oranında iyileştirdim' },
+  'templates.experience.led': { en: '• Led team of [number] to deliver [project/outcome]', tr: '• [Sayı] kişilik ekibi yöneterek [proje/sonuç] başarıyla tamamladım' },
+  'templates.experience.developed': { en: '• Developed [feature/system] that resulted in [outcome]', tr: '• [Özellik/sistem] geliştirerek [sonuç] elde ettim' },
+  'templates.experience.managed': { en: '• Managed [responsibility] achieving [result]', tr: '• [Sorumluluk] yöneterek [sonuç] sağladım' },
+  'templates.experience.achieved': { en: '• Achieved [result] by implementing [solution/method]', tr: '• [Çözüm/yöntem] uygulayarak [sonuç] elde ettim' },
+  'templates.experience.collaborated': { en: '• Collaborated with [teams/stakeholders] to deliver [outcome]', tr: '• [Ekipler/paydaşlar] ile işbirliği yaparak [sonuç] teslim ettim' },
+  'templates.experience.reduced': { en: '• Reduced [metric] by [percentage]% through [optimization/method]', tr: '• [Optimizasyon/yöntem] ile [metrik]i %[yüzde] oranında azalttım' },
+  'templates.experience.increased': { en: '• Increased [metric] by [percentage]% via [strategy/method]', tr: '• [Strateji/yöntem] ile [metrik]i %[yüzde] oranında artırdım' },
+  
+  // Description Templates - Education  
   'templates.education.coursework': { en: '• Relevant Coursework: [courses]', tr: '• İlgili Dersler: [dersler]' },
   'templates.education.achievement': { en: '• Achievement: [description]', tr: '• Başarı: [açıklama]' },
   'templates.education.thesis': { en: '• Thesis: [title] - [brief description]', tr: '• Tez: [başlık] - [kısa açıklama]' },
+  'templates.education.gpa': { en: '• GPA: [score] | Top [percentage]% of graduating class', tr: '• Not Ortalaması: [puan] | Mezuniyet sınıfının en iyi %[yüzde]\si içinde' },
+  'templates.education.honors': { en: '• Honors & Awards: [awards]', tr: '• Ödüller ve Başarılar: [ödüller]' },
+  'templates.education.activities': { en: '• Leadership: [position] in [organization/club]', tr: '• Liderlik: [organizasyon/kulüp]\de [pozisyon]' },
+  
+  // Description Templates - Certifications
   'templates.cert.skills': { en: '• Skills gained: [skill1], [skill2], [skill3]', tr: '• Kazanılan yetenekler: [yetenek1], [yetenek2], [yetenek3]' },
   'templates.cert.focus': { en: '• Focus areas: [area1], [area2]', tr: '• Odak alanları: [alan1], [alan2]' },
-  'templates.project.built': { en: '• Built [feature] using [technologies]', tr: '• [teknolojiler] kullanarak [özellik] geliştirdim' },
-  'templates.project.implemented': { en: '• Implemented [functionality] resulting in [outcome]', tr: '• [sonuç] ile sonuçlanan [işlevsellik] uyguladım' },
+  'templates.cert.validation': { en: '• Validated expertise in [domain/technology]', tr: '• [Domain/teknoloji] alanında uzmanlık doğrulandı' },
+  'templates.cert.credential': { en: '• Credential URL: [url]', tr: '• Kimlik Bilgisi URL: [url]' },
+  
+  // Description Templates - Projects
+  'templates.project.built': { en: '• Built [feature] using [technologies]', tr: '• [Teknolojiler] kullanarak [özellik] geliştirdim' },
+  'templates.project.implemented': { en: '• Implemented [functionality] resulting in [outcome]', tr: '• [İşlevsellik] uygulayarak [sonuç] elde ettim' },
+  'templates.project.designed': { en: '• Designed and developed [feature/system] for [purpose]', tr: '• [Amaç] için [özellik/sistem] tasarlayıp geliştirdim' },
+  'templates.project.technologies': { en: '• Technologies used: [tech stack]', tr: '• Kullanılan teknolojiler: [teknoloji yığını]' },
 
   // AI Settings
   'settings.aiSection': { en: 'AI Provider Settings', tr: 'YZ Sağlayıcı Ayarları' },

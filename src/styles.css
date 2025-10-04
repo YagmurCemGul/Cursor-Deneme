@@ -1664,15 +1664,27 @@ body:has(.app-container.dark) {
   margin-top: 4px;
   background: white;
   border: 1px solid #e2e8f0;
-  border-radius: 8px;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12);
   z-index: 1000;
-  min-width: 300px;
-  max-width: 400px;
-  max-height: 400px;
+  min-width: 350px;
+  max-width: 500px;
+  max-height: 450px;
   overflow: hidden;
   display: flex;
   flex-direction: column;
+  animation: slideDown 0.2s ease-out;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .template-menu-header {
@@ -1709,34 +1721,40 @@ body:has(.app-container.dark) {
 
 .template-list {
   overflow-y: auto;
-  padding: 8px;
+  padding: 4px 0;
 }
 
 .template-item {
   display: block;
   width: 100%;
-  padding: 12px;
+  padding: 14px 16px;
   background: white;
-  border: 1px solid #e2e8f0;
-  border-radius: 6px;
+  border: none;
+  border-left: 3px solid transparent;
+  border-bottom: 1px solid #f1f5f9;
   text-align: left;
   cursor: pointer;
-  font-size: 13px;
+  font-size: 13.5px;
   color: #475569;
-  margin-bottom: 8px;
   transition: all 0.2s ease;
-  line-height: 1.5;
+  line-height: 1.6;
+  word-wrap: break-word;
+}
+
+.template-item:last-child {
+  border-bottom: none;
 }
 
 .template-item:hover {
-  background: #f1f5f9;
-  border-color: #cbd5e1;
+  background: #f8fafc;
+  border-left-color: #3b82f6;
   color: #1e293b;
-  transform: translateX(4px);
+  padding-left: 20px;
 }
 
 .template-item:active {
-  transform: translateX(4px) scale(0.98);
+  background: #eff6ff;
+  transform: scale(0.99);
 }
 
 /* Dark theme for template dropdown */
