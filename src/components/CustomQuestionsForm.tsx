@@ -15,8 +15,37 @@ export const CustomQuestionsForm: React.FC<CustomQuestionsFormProps> = ({ questi
   const [newQuestionOptions, setNewQuestionOptions] = useState<string[]>([]);
   const [currentOptionText, setCurrentOptionText] = useState('');
 
+  // Normalize questions on mount to ensure proper answer initialization
+  React.useEffect(() => {
+    const normalizedQuestions = questions.map(q => normalizeQuestion(q));
+    const needsUpdate = normalizedQuestions.some((nq, idx) => {
+      const originalQuestion = questions[idx];
+      return originalQuestion && JSON.stringify(nq.answer) !== JSON.stringify(originalQuestion.answer);
+    });
+    if (needsUpdate) {
+      onChange(normalizedQuestions);
+    }
+  }, []);
+
   const requiresOptions = (type: CustomQuestion['type']) => {
     return type === 'choice' || type === 'selection' || type === 'checkbox';
+  };
+
+  // Normalize question to ensure answer field is properly initialized
+  const normalizeQuestion = (question: CustomQuestion): CustomQuestion => {
+    if (question.type === 'checkbox') {
+      // Checkbox should have array answer
+      return {
+        ...question,
+        answer: Array.isArray(question.answer) ? question.answer : []
+      };
+    } else {
+      // Text, form_group, fieldset, choice, selection should have string answer
+      return {
+        ...question,
+        answer: typeof question.answer === 'string' ? question.answer : ''
+      };
+    }
   };
 
   const handleAddOption = () => {
@@ -79,17 +108,22 @@ export const CustomQuestionsForm: React.FC<CustomQuestionsFormProps> = ({ questi
       case 'text':
       case 'form_group':
       case 'fieldset':
+        // Ensure answer is always a string for text-based inputs
+        const textAnswer = Array.isArray(question.answer) ? '' : (question.answer || '');
         return (
           <textarea
             className="form-textarea"
-            value={question.answer as string}
+            value={textAnswer}
             onChange={(e) => handleUpdate(question.id, 'answer', e.target.value)}
             placeholder={t(language, 'questions.answerPlaceholder')}
+            rows={question.type === 'text' ? 3 : 5}
           />
         );
       
       case 'choice':
       case 'selection':
+        // Ensure answer is a string for radio inputs
+        const radioAnswer = Array.isArray(question.answer) ? '' : (question.answer || '');
         return (
           <div className="radio-group">
             {question.options && question.options.length > 0 ? (
@@ -99,7 +133,7 @@ export const CustomQuestionsForm: React.FC<CustomQuestionsFormProps> = ({ questi
                     type="radio"
                     id={`${question.id}-${idx}`}
                     name={question.id}
-                    checked={question.answer === option}
+                    checked={radioAnswer === option}
                     onChange={() => handleUpdate(question.id, 'answer', option)}
                   />
                   <label htmlFor={`${question.id}-${idx}`}>{option}</label>
@@ -114,6 +148,8 @@ export const CustomQuestionsForm: React.FC<CustomQuestionsFormProps> = ({ questi
         );
       
       case 'checkbox':
+        // Ensure answer is an array for checkbox inputs
+        const checkboxAnswers = Array.isArray(question.answer) ? question.answer : [];
         return (
           <div className="checkbox-group">
             {question.options && question.options.length > 0 ? (
@@ -122,12 +158,11 @@ export const CustomQuestionsForm: React.FC<CustomQuestionsFormProps> = ({ questi
                   <input
                     type="checkbox"
                     id={`${question.id}-${idx}`}
-                    checked={(question.answer as string[]).includes(option)}
+                    checked={checkboxAnswers.includes(option)}
                     onChange={(e) => {
-                      const currentAnswers = question.answer as string[];
                       const newAnswers = e.target.checked
-                        ? [...currentAnswers, option]
-                        : currentAnswers.filter(a => a !== option);
+                        ? [...checkboxAnswers, option]
+                        : checkboxAnswers.filter(a => a !== option);
                       handleUpdate(question.id, 'answer', newAnswers);
                     }}
                   />
@@ -295,7 +330,14 @@ export const CustomQuestionsForm: React.FC<CustomQuestionsFormProps> = ({ questi
               )}
               
               <div className="form-group">
-                <label className="form-label">{t(language, 'questions.answer')}</label>
+                <label className="form-label">
+                  {t(language, 'questions.answer')}
+                  {(question.type === 'form_group' || question.type === 'fieldset') && (
+                    <span style={{ marginLeft: '8px', fontSize: '0.85em', color: 'var(--text-secondary)', fontWeight: 'normal' }}>
+                      ({t(language, 'questions.multilineInput')})
+                    </span>
+                  )}
+                </label>
                 {renderAnswerInput(question)}
               </div>
             </div>
