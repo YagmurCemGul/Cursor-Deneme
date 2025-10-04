@@ -62,8 +62,8 @@ export const CVPreview: React.FC<CVPreviewProps> = ({ cvData, optimizations }) =
         {/* Header */}
         <div className="preview-header">
           {cvData.personalInfo.photoDataUrl && (
-            <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 8 }}>
-              <img src={cvData.personalInfo.photoDataUrl} alt="Profile" style={{ width: 80, height: 80, borderRadius: '50%', objectFit: 'cover' }} />
+            <div className="preview-photo-container">
+              <img src={cvData.personalInfo.photoDataUrl} alt="Profile" className="preview-photo" />
             </div>
           )}
           <div className="preview-name">

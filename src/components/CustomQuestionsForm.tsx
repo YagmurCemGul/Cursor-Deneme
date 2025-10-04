@@ -109,7 +109,7 @@ export const CustomQuestionsForm: React.FC<CustomQuestionsFormProps> = ({ questi
       </h2>
       
       {isAdding && (
-        <div className="card" style={{ marginBottom: '20px' }}>
+        <div className="card add-question-card">
           <div className="form-group">
             <label className="form-label">Question Text</label>
             <input
