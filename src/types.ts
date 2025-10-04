@@ -184,3 +184,88 @@ export interface SavedJobDescription {
   updatedAt: string;
   usageCount?: number;
 }
+
+export interface TemplateCategory {
+  id: string;
+  name: string;
+  description: string;
+  icon: string;
+  industry?: string[];
+  style?: string[];
+}
+
+export interface TemplateRating {
+  id: string;
+  templateId: string;
+  rating: number; // 1-5 stars
+  review?: string;
+  userId?: string;
+  createdAt: string;
+}
+
+export interface CustomCVTemplate {
+  id: string;
+  name: string;
+  description: string;
+  preview: string;
+  categoryId?: string;
+  colors: {
+    primary: string;
+    secondary: string;
+    text: string;
+    background: string;
+    accent: string;
+  };
+  fonts: {
+    heading: string;
+    body: string;
+  };
+  layout: {
+    headerAlign: 'left' | 'center' | 'right';
+    sectionSpacing: number;
+    columnLayout: 'single' | 'two-column';
+  };
+  features: string[];
+  isCustom: boolean;
+  createdAt: string;
+  updatedAt?: string;
+  averageRating?: number;
+  totalRatings?: number;
+}
+
+export interface CustomCoverLetterTemplate {
+  id: string;
+  name: string;
+  description: string;
+  preview: string;
+  categoryId?: string;
+  style: {
+    fontSize: number;
+    fontFamily: string;
+    lineHeight: number;
+    paragraphSpacing: number;
+    headerFormat: 'left' | 'center' | 'right';
+    includeDate: boolean;
+    includeAddress: boolean;
+    signatureStyle: 'formal' | 'casual' | 'modern';
+  };
+  colors: {
+    primary: string;
+    text: string;
+    accent: string;
+  };
+  tone: 'formal' | 'professional' | 'modern' | 'creative' | 'executive' | 'friendly';
+  features: string[];
+  isCustom: boolean;
+  createdAt: string;
+  updatedAt?: string;
+  averageRating?: number;
+  totalRatings?: number;
+}
+
+export interface AITemplateSuggestion {
+  templateId: string;
+  confidence: number; // 0-1
+  reason: string;
+  matchedKeywords: string[];
+}
