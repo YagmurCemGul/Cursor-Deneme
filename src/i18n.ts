@@ -218,7 +218,37 @@ const dict: Record<string, Record<Lang, string>> = {
   'questions.answer': { en: 'Answer', tr: 'Cevap' },
   'questions.answerPlaceholder': { en: 'Your answer...', tr: 'Cevabınız...' },
   'questions.type': { en: 'Type', tr: 'Tip' },
-  'questions.emptyState': { en: 'No custom questions added. Add questions to capture additional information!', tr: 'Özel soru eklenmedi. Ek bilgi toplamak için sorular ekleyin!' }
+  'questions.emptyState': { en: 'No custom questions added. Add questions to capture additional information!', tr: 'Özel soru eklenmedi. Ek bilgi toplamak için sorular ekleyin!' },
+  
+  // Rich Text Editor
+  'editor.bold': { en: 'Bold', tr: 'Kalın' },
+  'editor.italic': { en: 'Italic', tr: 'İtalik' },
+  'editor.bullet': { en: 'Bullet', tr: 'Madde' },
+  'editor.numbered': { en: 'List', tr: 'Liste' },
+  'editor.bulletList': { en: 'Add bullet point', tr: 'Madde işareti ekle' },
+  'editor.numberedList': { en: 'Add numbered list', tr: 'Numaralı liste ekle' },
+  'editor.clearFormat': { en: 'Clear Format', tr: 'Biçimi Temizle' },
+  'editor.clearFormatting': { en: 'Clear all formatting', tr: 'Tüm biçimlendirmeyi temizle' },
+  'editor.clearAll': { en: 'Clear all text', tr: 'Tüm metni temizle' },
+  'editor.confirmClear': { en: 'Are you sure you want to clear all text?', tr: 'Tüm metni silmek istediğinizden emin misiniz?' },
+  'editor.characters': { en: 'Characters', tr: 'Karakter' },
+  'editor.words': { en: 'Words', tr: 'Kelime' },
+  'editor.hint': { en: 'Use **text** for bold, _text_ for italic', tr: '**metin** kalın, _metin_ italik için' },
+  'editor.template': { en: 'Use Template', tr: 'Şablon Kullan' },
+  'editor.templates': { en: 'Templates', tr: 'Şablonlar' },
+  
+  // Description Templates
+  'templates.experience.improved': { en: '• Improved [metric] by [percentage]% through [method]', tr: '• [metrik]i [yöntem] ile %[yüzde] iyileştirdim' },
+  'templates.experience.led': { en: '• Led team of [number] to deliver [project/outcome]', tr: '• [proje/sonuç] sunmak için [sayı] kişilik ekibi yönettim' },
+  'templates.experience.developed': { en: '• Developed [feature/system] that resulted in [outcome]', tr: '• [sonuç] ile sonuçlanan [özellik/sistem] geliştirdim' },
+  'templates.experience.managed': { en: '• Managed [responsibility] achieving [result]', tr: '• [sorumluluk]u yönettim ve [sonuç] elde ettim' },
+  'templates.education.coursework': { en: '• Relevant Coursework: [courses]', tr: '• İlgili Dersler: [dersler]' },
+  'templates.education.achievement': { en: '• Achievement: [description]', tr: '• Başarı: [açıklama]' },
+  'templates.education.thesis': { en: '• Thesis: [title] - [brief description]', tr: '• Tez: [başlık] - [kısa açıklama]' },
+  'templates.cert.skills': { en: '• Skills gained: [skill1], [skill2], [skill3]', tr: '• Kazanılan yetenekler: [yetenek1], [yetenek2], [yetenek3]' },
+  'templates.cert.focus': { en: '• Focus areas: [area1], [area2]', tr: '• Odak alanları: [alan1], [alan2]' },
+  'templates.project.built': { en: '• Built [feature] using [technologies]', tr: '• [teknolojiler] kullanarak [özellik] geliştirdim' },
+  'templates.project.implemented': { en: '• Implemented [functionality] resulting in [outcome]', tr: '• [sonuç] ile sonuçlanan [işlevsellik] uyguladım' }
 };
 
 export function t(lang: Lang, key: string): string {

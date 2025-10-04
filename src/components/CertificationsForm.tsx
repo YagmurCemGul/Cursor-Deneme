@@ -1,6 +1,7 @@
 import React from 'react';
 import { Certification } from '../types';
 import { t, Lang } from '../i18n';
+import { RichTextEditor } from './RichTextEditor';
 
 interface CertificationsFormProps {
   certifications: Certification[];
@@ -158,28 +159,15 @@ export const CertificationsForm: React.FC<CertificationsFormProps> = ({ certific
 
               <div className="form-group">
                 <label className="form-label">{t(language, 'certs.description')}</label>
-                <textarea
-                  className="form-textarea"
+                <RichTextEditor
                   value={cert.description || ''}
-                  onChange={(e) => handleUpdate(cert.id, 'description', e.target.value)}
+                  onChange={(value) => handleUpdate(cert.id, 'description', value)}
                   placeholder={t(language, 'certs.descriptionPlaceholder')}
-                  onPaste={(e) => {
-                    const text = e.clipboardData.getData('text');
-                    if (text.includes('•') || text.includes('\n- ') || text.includes('\n* ')) {
-                      e.preventDefault();
-                      const normalized = text
-                        .split(/\n|•|^-\s|^\*\s/m)
-                        .map(s => s.trim())
-                        .filter(Boolean)
-                        .map(s => `• ${s}`)
-                        .join('\n');
-                      handleUpdate(cert.id, 'description', ((cert.description || '') ? cert.description + '\n' : '') + normalized);
-                    }
-                  }}
+                  language={language}
+                  maxLength={2000}
+                  showWordCount={true}
+                  templateType="certification"
                 />
-                <div>
-                  <button className="btn btn-secondary" onClick={(e) => { e.preventDefault(); handleUpdate(cert.id, 'description', ((cert.description || '') ? cert.description + '\n' : '') + '• '); }}>+ {t(language, 'experience.addBullet')}</button>
-                </div>
               </div>
 
               <div className="form-group">
