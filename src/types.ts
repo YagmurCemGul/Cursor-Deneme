@@ -124,3 +124,9 @@ export interface CVTemplate {
   content: string;
   createdAt: string;
 }
+
+export interface CoverLetterTemplateSelection {
+  id: string;
+  name: string;
+  selected: boolean;
+}

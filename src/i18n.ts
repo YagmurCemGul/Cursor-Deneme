@@ -202,6 +202,16 @@ const dict: Record<string, Record<Lang, string>> = {
   'cover.errorGenerating': { en: 'Error generating cover letter. Please try again.', tr: 'Niyet mektubu oluşturulurken hata oluştu. Lütfen tekrar deneyin.' },
   'cover.needJobDesc': { en: 'Please enter a job description first!', tr: 'Lütfen önce iş ilanı açıklamasını girin!' },
   
+  // Cover Letter Templates
+  'coverTemplates.title': { en: 'Cover Letter Template', tr: 'Niyet Mektubu Şablonu' },
+  'coverTemplates.description': { en: 'Choose a professional template that matches the tone and style of your cover letter', tr: 'Niyet mektubunuzun tonuna ve stiline uygun profesyonel bir şablon seçin' },
+  'coverTemplates.classic': { en: 'Classic Professional', tr: 'Klasik Profesyonel' },
+  'coverTemplates.modern': { en: 'Modern Professional', tr: 'Modern Profesyonel' },
+  'coverTemplates.executive': { en: 'Executive Elite', tr: 'Yönetici Elit' },
+  'coverTemplates.creative': { en: 'Creative Professional', tr: 'Kreatif Profesyonel' },
+  'coverTemplates.startup': { en: 'Startup Ready', tr: 'Startup Hazır' },
+  'coverTemplates.academic': { en: 'Academic & Research', tr: 'Akademik ve Araştırma' },
+  
   'profile.section': { en: 'Profile Management', tr: 'Profil Yönetimi' },
   'profile.current': { en: 'Current Profile', tr: 'Mevcut Profil' },
   'profile.name': { en: 'Profile Name', tr: 'Profil Adı' },
