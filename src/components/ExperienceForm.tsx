@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Experience } from '../types';
 import { countries, citiesByCountry } from '../data/locations';
 import { t, Lang } from '../i18n';
+import { RichTextEditor } from './RichTextEditor';
 
 interface ExperienceFormProps {
   experiences: Experience[];
@@ -205,28 +206,15 @@ export const ExperienceForm: React.FC<ExperienceFormProps> = ({ experiences, onC
               
               <div className="form-group">
                 <label className="form-label">{t(language, 'experience.description')}</label>
-                <textarea
-                  className="form-textarea"
+                <RichTextEditor
                   value={exp.description}
-                  onChange={(e) => handleUpdate(exp.id, 'description', e.target.value)}
+                  onChange={(value) => handleUpdate(exp.id, 'description', value)}
                   placeholder={t(language, 'experience.descriptionPlaceholder')}
-                  onPaste={(e) => {
-                    const text = e.clipboardData.getData('text');
-                    if (text.includes('•') || text.includes('\n- ') || text.includes('\n* ')) {
-                      e.preventDefault();
-                      const normalized = text
-                        .split(/\n|•|^-\s|^\*\s/m)
-                        .map(s => s.trim())
-                        .filter(Boolean)
-                        .map(s => `• ${s}`)
-                        .join('\n');
-                      handleUpdate(exp.id, 'description', (exp.description ? exp.description + '\n' : '') + normalized);
-                    }
-                  }}
+                  language={language}
+                  maxLength={2000}
+                  showWordCount={true}
+                  templateType="experience"
                 />
-                <div>
-                  <button className="btn btn-secondary" onClick={(e) => { e.preventDefault(); handleUpdate(exp.id, 'description', (exp.description ? exp.description + '\n' : '') + '• '); }}>+ {t(language, 'experience.addBullet')}</button>
-                </div>
               </div>
               
               <div className="form-group">

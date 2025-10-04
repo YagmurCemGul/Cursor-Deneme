@@ -1,6 +1,7 @@
 import React from 'react';
 import { Project } from '../types';
 import { t, Lang } from '../i18n';
+import { RichTextEditor } from './RichTextEditor';
 
 interface ProjectsFormProps {
   projects: Project[];
@@ -91,28 +92,15 @@ export const ProjectsForm: React.FC<ProjectsFormProps> = ({ projects, onChange, 
               
               <div className="form-group">
                 <label className="form-label">{t(language, 'projects.description')}</label>
-                <textarea
-                  className="form-textarea"
+                <RichTextEditor
                   value={proj.description}
-                  onChange={(e) => handleUpdate(proj.id, 'description', e.target.value)}
+                  onChange={(value) => handleUpdate(proj.id, 'description', value)}
                   placeholder={t(language, 'projects.descriptionPlaceholder')}
-                  onPaste={(e) => {
-                    const text = e.clipboardData.getData('text');
-                    if (text.includes('•') || text.includes('\n- ') || text.includes('\n* ')) {
-                      e.preventDefault();
-                      const normalized = text
-                        .split(/\n|•|^-\s|^\*\s/m)
-                        .map(s => s.trim())
-                        .filter(Boolean)
-                        .map(s => `• ${s}`)
-                        .join('\n');
-                      handleUpdate(proj.id, 'description', (proj.description ? proj.description + '\n' : '') + normalized);
-                    }
-                  }}
+                  language={language}
+                  maxLength={2000}
+                  showWordCount={true}
+                  templateType="project"
                 />
-                <div>
-                  <button className="btn btn-secondary" onClick={(e) => { e.preventDefault(); handleUpdate(proj.id, 'description', (proj.description ? proj.description + '\n' : '') + '• '); }}>+ {t(language, 'experience.addBullet')}</button>
-                </div>
               </div>
               
               <div className="form-row">

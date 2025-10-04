@@ -2,6 +2,7 @@ import React from 'react';
 import { Education } from '../types';
 import { degrees } from '../data/degrees';
 import { t, Lang } from '../i18n';
+import { RichTextEditor } from './RichTextEditor';
 
 interface EducationFormProps {
   education: Education[];
@@ -181,28 +182,15 @@ export const EducationForm: React.FC<EducationFormProps> = ({ education, onChang
               
               <div className="form-group">
                 <label className="form-label">{t(language, 'education.description')}</label>
-                <textarea
-                  className="form-textarea"
+                <RichTextEditor
                   value={edu.description}
-                  onChange={(e) => handleUpdate(edu.id, 'description', e.target.value)}
+                  onChange={(value) => handleUpdate(edu.id, 'description', value)}
                   placeholder={t(language, 'education.descriptionPlaceholder')}
-                  onPaste={(e) => {
-                    const text = e.clipboardData.getData('text');
-                    if (text.includes('•') || text.includes('\n- ') || text.includes('\n* ')) {
-                      e.preventDefault();
-                      const normalized = text
-                        .split(/\n|•|^-\s|^\*\s/m)
-                        .map(s => s.trim())
-                        .filter(Boolean)
-                        .map(s => `• ${s}`)
-                        .join('\n');
-                      handleUpdate(edu.id, 'description', (edu.description ? edu.description + '\n' : '') + normalized);
-                    }
-                  }}
+                  language={language}
+                  maxLength={2000}
+                  showWordCount={true}
+                  templateType="education"
                 />
-                <div>
-                  <button className="btn btn-secondary" onClick={(e) => { e.preventDefault(); handleUpdate(edu.id, 'description', (edu.description ? edu.description + '\n' : '') + '• '); }}>+ {t(language, 'experience.addBullet')}</button>
-                </div>
               </div>
               
               <div className="form-group">
