@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { GoogleDriveService, GoogleDriveFile } from '../utils/googleDriveService';
+import { logger } from '../utils/logger';
 import { t, Lang } from '../i18n';
 
 interface GoogleDriveSettingsProps {
@@ -35,7 +36,7 @@ export const GoogleDriveSettings: React.FC<GoogleDriveSettingsProps> = ({ langua
         setError(t(language, 'googleDrive.clientIdPlaceholder'));
       }
     } catch (err) {
-      console.error('Failed to check setup status:', err);
+      logger.error('Failed to check setup status:', err);
     }
   };
 

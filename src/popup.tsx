@@ -16,10 +16,13 @@ import { CoverLetter } from './components/CoverLetter';
 import { ProfileManager } from './components/ProfileManager';
 import { AISettings } from './components/AISettings';
 import { GoogleDriveSettings } from './components/GoogleDriveSettings';
+import { ErrorBoundary } from './components/ErrorBoundary';
 import { aiService } from './utils/aiService';
 import { AIConfig } from './utils/aiProviders';
 import { StorageService } from './utils/storage';
 import { applyCVOptimizations } from './utils/cvOptimizer';
+import { logger } from './utils/logger';
+import { performanceMonitor } from './utils/performance';
 import { t } from './i18n';
 import './styles.css';
 
@@ -196,14 +199,18 @@ const App: React.FC = () => {
 
     setIsOptimizing(true);
     try {
-      const result = await aiService.optimizeCV(cvData, jobDescription);
+      const result = await performanceMonitor.measure(
+        'optimizeCV',
+        () => aiService.optimizeCV(cvData, jobDescription),
+        { jobDescriptionLength: jobDescription.length }
+      );
       // Store the original CV data before any optimizations
       setOriginalCVData(JSON.parse(JSON.stringify(cvData)));
       // Set optimizations (all initially unapplied)
       setOptimizations(result.optimizations);
       setActiveTab('optimize');
     } catch (error: any) {
-      console.error('Error optimizing CV:', error);
+      logger.error('Error optimizing CV:', error);
 
       // Show specific error message if available
       const errorMessage = error?.message || t(language, 'common.errorOptimizing');
@@ -240,10 +247,14 @@ const App: React.FC = () => {
 
     setIsGeneratingCoverLetter(true);
     try {
-      const letter = await aiService.generateCoverLetter(cvData, jobDescription, extraPrompt);
+      const letter = await performanceMonitor.measure(
+        'generateCoverLetter',
+        () => aiService.generateCoverLetter(cvData, jobDescription, extraPrompt),
+        { hasExtraPrompt: !!extraPrompt }
+      );
       setCoverLetter(letter);
     } catch (error: any) {
-      console.error('Error generating cover letter:', error);
+      logger.error('Error generating cover letter:', error);
 
       // Show specific error message if available, otherwise show generic message
       const errorMessage = error?.message || t(language, 'cover.errorGenerating');
@@ -298,7 +309,7 @@ const App: React.FC = () => {
         aiService.updateConfig(config);
       }
     } catch (error) {
-      console.error('Failed to initialize AI service:', error);
+      logger.error('Failed to initialize AI service:', error);
     }
   };
 
@@ -531,4 +542,12 @@ const App: React.FC = () => {
 };
 
 const root = ReactDOM.createRoot(document.getElementById('root')!);
-root.render(<App />);
+root.render(
+  <ErrorBoundary
+    onError={(error, errorInfo) => {
+      logger.error('Application error caught by boundary:', error, errorInfo);
+    }}
+  >
+    <App />
+  </ErrorBoundary>
+);

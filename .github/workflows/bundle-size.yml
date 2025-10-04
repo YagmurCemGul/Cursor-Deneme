@@ -1,0 +1,115 @@
+name: Bundle Size Check
+
+on:
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  bundle-size:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20.x'
+        cache: 'npm'
+    
+    - name: Install dependencies
+      run: npm ci
+    
+    - name: Build current branch
+      run: npm run build
+    
+    - name: Get current bundle size
+      id: current_size
+      run: |
+        CURRENT_SIZE=$(du -sb dist | cut -f1)
+        echo "size=$CURRENT_SIZE" >> $GITHUB_OUTPUT
+        echo "Current bundle size: $CURRENT_SIZE bytes"
+    
+    - name: Checkout base branch
+      run: |
+        git fetch origin ${{ github.base_ref }}
+        git checkout origin/${{ github.base_ref }}
+    
+    - name: Install dependencies (base)
+      run: npm ci
+    
+    - name: Build base branch
+      run: npm run build
+    
+    - name: Get base bundle size
+      id: base_size
+      run: |
+        BASE_SIZE=$(du -sb dist | cut -f1)
+        echo "size=$BASE_SIZE" >> $GITHUB_OUTPUT
+        echo "Base bundle size: $BASE_SIZE bytes"
+    
+    - name: Calculate difference
+      id: diff
+      run: |
+        CURRENT=${{ steps.current_size.outputs.size }}
+        BASE=${{ steps.base_size.outputs.size }}
+        DIFF=$((CURRENT - BASE))
+        PERCENT=$(awk "BEGIN {printf \"%.2f\", ($DIFF/$BASE)*100}")
+        
+        echo "diff=$DIFF" >> $GITHUB_OUTPUT
+        echo "percent=$PERCENT" >> $GITHUB_OUTPUT
+        
+        # Convert to human readable
+        if [ $DIFF -ge 1048576 ]; then
+          DIFF_HUMAN=$(awk "BEGIN {printf \"%.2f MB\", $DIFF/1048576}")
+        elif [ $DIFF -ge 1024 ]; then
+          DIFF_HUMAN=$(awk "BEGIN {printf \"%.2f KB\", $DIFF/1024}")
+        else
+          DIFF_HUMAN="${DIFF} bytes"
+        fi
+        echo "diff_human=$DIFF_HUMAN" >> $GITHUB_OUTPUT
+    
+    - name: Comment PR
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const current = ${{ steps.current_size.outputs.size }};
+          const base = ${{ steps.base_size.outputs.size }};
+          const diff = ${{ steps.diff.outputs.diff }};
+          const diffHuman = '${{ steps.diff.outputs.diff_human }}';
+          const percent = ${{ steps.diff.outputs.percent }};
+          
+          const currentMB = (current / 1048576).toFixed(2);
+          const baseMB = (base / 1048576).toFixed(2);
+          
+          let emoji = '📊';
+          let status = 'No significant change';
+          
+          if (diff > 0) {
+            emoji = percent > 10 ? '🔴' : '⚠️';
+            status = `Increased by ${diffHuman} (+${percent}%)`;
+          } else if (diff < 0) {
+            emoji = '✅';
+            status = `Decreased by ${diffHuman.replace('-', '')} (${percent}%)`;
+          }
+          
+          const comment = `## ${emoji} Bundle Size Report
+          
+          | Metric | Size |
+          |--------|------|
+          | Base (${github.context.payload.pull_request.base.ref}) | ${baseMB} MB |
+          | Current (${github.context.payload.pull_request.head.ref}) | ${currentMB} MB |
+          | **Status** | **${status}** |
+          
+          ${percent > 10 ? '⚠️ **Warning**: Bundle size increased significantly!' : ''}
+          `;
+          
+          github.rest.issues.createComment({
+            issue_number: context.issue.number,
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            body: comment
+          });

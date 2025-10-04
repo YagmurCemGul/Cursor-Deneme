@@ -3,6 +3,7 @@ import { CVData, SavedPrompt } from '../types';
 import { DocumentGenerator } from '../utils/documentGenerator';
 import { GoogleDriveService } from '../utils/googleDriveService';
 import { StorageService } from '../utils/storage';
+import { logger } from '../utils/logger';
 import { t, Lang } from '../i18n';
 import {
   defaultCoverLetterTemplates,
@@ -99,7 +100,7 @@ export const CoverLetter: React.FC<CoverLetterProps> = ({
         );
       }
     } catch (error) {
-      console.error('Error generating document:', error);
+      logger.error('Error generating document:', error);
       alert(t(language, 'common.errorGeneratingDoc'));
     }
   };
@@ -119,7 +120,7 @@ export const CoverLetter: React.FC<CoverLetterProps> = ({
       );
       window.open(result.webViewLink, '_blank');
     } catch (error: any) {
-      console.error('Error exporting to Google:', error);
+      logger.error('Error exporting to Google:', error);
       if (error.message?.includes('authentication') || error.message?.includes('token')) {
         alert(t(language, 'googleDrive.authRequired'));
       } else {

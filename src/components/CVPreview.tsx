@@ -1,5 +1,6 @@
 import React from 'react';
 import { CVData, ATSOptimization } from '../types';
+import { logger } from '../utils/logger';
 import { DocumentGenerator } from '../utils/documentGenerator';
 import { GoogleDriveService } from '../utils/googleDriveService';
 import { t, Lang } from '../i18n';
@@ -90,7 +91,7 @@ export const CVPreview: React.FC<CVPreviewProps> = ({
         await DocumentGenerator.generatePDF(cvData, optimizations, fileName, templateId);
       }
     } catch (error) {
-      console.error('Error generating document:', error);
+      logger.error('Error generating document:', error);
       alert(t(language, 'common.errorGeneratingDoc'));
     }
   };
@@ -129,7 +130,7 @@ export const CVPreview: React.FC<CVPreviewProps> = ({
           break;
       }
     } catch (error: any) {
-      console.error('Error exporting to Google:', error);
+      logger.error('Error exporting to Google:', error);
       if (error.message?.includes('authentication') || error.message?.includes('token')) {
         alert(t(language, 'googleDrive.authRequired'));
       } else {

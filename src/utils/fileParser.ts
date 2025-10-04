@@ -2,6 +2,7 @@ import mammoth from 'mammoth';
 import * as pdfjsLib from 'pdfjs-dist';
 import type { TextItem } from 'pdfjs-dist';
 import { CVData, Experience, Education, Certification, Project } from '../types';
+import { logger } from './logger';
 
 // Configure pdf.js worker for the new version
 // pdfjs-dist v5+ uses ESM and requires different worker configuration
@@ -48,7 +49,7 @@ export class FileParser {
 
       return this.extractCVData(fullText);
     } catch (error) {
-      console.error('Error parsing PDF:', error);
+      logger.error('Error parsing PDF:', error);
       throw error;
     }
   }
@@ -59,7 +60,7 @@ export class FileParser {
       const result = await mammoth.extractRawText({ arrayBuffer });
       return this.extractCVData(result.value);
     } catch (error) {
-      console.error('Error parsing DOCX:', error);
+      logger.error('Error parsing DOCX:', error);
       throw error;
     }
   }

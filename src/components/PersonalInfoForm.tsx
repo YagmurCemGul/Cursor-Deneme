@@ -1,5 +1,6 @@
 import React, { useRef, useState } from 'react';
 import { PersonalInfo } from '../types';
+import { logger } from '../utils/logger';
 import { t, Lang } from '../i18n';
 import { PhotoCropper } from './PhotoCropper';
 import {
@@ -255,7 +256,7 @@ export const PersonalInfoForm: React.FC<PersonalInfoFormProps> = ({ data, onChan
       reader.readAsDataURL(file);
     } catch (error) {
       setPhotoError(t(language, 'personal.photoProcessError'));
-      console.error('Image processing error:', error);
+      logger.error('Image processing error:', error);
       setPhotoLoading(false);
     } finally {
       // Reset file input
@@ -280,7 +281,7 @@ export const PersonalInfoForm: React.FC<PersonalInfoFormProps> = ({ data, onChan
       onChange({ ...data, photoDataUrl: compressedDataUrl });
     } catch (error) {
       setPhotoError(t(language, 'personal.photoProcessError'));
-      console.error('Crop processing error:', error);
+      logger.error('Crop processing error:', error);
     } finally {
       setPhotoLoading(false);
       setTempPhotoUrl('');

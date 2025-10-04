@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { FileParser } from '../utils/fileParser';
 import { CVData } from '../types';
+import { logger } from '../utils/logger';
 import { t, Lang } from '../i18n';
 
 interface CVUploadProps {
@@ -47,7 +48,7 @@ export const CVUpload: React.FC<CVUploadProps> = ({ onCVParsed, language }) => {
       const parsedData = await FileParser.parseFile(file);
       onCVParsed(parsedData);
     } catch (error) {
-      console.error('Error parsing file:', error);
+      logger.error('Error parsing file:', error);
       alert(t(language, 'upload.error'));
     } finally {
       setIsLoading(false);

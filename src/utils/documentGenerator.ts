@@ -16,6 +16,7 @@ import {
 import { saveAs } from 'file-saver';
 import jsPDF from 'jspdf';
 import { CVData, ATSOptimization } from '../types';
+import { logger } from './logger';
 import { getTemplateById, getDefaultTemplate } from '../data/cvTemplates';
 import {
   getCoverLetterTemplateById,
@@ -120,7 +121,7 @@ export class DocumentGenerator {
           })
         );
       } catch (error) {
-        console.error('Error adding photo to DOCX:', error);
+        logger.error('Error adding photo to DOCX:', error);
         // Fallback to header without photo
         headerChildren.push(
           new Paragraph({
@@ -295,7 +296,7 @@ export class DocumentGenerator {
         const photoSize = 30; // 30mm photo
         doc.addImage(cvData.personalInfo.photoDataUrl, 'JPEG', 180, 10, photoSize, photoSize);
       } catch (error) {
-        console.error('Error adding photo to PDF:', error);
+        logger.error('Error adding photo to PDF:', error);
       }
     }
 

@@ -1,0 +1,73 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    
+    permissions:
+      contents: write
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20.x'
+        cache: 'npm'
+    
+    - name: Install dependencies
+      run: npm ci
+    
+    - name: Run tests
+      run: npm test
+    
+    - name: Build extension
+      run: npm run build
+    
+    - name: Get version from tag
+      id: get_version
+      run: echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
+    
+    - name: Create distribution zip
+      run: |
+        cd dist
+        zip -r ../ai-cv-optimizer-${{ steps.get_version.outputs.VERSION }}.zip .
+        cd ..
+    
+    - name: Generate changelog
+      id: changelog
+      uses: metcalfc/changelog-generator@v4.1.0
+      with:
+        myToken: ${{ secrets.GITHUB_TOKEN }}
+    
+    - name: Create GitHub Release
+      uses: softprops/action-gh-release@v1
+      with:
+        files: ai-cv-optimizer-${{ steps.get_version.outputs.VERSION }}.zip
+        body: |
+          ## Changes
+          ${{ steps.changelog.outputs.changelog }}
+          
+          ## Installation
+          1. Download the `ai-cv-optimizer-${{ steps.get_version.outputs.VERSION }}.zip` file
+          2. Extract the contents
+          3. Open Chrome and navigate to `chrome://extensions/`
+          4. Enable "Developer mode"
+          5. Click "Load unpacked" and select the extracted folder
+        draft: false
+        prerelease: false
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    
+    - name: Upload to Chrome Web Store (optional)
+      if: false  # Enable when ready to publish
+      run: |
+        echo "Upload to Chrome Web Store would happen here"
+        # Add chrome-webstore-upload-cli or similar tool
