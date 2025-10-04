@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { GoogleDriveService, GoogleDriveFile } from '../utils/googleDriveService';
 import { logger } from '../utils/logger';
 import { t, Lang } from '../i18n';
+import { SetupWizard } from './SetupWizard';
 
 interface GoogleDriveSettingsProps {
   language: Lang;
@@ -15,6 +16,7 @@ export const GoogleDriveSettings: React.FC<GoogleDriveSettingsProps> = ({ langua
   const [showFileManager, setShowFileManager] = useState(false);
   const [setupRequired, setSetupRequired] = useState(false);
   const [showTroubleshooting, setShowTroubleshooting] = useState(false);
+  const [showWizard, setShowWizard] = useState(false);
 
   useEffect(() => {
     checkAuthStatus();
@@ -149,8 +151,22 @@ export const GoogleDriveSettings: React.FC<GoogleDriveSettingsProps> = ({ langua
   };
 
   return (
-    <div className="section">
-      <h2 className="section-title">☁️ {t(language, 'googleDrive.title')}</h2>
+    <>
+      {showWizard && (
+        <SetupWizard
+          language={language}
+          onComplete={() => {
+            setShowWizard(false);
+            setSetupRequired(false);
+            checkSetupStatus();
+            alert(t(language, 'wizard.setupComplete'));
+          }}
+          onClose={() => setShowWizard(false)}
+        />
+      )}
+      
+      <div className="section">
+        <h2 className="section-title">☁️ {t(language, 'googleDrive.title')}</h2>
 
       {setupRequired && (
         <div className="alert alert-warning" style={{ marginBottom: '20px' }}>
@@ -164,11 +180,18 @@ export const GoogleDriveSettings: React.FC<GoogleDriveSettingsProps> = ({ langua
             <li>{t(language, 'googleDrive.setupStep3')}</li>
           </ol>
           <div style={{ marginTop: '15px' }}>
+            <button
+              className="btn btn-primary btn-sm"
+              onClick={() => setShowWizard(true)}
+              style={{ marginRight: '10px' }}
+            >
+              🚀 {t(language, 'wizard.launchWizard')}
+            </button>
             <a
               href="https://console.cloud.google.com/apis/credentials"
               target="_blank"
               rel="noopener noreferrer"
-              className="btn btn-primary btn-sm"
+              className="btn btn-secondary btn-sm"
               style={{ marginRight: '10px' }}
             >
               🔗 {t(language, 'googleDrive.openConsole')}
@@ -320,6 +343,7 @@ export const GoogleDriveSettings: React.FC<GoogleDriveSettingsProps> = ({ langua
           </div>
         </div>
       )}
-    </div>
+      </div>
+    </>
   );
 };
