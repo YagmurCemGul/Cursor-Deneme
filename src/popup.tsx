@@ -64,6 +64,7 @@ const App: React.FC = () => {
   const [systemPrefersDark, setSystemPrefersDark] = useState(false);
   const [focusedOptimizationId, setFocusedOptimizationId] = useState<string | null>(null);
   const [selectedTemplateId, setSelectedTemplateId] = useState<string>('classic');
+  const [currentAIProvider, setCurrentAIProvider] = useState<'openai' | 'gemini' | 'claude'>('openai');
 
   useEffect(() => {
     loadInitial();
@@ -132,6 +133,14 @@ const App: React.FC = () => {
     }, 400);
     return () => clearTimeout(timeout);
   }, [activeTab, jobDescription, cvData, originalCVData, optimizations, coverLetter, profileName]);
+
+  // Re-verify AI service configuration when switching to tabs that use AI
+  useEffect(() => {
+    if (activeTab === 'optimize' || activeTab === 'cover-letter') {
+      // Ensure AI service is properly configured before use
+      initializeAIService();
+    }
+  }, [activeTab]);
 
   // Persist settings
   useEffect(() => {
@@ -260,6 +269,9 @@ const App: React.FC = () => {
         StorageService.getSettings()
       ]);
 
+      // Update current provider state for UI display
+      setCurrentAIProvider(provider);
+
       const apiKey = apiKeys[provider];
       if (apiKey) {
         const config: AIConfig = {
@@ -318,6 +330,18 @@ const App: React.FC = () => {
             <option value="dark">🌙 Dark</option>
             <option value="system">💻 System</option>
           </select>
+          <div style={{ 
+            fontSize: '12px', 
+            padding: '6px 12px', 
+            borderRadius: '6px', 
+            backgroundColor: appliedTheme === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '4px',
+            whiteSpace: 'nowrap'
+          }}>
+            🤖 {currentAIProvider === 'openai' ? 'ChatGPT' : currentAIProvider === 'gemini' ? 'Gemini' : 'Claude'}
+          </div>
         </div>
       </div>
       
