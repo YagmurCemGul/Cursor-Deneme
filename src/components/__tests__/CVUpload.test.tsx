@@ -64,8 +64,8 @@ describe('CVUpload', () => {
 
   it('should show loading state during upload', async () => {
     mockFileParser.parseFile = jest.fn(
-      () => new Promise((resolve) => setTimeout(() => resolve({}), 100))
-    );
+      (_file: File) => new Promise((resolve) => setTimeout(() => resolve({}), 100))
+    ) as any;
 
     render(<CVUpload onCVParsed={mockOnCVParsed} language="en" />);
 
