@@ -1405,6 +1405,11 @@ body:has(.app-container.dark) {
   background-color: #fee2e2;
 }
 
+.validation-message.warning {
+  color: #d97706;
+  background-color: #fef3c7;
+}
+
 .email-suggestions {
   position: absolute;
   top: 100%;
@@ -1444,6 +1449,11 @@ body:has(.app-container.dark) {
 .app-container.dark .validation-message.error {
   color: #f87171;
   background-color: #7f1d1d;
+}
+
+.app-container.dark .validation-message.warning {
+  color: #fbbf24;
+  background-color: #78350f;
 }
 
 .app-container.dark .email-suggestions {

@@ -142,7 +142,7 @@ export const ExperienceForm: React.FC<ExperienceFormProps> = ({ experiences, onC
                   label={t(language, 'experience.end')}
                   value={exp.endDate}
                   onChange={(value) => handleUpdate(exp.id, 'endDate', value)}
-                  disabled={exp.currentlyWorking}
+                  disabled={!!exp.currentlyWorking}
                   language={language}
                   startDate={exp.startDate}
                   placeholder={t(language, 'experience.present')}
