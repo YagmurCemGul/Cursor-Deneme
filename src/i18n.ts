@@ -166,6 +166,184 @@ const dict: Record<string, Record<Lang, string>> = {
     en: 'Solution: Add your email as a test user in OAuth consent screen',
     tr: 'Çözüm: OAuth izin ekranında e-postanızı test kullanıcısı olarak ekleyin',
   },
+
+  // Setup Wizard
+  'wizard.title': { en: 'Google Drive Setup Wizard', tr: 'Google Drive Kurulum Sihirbazı' },
+  'wizard.subtitle': {
+    en: 'Follow these steps to configure Google Drive integration',
+    tr: 'Google Drive entegrasyonunu yapılandırmak için bu adımları izleyin',
+  },
+  'wizard.launchWizard': { en: 'Launch Setup Wizard', tr: 'Kurulum Sihirbazını Başlat' },
+  'wizard.setupComplete': {
+    en: 'Setup complete! Please reload the extension to apply changes.',
+    tr: 'Kurulum tamamlandı! Değişiklikleri uygulamak için uzantıyı yeniden yükleyin.',
+  },
+
+  // Wizard Steps
+  'wizard.step1Title': { en: 'Create Google Cloud Project', tr: 'Google Cloud Projesi Oluştur' },
+  'wizard.step1Desc': {
+    en: 'First, create a new project in Google Cloud Console',
+    tr: 'İlk olarak, Google Cloud Console\'da yeni bir proje oluşturun',
+  },
+  'wizard.step1Sub1': {
+    en: 'Go to Google Cloud Console (console.cloud.google.com)',
+    tr: 'Google Cloud Console\'a gidin (console.cloud.google.com)',
+  },
+  'wizard.step1Sub2': {
+    en: 'Click "Select a project" dropdown at the top',
+    tr: 'Üstteki "Proje seç" açılır menüsüne tıklayın',
+  },
+  'wizard.step1Sub3': {
+    en: 'Click "NEW PROJECT" and give it a name (e.g., "CV Optimizer")',
+    tr: 'YENİ PROJE\'ye tıklayın ve bir isim verin (örn. "CV Optimizer")',
+  },
+
+  'wizard.step2Title': { en: 'Enable Required APIs', tr: 'Gerekli API\'leri Etkinleştir' },
+  'wizard.step2Desc': {
+    en: 'Enable Google Drive and related APIs for your project',
+    tr: 'Projeniz için Google Drive ve ilgili API\'leri etkinleştirin',
+  },
+  'wizard.step2Sub1': {
+    en: 'Go to "APIs & Services" > "Library" in the left menu',
+    tr: 'Sol menüden "API\'ler ve Hizmetler" > "Kütüphane"ye gidin',
+  },
+  'wizard.step2Sub2': {
+    en: 'Search for and enable: "Google Drive API"',
+    tr: 'Arayın ve etkinleştirin: "Google Drive API"',
+  },
+  'wizard.step2Sub3': {
+    en: 'Search for and enable: "Google Docs API"',
+    tr: 'Arayın ve etkinleştirin: "Google Docs API"',
+  },
+  'wizard.step2Sub4': {
+    en: 'Search for and enable: "Google Sheets API" and "Google Slides API"',
+    tr: 'Arayın ve etkinleştirin: "Google Sheets API" ve "Google Slides API"',
+  },
+
+  'wizard.step3Title': { en: 'Create OAuth Credentials', tr: 'OAuth Kimlik Bilgileri Oluştur' },
+  'wizard.step3Desc': {
+    en: 'Create OAuth 2.0 Client ID for Chrome extension',
+    tr: 'Chrome uzantısı için OAuth 2.0 İstemci Kimliği oluşturun',
+  },
+  'wizard.step3Sub1': {
+    en: 'Go to "APIs & Services" > "Credentials"',
+    tr: '"API\'ler ve Hizmetler" > "Kimlik Bilgileri"ne gidin',
+  },
+  'wizard.step3Sub2': {
+    en: 'Click "CREATE CREDENTIALS" > "OAuth client ID"',
+    tr: '"KİMLİK BİLGİSİ OLUŞTUR" > "OAuth istemci kimliği"ne tıklayın',
+  },
+  'wizard.step3Sub3': {
+    en: 'Select "Chrome Extension" as application type',
+    tr: 'Uygulama türü olarak "Chrome Uzantısı" seçin',
+  },
+  'wizard.step3Sub4': {
+    en: 'Add your Chrome Extension ID (find it at chrome://extensions)',
+    tr: 'Chrome Uzantı Kimliğinizi ekleyin (chrome://extensions\'da bulabilirsiniz)',
+  },
+
+  'wizard.step4Title': { en: 'Configure & Validate', tr: 'Yapılandır ve Doğrula' },
+  'wizard.step4Desc': {
+    en: 'Copy your Client ID and validate the configuration',
+    tr: 'İstemci Kimliğinizi kopyalayın ve yapılandırmayı doğrulayın',
+  },
+  'wizard.step4Sub1': {
+    en: 'Copy the Client ID from Google Cloud Console',
+    tr: 'Google Cloud Console\'dan İstemci Kimliğini kopyalayın',
+  },
+  'wizard.step4Sub2': {
+    en: 'Paste it below and click "Validate Client ID"',
+    tr: 'Aşağıya yapıştırın ve "İstemci Kimliğini Doğrula"ya tıklayın',
+  },
+  'wizard.step4Sub3': {
+    en: 'Update manifest.json with your Client ID and reload the extension',
+    tr: 'manifest.json dosyasını İstemci Kimliğinizle güncelleyin ve uzantıyı yeniden yükleyin',
+  },
+
+  // Wizard Actions
+  'wizard.openConsole': { en: 'Open Google Console', tr: 'Google Console\'u Aç' },
+  'wizard.next': { en: 'Next', tr: 'İleri' },
+  'wizard.previous': { en: 'Previous', tr: 'Geri' },
+  'wizard.complete': { en: 'Complete Setup', tr: 'Kurulumu Tamamla' },
+  'wizard.validateButton': { en: 'Validate Client ID', tr: 'İstemci Kimliğini Doğrula' },
+  'wizard.autoValidate': { en: 'Auto-validate as I type', tr: 'Yazarken otomatik doğrula' },
+  'wizard.copy': { en: 'Copy', tr: 'Kopyala' },
+  'wizard.copiedToClipboard': { en: 'Copied to clipboard!', tr: 'Panoya kopyalandı!' },
+
+  // Wizard Status
+  'wizard.statusCompleted': { en: 'Step completed', tr: 'Adım tamamlandı' },
+  'wizard.statusInProgress': { en: 'In progress', tr: 'Devam ediyor' },
+  'wizard.statusPending': { en: 'Not started', tr: 'Başlanmadı' },
+  'wizard.statusError': { en: 'Error occurred', tr: 'Hata oluştu' },
+
+  // Wizard Validation
+  'wizard.validating': { en: 'Validating...', tr: 'Doğrulanıyor...' },
+  'wizard.validationEmpty': {
+    en: 'Please enter a Client ID',
+    tr: 'Lütfen bir İstemci Kimliği girin',
+  },
+  'wizard.validationPlaceholder': {
+    en: 'This looks like a placeholder. Please use your actual Client ID from Google Cloud Console',
+    tr: 'Bu bir yer tutucu gibi görünüyor. Lütfen Google Cloud Console\'dan gerçek İstemci Kimliğinizi kullanın',
+  },
+  'wizard.validationFormat': {
+    en: 'Client ID must end with .apps.googleusercontent.com',
+    tr: 'İstemci Kimliği .apps.googleusercontent.com ile bitmelidir',
+  },
+  'wizard.validationNoNumbers': {
+    en: 'Client ID should contain numbers. Please check your Client ID',
+    tr: 'İstemci Kimliği sayı içermelidir. Lütfen İstemci Kimliğinizi kontrol edin',
+  },
+  'wizard.validationTooShort': {
+    en: 'Client ID seems too short. Please verify it\'s correct',
+    tr: 'İstemci Kimliği çok kısa görünüyor. Lütfen doğru olduğunu kontrol edin',
+  },
+  'wizard.validationSuccess': {
+    en: '✅ Valid Client ID format! Remember to update manifest.json',
+    tr: '✅ Geçerli İstemci Kimliği formatı! manifest.json dosyasını güncellemeyi unutmayın',
+  },
+  'wizard.validationError': {
+    en: 'Error during validation. Please try again',
+    tr: 'Doğrulama sırasında hata oluştu. Lütfen tekrar deneyin',
+  },
+
+  // Wizard Instructions
+  'wizard.clientIdLabel': { en: 'Your Google Client ID', tr: 'Google İstemci Kimliğiniz' },
+  'wizard.clientIdInstructions': {
+    en: 'Paste Your Client ID Here',
+    tr: 'İstemci Kimliğinizi Buraya Yapıştırın',
+  },
+  'wizard.clientIdInstructionsDesc': {
+    en: 'Copy the Client ID from Google Cloud Console credentials page and paste it here for validation',
+    tr: 'Google Cloud Console kimlik bilgileri sayfasından İstemci Kimliğini kopyalayın ve doğrulama için buraya yapıştırın',
+  },
+  'wizard.howToCopy': {
+    en: 'How to Update manifest.json',
+    tr: 'manifest.json Nasıl Güncellenir',
+  },
+  'wizard.updateManifestDesc': {
+    en: 'After validation, update this field in your manifest.json file:',
+    tr: 'Doğrulamadan sonra, manifest.json dosyanızdaki bu alanı güncelleyin:',
+  },
+  'wizard.extensionIdTitle': {
+    en: 'Find Your Extension ID',
+    tr: 'Uzantı Kimliğinizi Bulun',
+  },
+  'wizard.extensionIdDesc': {
+    en: 'Open chrome://extensions, enable Developer Mode, and copy your extension ID',
+    tr: 'chrome://extensions açın, Geliştirici Modunu etkinleştirin ve uzantı kimliğinizi kopyalayın',
+  },
+
+  // Wizard Help
+  'wizard.needHelp': { en: 'Need Help?', tr: 'Yardıma İhtiyacınız Var mı?' },
+  'wizard.helpText': {
+    en: 'Check out our documentation for detailed setup instructions:',
+    tr: 'Detaylı kurulum talimatları için dokümantasyonumuza göz atın:',
+  },
+  'wizard.quickStartGuide': { en: 'Quick Start Guide', tr: 'Hızlı Başlangıç Kılavuzu' },
+  'wizard.fullDocumentation': { en: 'Full Documentation', tr: 'Tam Dokümantasyon' },
+  'wizard.troubleshooting': { en: 'Troubleshooting Guide', tr: 'Sorun Giderme Kılavuzu' },
+
   'common.errorOptimizing': {
     en: 'Error optimizing CV. Please try again.',
     tr: 'CV optimize edilirken hata oluştu. Lütfen tekrar deneyin.',
