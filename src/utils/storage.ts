@@ -188,4 +188,42 @@ export class StorageService {
   static async clearAnalytics(): Promise<void> {
     await chrome.storage.local.set({ analyticsData: [] });
   }
+
+  // Job Description Library
+  static async saveJobDescription(jobDesc: import('../types').SavedJobDescription): Promise<void> {
+    const { jobDescriptions = [] } = await chrome.storage.local.get('jobDescriptions');
+    const existingIndex = jobDescriptions.findIndex((j: import('../types').SavedJobDescription) => j.id === jobDesc.id);
+
+    if (existingIndex >= 0) {
+      jobDescriptions[existingIndex] = { ...jobDesc, updatedAt: new Date().toISOString() };
+    } else {
+      jobDescriptions.push(jobDesc);
+    }
+
+    await chrome.storage.local.set({ jobDescriptions });
+  }
+
+  static async getJobDescriptions(): Promise<import('../types').SavedJobDescription[]> {
+    const { jobDescriptions = [] } = await chrome.storage.local.get('jobDescriptions');
+    return jobDescriptions.sort((a: import('../types').SavedJobDescription, b: import('../types').SavedJobDescription) => 
+      new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
+    );
+  }
+
+  static async deleteJobDescription(jobDescId: string): Promise<void> {
+    const { jobDescriptions = [] } = await chrome.storage.local.get('jobDescriptions');
+    const filtered = jobDescriptions.filter((j: import('../types').SavedJobDescription) => j.id !== jobDescId);
+    await chrome.storage.local.set({ jobDescriptions: filtered });
+  }
+
+  static async incrementJobDescriptionUsage(jobDescId: string): Promise<void> {
+    const { jobDescriptions = [] } = await chrome.storage.local.get('jobDescriptions');
+    const jobDesc = jobDescriptions.find((j: import('../types').SavedJobDescription) => j.id === jobDescId);
+    
+    if (jobDesc) {
+      jobDesc.usageCount = (jobDesc.usageCount || 0) + 1;
+      jobDesc.updatedAt = new Date().toISOString();
+      await chrome.storage.local.set({ jobDescriptions });
+    }
+  }
 }

@@ -2666,3 +2666,280 @@ body:has(.app-container.dark) {
   background: #334155;
   border-color: #475569;
 }
+
+/* Job Description Library */
+.job-description-actions {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+  backdrop-filter: blur(4px);
+}
+
+.modal-content {
+  background: white;
+  border-radius: 12px;
+  padding: 0;
+  max-width: 600px;
+  width: 90%;
+  max-height: 80vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+.app-container.dark .modal-content {
+  background: #0f172a;
+  border: 1px solid #1f2a44;
+}
+
+.modal-header {
+  padding: 20px;
+  border-bottom: 1px solid #e2e8f0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.app-container.dark .modal-header {
+  border-bottom-color: #1f2a44;
+}
+
+.modal-header h2,
+.modal-header h3 {
+  margin: 0;
+  font-size: 20px;
+  color: #1e293b;
+}
+
+.app-container.dark .modal-header h2,
+.app-container.dark .modal-header h3 {
+  color: #f1f5f9;
+}
+
+.modal-close {
+  background: none;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+  color: #64748b;
+  padding: 0;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  transition: all 0.2s;
+}
+
+.modal-close:hover {
+  background: #f1f5f9;
+  color: #1e293b;
+}
+
+.app-container.dark .modal-close:hover {
+  background: #1e293b;
+  color: #f1f5f9;
+}
+
+.modal-body {
+  padding: 20px;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.modal-footer {
+  padding: 20px;
+  border-top: 1px solid #e2e8f0;
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.app-container.dark .modal-footer {
+  border-top-color: #1f2a44;
+}
+
+.job-library-modal {
+  max-width: 900px;
+  width: 95%;
+}
+
+.job-library-filters {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.job-library-filters .form-input,
+.job-library-filters .form-select {
+  flex: 1;
+}
+
+.job-library-list {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.job-library-item {
+  padding: 15px;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  background: #f8fafc;
+  transition: all 0.2s;
+}
+
+.app-container.dark .job-library-item {
+  background: #1e293b;
+  border-color: #334155;
+}
+
+.job-library-item:hover {
+  border-color: #3b82f6;
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.1);
+}
+
+.job-library-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.job-library-header h3 {
+  margin: 0;
+  font-size: 16px;
+  color: #1e293b;
+}
+
+.app-container.dark .job-library-header h3 {
+  color: #f1f5f9;
+}
+
+.job-library-category {
+  padding: 4px 12px;
+  background: #dbeafe;
+  color: #1e40af;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.app-container.dark .job-library-category {
+  background: #1e3a8a;
+  color: #93c5fd;
+}
+
+.job-library-description {
+  margin: 10px 0;
+  color: #475569;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.app-container.dark .job-library-description {
+  color: #cbd5e1;
+}
+
+.job-library-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 10px 0;
+}
+
+.job-library-tags .tag {
+  padding: 4px 10px;
+  background: #f1f5f9;
+  color: #475569;
+  border-radius: 8px;
+  font-size: 12px;
+}
+
+.app-container.dark .job-library-tags .tag {
+  background: #334155;
+  color: #cbd5e1;
+}
+
+.job-library-meta {
+  display: flex;
+  gap: 15px;
+  margin: 10px 0;
+  font-size: 12px;
+  color: #64748b;
+}
+
+.app-container.dark .job-library-meta {
+  color: #94a3b8;
+}
+
+.job-library-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.job-library-edit {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 40px 20px;
+  color: #64748b;
+}
+
+.app-container.dark .empty-state {
+  color: #94a3b8;
+}
+
+.loading-message {
+  text-align: center;
+  padding: 40px 20px;
+  color: #64748b;
+}
+
+.app-container.dark .loading-message {
+  color: #94a3b8;
+}
+
+.alert-success {
+  background: #dcfce7;
+  border: 1px solid #86efac;
+  color: #166534;
+}
+
+.app-container.dark .alert-success {
+  background: #14532d;
+  border-color: #166534;
+  color: #86efac;
+}
+
+.alert-error {
+  background: #fee2e2;
+  border: 1px solid #fca5a5;
+  color: #991b1b;
+}
+
+.app-container.dark .alert-error {
+  background: #7f1d1d;
+  border-color: #991b1b;
+  color: #fca5a5;
+}

@@ -918,8 +918,41 @@ const dict: Record<string, Record<Lang, string>> = {
   'filter.clearFilters': { en: 'Clear Filters', tr: 'Filtreleri Temizle' },
   'filter.showFilters': { en: 'Show Filters', tr: 'Filtreleri Göster' },
   'filter.hideFilters': { en: 'Hide Filters', tr: 'Filtreleri Gizle' },
+
+  // Job Description Library
+  'jobLibrary.title': { en: 'Job Description Library', tr: 'İş Tanımı Kütüphanesi' },
+  'jobLibrary.search': { en: 'Search job descriptions...', tr: 'İş tanımlarında ara...' },
+  'jobLibrary.allCategories': { en: 'All Categories', tr: 'Tüm Kategoriler' },
+  'jobLibrary.empty': { en: 'No saved job descriptions yet. Save your first job description to get started!', tr: 'Henüz kaydedilmiş iş tanımı yok. İlk iş tanımınızı kaydedin!' },
+  'jobLibrary.use': { en: 'Use', tr: 'Kullan' },
+  'jobLibrary.confirmDelete': { en: 'Are you sure you want to delete this job description?', tr: 'Bu iş tanımını silmek istediğinizden emin misiniz?' },
+  'jobLibrary.nameLabel': { en: 'Name', tr: 'İsim' },
+  'jobLibrary.categoryLabel': { en: 'Category (Optional)', tr: 'Kategori (Opsiyonel)' },
+  'jobLibrary.descriptionLabel': { en: 'Description', tr: 'Açıklama' },
+  'jobLibrary.tagsLabel': { en: 'Tags (comma separated)', tr: 'Etiketler (virgülle ayrılmış)' },
+  'jobLibrary.saveToLibrary': { en: 'Save to Library', tr: 'Kütüphaneye Kaydet' },
+  'jobLibrary.loadFromLibrary': { en: 'Load from Library', tr: 'Kütüphaneden Yükle' },
+  'jobLibrary.saveDialogTitle': { en: 'Save Job Description', tr: 'İş Tanımını Kaydet' },
+  'jobLibrary.namePlaceholder': { en: 'e.g., Senior Software Engineer', tr: 'örn. Kıdemli Yazılım Mühendisi' },
+  'jobLibrary.categoryPlaceholder': { en: 'e.g., Software Development', tr: 'örn. Yazılım Geliştirme' },
+  'jobLibrary.tagsPlaceholder': { en: 'e.g., React, TypeScript, Remote', tr: 'örn. React, TypeScript, Uzaktan' },
+  'jobLibrary.saveSuccess': { en: 'Job description saved successfully!', tr: 'İş tanımı başarıyla kaydedildi!' },
+  'jobLibrary.saveError': { en: 'Please provide a name and description', tr: 'Lütfen bir isim ve açıklama girin' },
+  'jobLibrary.usedTimes': { en: 'Used {count} times', tr: '{count} kez kullanıldı' },
+  'common.loading': { en: 'Loading...', tr: 'Yükleniyor...' },
+  'common.edit': { en: 'Edit', tr: 'Düzenle' },
+  'common.delete': { en: 'Delete', tr: 'Sil' },
 };
 
-export function t(lang: Lang, key: string): string {
-  return dict[key]?.[lang] ?? dict[key]?.en ?? key;
+export function t(lang: Lang, key: string, params?: Record<string, any>): string {
+  let text = dict[key]?.[lang] ?? dict[key]?.en ?? key;
+  
+  // Replace placeholders like {count} with actual values
+  if (params) {
+    Object.keys(params).forEach(param => {
+      text = text.replace(`{${param}}`, String(params[param]));
+    });
+  }
+  
+  return text;
 }

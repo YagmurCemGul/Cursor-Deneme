@@ -173,3 +173,14 @@ export interface ProfileFilter {
   sortBy: 'name' | 'updatedAt' | 'createdAt';
   sortOrder: 'asc' | 'desc';
 }
+
+export interface SavedJobDescription {
+  id: string;
+  name: string;
+  description: string;
+  category?: string;
+  tags?: string[];
+  createdAt: string;
+  updatedAt: string;
+  usageCount?: number;
+}
