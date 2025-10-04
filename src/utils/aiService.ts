@@ -52,7 +52,8 @@ export class AIService {
         change: 'Add relevant technical keywords from job description',
         originalText: cvData.personalInfo.summary,
         optimizedText: cvData.personalInfo.summary + ' with experience in React, TypeScript, and modern web development.',
-        applied: false
+        applied: false,
+        section: 'summary'
       },
       {
         id: '2',
@@ -60,7 +61,8 @@ export class AIService {
         change: 'Replace passive language with action verbs',
         originalText: 'Responsible for developing applications',
         optimizedText: 'Developed and deployed scalable web applications',
-        applied: false
+        applied: false,
+        section: 'experience'
       },
       {
         id: '3',
@@ -68,7 +70,8 @@ export class AIService {
         change: 'Add specific metrics and numbers',
         originalText: 'Improved system performance',
         optimizedText: 'Improved system performance by 40% through code optimization',
-        applied: false
+        applied: false,
+        section: 'experience'
       }
     ];
 

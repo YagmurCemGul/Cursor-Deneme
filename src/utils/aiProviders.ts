@@ -181,7 +181,8 @@ Please analyze this CV against the job description and provide specific optimiza
         change: opt.change || 'Optimization',
         originalText: opt.originalText || '',
         optimizedText: opt.optimizedText || '',
-        applied: false
+        applied: false,
+        section: opt.section || undefined
       }));
 
       return {
@@ -409,7 +410,8 @@ Provide your response as a JSON object with an "optimizations" array. Each optim
         change: opt.change || 'Optimization',
         originalText: opt.originalText || '',
         optimizedText: opt.optimizedText || '',
-        applied: false
+        applied: false,
+        section: opt.section || undefined
       }));
 
       return {
@@ -637,7 +639,8 @@ Respond with a JSON object containing an "optimizations" array. Each item should
         change: opt.change || 'Optimization',
         originalText: opt.originalText || '',
         optimizedText: opt.optimizedText || '',
-        applied: false
+        applied: false,
+        section: opt.section || undefined
       }));
 
       return {
