@@ -1,9 +1,19 @@
 import { CVData, ATSOptimization } from '../types';
-import { createAIProvider, AIConfig, AIProviderAdapter } from './aiProviders';
+import { AIConfig, AIRequestOptions } from './aiProviders';
+import { EnhancedAIProvider, createEnhancedAIProvider } from './enhancedAIProviders';
 import { logger } from './logger';
+import { APIManager } from './apiManager';
+import { OfflineSupportManager } from './offlineSupport';
 
 /**
  * AIService - Handles AI-powered CV optimization and cover letter generation
+ * 
+ * Enhanced with:
+ * - Timeout management
+ * - Progress tracking
+ * - Response caching
+ * - Offline detection
+ * - Detailed logging
  * 
  * @class AIService
  * @example
@@ -11,15 +21,18 @@ import { logger } from './logger';
  * const aiService = new AIService({
  *   provider: 'openai',
  *   apiKey: 'your-api-key',
- *   temperature: 0.7
+ *   temperature: 0.7,
+ *   timeout: 60000,
+ *   enableCache: true
  * });
  * 
  * const result = await aiService.optimizeCV(cvData, jobDescription);
  * ```
  */
 export class AIService {
-  private provider: AIProviderAdapter | null = null;
+  private provider: EnhancedAIProvider | null = null;
   private useMockMode: boolean = false;
+  private initialized: boolean = false;
 
   /**
    * Creates an instance of AIService
@@ -28,10 +41,21 @@ export class AIService {
    * @constructor
    */
   constructor(config?: AIConfig) {
+    // Initialize supporting systems if not already done
+    if (!this.initialized) {
+      this.initializeSystems();
+      this.initialized = true;
+    }
+
     if (config && config.apiKey && config.apiKey.trim()) {
       try {
-        this.provider = createAIProvider(config);
+        this.provider = createEnhancedAIProvider(config);
         this.useMockMode = false;
+        logger.info('AI Service initialized with enhanced provider', {
+          provider: config.provider,
+          timeout: config.timeout,
+          cacheEnabled: config.enableCache,
+        });
       } catch (error) {
         logger.error('Failed to initialize AI provider, falling back to mock mode:', error);
         this.useMockMode = true;
@@ -39,6 +63,20 @@ export class AIService {
     } else {
       logger.warn('No API key provided - AI service running in mock mode');
       this.useMockMode = true;
+    }
+  }
+
+  /**
+   * Initialize supporting systems
+   * @private
+   */
+  private initializeSystems(): void {
+    try {
+      APIManager.initialize();
+      OfflineSupportManager.initialize();
+      logger.info('AI Service supporting systems initialized');
+    } catch (error) {
+      logger.error('Failed to initialize supporting systems:', error);
     }
   }
 
@@ -51,8 +89,13 @@ export class AIService {
    */
   updateConfig(config: AIConfig): void {
     try {
-      this.provider = createAIProvider(config);
+      if (this.provider) {
+        this.provider.updateConfig(config);
+      } else {
+        this.provider = createEnhancedAIProvider(config);
+      }
       this.useMockMode = false;
+      logger.info('AI provider configuration updated');
     } catch (error) {
       logger.error('Failed to update AI provider:', error);
       throw error;
@@ -64,6 +107,7 @@ export class AIService {
    * 
    * @param {CVData} cvData - The CV data to optimize
    * @param {string} jobDescription - The target job description
+   * @param {AIRequestOptions} [options] - Optional request options
    * @returns {Promise<{optimizedCV: CVData, optimizations: ATSOptimization[]}>} Optimized CV and list of optimizations
    * @throws {Error} If optimization fails
    * @public
@@ -71,12 +115,15 @@ export class AIService {
    */
   async optimizeCV(
     cvData: CVData,
-    jobDescription: string
+    jobDescription: string,
+    options?: AIRequestOptions
   ): Promise<{ optimizedCV: CVData; optimizations: ATSOptimization[] }> {
+    logger.info('Starting CV optimization');
+    
     // If we have a real provider configured, use it
     if (!this.useMockMode && this.provider) {
       try {
-        return await this.provider.optimizeCV(cvData, jobDescription);
+        return await this.provider.optimizeCV(cvData, jobDescription, options);
       } catch (error) {
         logger.error('AI provider error, falling back to mock:', error);
         // Fall through to mock mode
@@ -128,6 +175,7 @@ export class AIService {
    * @param {CVData} cvData - The CV data to use
    * @param {string} jobDescription - The target job description
    * @param {string} [extraPrompt] - Optional additional instructions
+   * @param {AIRequestOptions} [options] - Optional request options
    * @returns {Promise<string>} Generated cover letter text
    * @throws {Error} If generation fails or validation fails
    * @public
@@ -136,15 +184,18 @@ export class AIService {
   async generateCoverLetter(
     cvData: CVData,
     jobDescription: string,
-    extraPrompt?: string
+    extraPrompt?: string,
+    options?: AIRequestOptions
   ): Promise<string> {
+    logger.info('Starting cover letter generation');
+    
     // Validate inputs
     this.validateCoverLetterInputs(cvData, jobDescription);
 
     // If we have a real provider configured, use it
     if (!this.useMockMode && this.provider) {
       try {
-        return await this.provider.generateCoverLetter(cvData, jobDescription, extraPrompt);
+        return await this.provider.generateCoverLetter(cvData, jobDescription, extraPrompt, options);
       } catch (error: any) {
         logger.error('AI provider error:', error);
         // Don't fall back to mock mode - let user know what went wrong

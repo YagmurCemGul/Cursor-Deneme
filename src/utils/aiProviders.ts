@@ -1,6 +1,13 @@
 /**
  * Multi-AI Provider Support
  * Supports OpenAI, Google Gemini, and Anthropic Claude
+ * 
+ * Enhanced with:
+ * - Timeout management
+ * - Request caching
+ * - Progress tracking
+ * - Detailed logging
+ * - Offline detection
  */
 
 import { CVData, ATSOptimization } from '../types';
@@ -61,17 +68,27 @@ export interface AIConfig {
   apiKey: string;
   model?: string;
   temperature?: number;
+  timeout?: number; // Request timeout in milliseconds
+  enableCache?: boolean; // Enable response caching
+  cacheTTL?: number; // Cache time-to-live in milliseconds
+}
+
+export interface AIRequestOptions {
+  onProgress?: (progress: any) => void;
+  signal?: AbortSignal;
 }
 
 export interface AIProviderAdapter {
   optimizeCV(
     cvData: CVData,
-    jobDescription: string
+    jobDescription: string,
+    options?: AIRequestOptions
   ): Promise<{ optimizedCV: CVData; optimizations: ATSOptimization[] }>;
   generateCoverLetter(
     cvData: CVData,
     jobDescription: string,
-    extraPrompt?: string
+    extraPrompt?: string,
+    options?: AIRequestOptions
   ): Promise<string>;
 }
 
