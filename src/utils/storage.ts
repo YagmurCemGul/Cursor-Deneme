@@ -90,6 +90,15 @@ export class StorageService {
     await chrome.storage.local.set({ prompts: filtered });
   }
 
+  /**
+   * Saves an API key to storage
+   * 
+   * @param {string} apiKey - The API key to save
+   * @returns {Promise<void>}
+   * @public
+   * @static
+   * @async
+   */
   static async saveAPIKey(apiKey: string): Promise<void> {
     await chrome.storage.local.set({ apiKey });
   }

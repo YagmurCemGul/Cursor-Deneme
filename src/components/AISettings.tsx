@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { t, Lang } from '../i18n';
+import { logger } from '../utils/logger';
 import { StorageService } from '../utils/storage';
 import { AIApiKeys } from '../types/storage';
 
@@ -73,7 +74,7 @@ export const AISettings: React.FC<AISettingsProps> = ({ language, onConfigChange
       setModel(savedModel || MODEL_OPTIONS[savedProvider][0]?.value || '');
       setTemperature((settings as any)?.aiTemperature || 0.3);
     } catch (error) {
-      console.error('Error loading AI settings:', error);
+      logger.error('Error loading AI settings:', error);
     }
   };
 
@@ -124,7 +125,7 @@ export const AISettings: React.FC<AISettingsProps> = ({ language, onConfigChange
 
       setTimeout(() => setSaveMessage(''), 3000);
     } catch (error) {
-      console.error('Error saving settings:', error);
+      logger.error('Error saving settings:', error);
       setSaveMessage(t(language, 'settings.saveError'));
     } finally {
       setIsSaving(false);

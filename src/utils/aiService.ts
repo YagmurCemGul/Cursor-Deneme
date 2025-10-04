@@ -1,38 +1,74 @@
 import { CVData, ATSOptimization } from '../types';
 import { createAIProvider, AIConfig, AIProviderAdapter } from './aiProviders';
+import { logger } from './logger';
 
+/**
+ * AIService - Handles AI-powered CV optimization and cover letter generation
+ * 
+ * @class AIService
+ * @example
+ * ```typescript
+ * const aiService = new AIService({
+ *   provider: 'openai',
+ *   apiKey: 'your-api-key',
+ *   temperature: 0.7
+ * });
+ * 
+ * const result = await aiService.optimizeCV(cvData, jobDescription);
+ * ```
+ */
 export class AIService {
   private provider: AIProviderAdapter | null = null;
   private useMockMode: boolean = false;
 
+  /**
+   * Creates an instance of AIService
+   * 
+   * @param {AIConfig} [config] - Optional AI configuration
+   * @constructor
+   */
   constructor(config?: AIConfig) {
     if (config && config.apiKey && config.apiKey.trim()) {
       try {
         this.provider = createAIProvider(config);
         this.useMockMode = false;
       } catch (error) {
-        console.error('Failed to initialize AI provider, falling back to mock mode:', error);
+        logger.error('Failed to initialize AI provider, falling back to mock mode:', error);
         this.useMockMode = true;
       }
     } else {
-      console.warn('No API key provided - AI service running in mock mode');
+      logger.warn('No API key provided - AI service running in mock mode');
       this.useMockMode = true;
     }
   }
 
   /**
    * Update the AI provider configuration
+   * 
+   * @param {AIConfig} config - New AI configuration
+   * @throws {Error} If the configuration is invalid
+   * @public
    */
   updateConfig(config: AIConfig): void {
     try {
       this.provider = createAIProvider(config);
       this.useMockMode = false;
     } catch (error) {
-      console.error('Failed to update AI provider:', error);
+      logger.error('Failed to update AI provider:', error);
       throw error;
     }
   }
 
+  /**
+   * Optimizes a CV based on a job description using AI
+   * 
+   * @param {CVData} cvData - The CV data to optimize
+   * @param {string} jobDescription - The target job description
+   * @returns {Promise<{optimizedCV: CVData, optimizations: ATSOptimization[]}>} Optimized CV and list of optimizations
+   * @throws {Error} If optimization fails
+   * @public
+   * @async
+   */
   async optimizeCV(
     cvData: CVData,
     jobDescription: string
@@ -42,7 +78,7 @@ export class AIService {
       try {
         return await this.provider.optimizeCV(cvData, jobDescription);
       } catch (error) {
-        console.error('AI provider error, falling back to mock:', error);
+        logger.error('AI provider error, falling back to mock:', error);
         // Fall through to mock mode
       }
     }
@@ -86,6 +122,17 @@ export class AIService {
     };
   }
 
+  /**
+   * Generates a cover letter based on CV data and job description
+   * 
+   * @param {CVData} cvData - The CV data to use
+   * @param {string} jobDescription - The target job description
+   * @param {string} [extraPrompt] - Optional additional instructions
+   * @returns {Promise<string>} Generated cover letter text
+   * @throws {Error} If generation fails or validation fails
+   * @public
+   * @async
+   */
   async generateCoverLetter(
     cvData: CVData,
     jobDescription: string,
@@ -99,14 +146,14 @@ export class AIService {
       try {
         return await this.provider.generateCoverLetter(cvData, jobDescription, extraPrompt);
       } catch (error: any) {
-        console.error('AI provider error:', error);
+        logger.error('AI provider error:', error);
         // Don't fall back to mock mode - let user know what went wrong
         throw error;
       }
     }
 
     // Mock/fallback implementation (when no API key is configured)
-    console.warn('Running in mock mode - no API key configured');
+    logger.warn('Running in mock mode - no API key configured');
     try {
       // Extract job information from description
       const jobInfo = this.extractJobInfo(jobDescription);
@@ -124,7 +171,7 @@ export class AIService {
 
       return coverLetter;
     } catch (error) {
-      console.error('Error generating cover letter:', error);
+      logger.error('Error generating cover letter:', error);
       throw new Error(
         'Failed to generate cover letter. Please check your CV data and job description.'
       );
@@ -154,7 +201,7 @@ export class AIService {
     }
 
     if (cvData.experience.length === 0) {
-      console.warn('No experience entries found - cover letter may be less effective');
+      logger.warn('No experience entries found - cover letter may be less effective');
     }
   }
 

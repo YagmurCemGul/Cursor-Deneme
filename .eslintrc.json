@@ -31,7 +31,9 @@
     }
   },
   "rules": {
-    "no-console": ["warn", { "allow": ["warn", "error"] }],
+    "no-console": ["error", { 
+      "allow": []
+    }],
     "@typescript-eslint/no-explicit-any": "warn",
     "@typescript-eslint/explicit-function-return-type": "off",
     "@typescript-eslint/no-unused-vars": ["warn", { 
@@ -45,6 +47,10 @@
     "dist",
     "build",
     "node_modules",
-    "webpack.config.js"
+    "webpack.config.js",
+    "**/__tests__/**",
+    "**/*.test.ts",
+    "**/*.test.tsx",
+    "**/logger.ts"
   ]
 }

@@ -4,6 +4,7 @@
  */
 
 import { CVData, ATSOptimization } from '../types';
+import { logger } from './logger';
 
 /**
  * Retry helper for API calls with exponential backoff
@@ -45,7 +46,7 @@ async function retryWithBackoff<T>(
 
       // Exponential backoff
       const delay = initialDelay * Math.pow(2, attempt);
-      console.log(`Retrying after ${delay}ms (attempt ${attempt + 1}/${maxRetries})...`);
+      logger.info(`Retrying after ${delay}ms (attempt ${attempt + 1}/${maxRetries})...`);
       await new Promise((resolve) => setTimeout(resolve, delay));
     }
   }
@@ -177,7 +178,7 @@ Please analyze this CV against the job description and provide specific optimiza
         try {
           result = JSON.parse(content);
         } catch (parseError) {
-          console.error('Failed to parse OpenAI response:', content);
+          logger.error('Failed to parse OpenAI response:', content);
           throw new Error(
             'Failed to parse AI response. The response format was invalid. Please try again.'
           );
@@ -204,7 +205,7 @@ Please analyze this CV against the job description and provide specific optimiza
           optimizations,
         };
       } catch (error: any) {
-        console.error('OpenAI optimization error:', error);
+        logger.error('OpenAI optimization error:', error);
         // Re-throw with more context if it's a generic error
         if (error.message?.includes('fetch') || error.message?.includes('network')) {
           throw new Error(
@@ -304,7 +305,7 @@ Return only the cover letter text, no additional formatting or explanations.`;
 
         return content.trim();
       } catch (error: any) {
-        console.error('OpenAI cover letter generation error:', error);
+        logger.error('OpenAI cover letter generation error:', error);
         // Re-throw with more context if it's a generic error
         if (error.message?.includes('fetch') || error.message?.includes('network')) {
           throw new Error(
@@ -428,7 +429,7 @@ Provide your response as a JSON object with an "optimizations" array. Each optim
         try {
           result = JSON.parse(jsonText);
         } catch (parseError) {
-          console.error('Failed to parse Gemini response:', content);
+          logger.error('Failed to parse Gemini response:', content);
           throw new Error(
             'Failed to parse AI response. The response format was invalid. Please try again.'
           );
@@ -455,7 +456,7 @@ Provide your response as a JSON object with an "optimizations" array. Each optim
           optimizations,
         };
       } catch (error: any) {
-        console.error('Gemini optimization error:', error);
+        logger.error('Gemini optimization error:', error);
         // Re-throw with more context if it's a generic error
         if (error.message?.includes('fetch') || error.message?.includes('network')) {
           throw new Error(
@@ -559,7 +560,7 @@ Return only the cover letter text.`;
 
         return content.trim();
       } catch (error: any) {
-        console.error('Gemini cover letter generation error:', error);
+        logger.error('Gemini cover letter generation error:', error);
         // Re-throw with more context if it's a generic error
         if (error.message?.includes('fetch') || error.message?.includes('network')) {
           throw new Error(
@@ -677,7 +678,7 @@ Respond with a JSON object containing an "optimizations" array. Each item should
         try {
           result = JSON.parse(jsonText);
         } catch (parseError) {
-          console.error('Failed to parse Claude response:', content);
+          logger.error('Failed to parse Claude response:', content);
           throw new Error(
             'Failed to parse AI response. The response format was invalid. Please try again.'
           );
@@ -704,7 +705,7 @@ Respond with a JSON object containing an "optimizations" array. Each item should
           optimizations,
         };
       } catch (error: any) {
-        console.error('Claude optimization error:', error);
+        logger.error('Claude optimization error:', error);
         // Re-throw with more context if it's a generic error
         if (error.message?.includes('fetch') || error.message?.includes('network')) {
           throw new Error(
@@ -799,7 +800,7 @@ Return only the cover letter text, no additional commentary.`;
 
         return content.trim();
       } catch (error: any) {
-        console.error('Claude cover letter generation error:', error);
+        logger.error('Claude cover letter generation error:', error);
         // Re-throw with more context if it's a generic error
         if (error.message?.includes('fetch') || error.message?.includes('network')) {
           throw new Error(
