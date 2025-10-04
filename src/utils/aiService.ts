@@ -3,6 +3,7 @@ import { createAIProvider, AIConfig, AIProviderAdapter, AIProvider } from './aiP
 import { logger } from './logger';
 import { usageAnalytics } from './usageAnalytics';
 import { StorageService } from './storage';
+import { healthMonitor } from './healthMonitor';
 
 /**
  * AIService - Handles AI-powered CV optimization and cover letter generation
@@ -88,6 +89,41 @@ export class AIService {
   setAutoFallback(enabled: boolean): void {
     this.autoFallbackEnabled = enabled;
     logger.info(`Auto-fallback ${enabled ? 'enabled' : 'disabled'}`);
+  }
+
+  /**
+   * Get auto-fallback status
+   */
+  getAutoFallbackStatus(): boolean {
+    return this.autoFallbackEnabled;
+  }
+
+  /**
+   * Set custom fallback order
+   */
+  setFallbackOrder(providers: AIProvider[]): void {
+    // Filter out current provider
+    this.fallbackProviders = providers.filter(p => p !== this.currentProvider);
+    logger.info(`Fallback order updated:`, this.fallbackProviders);
+  }
+
+  /**
+   * Get current fallback order
+   */
+  getFallbackOrder(): AIProvider[] {
+    return [...this.fallbackProviders];
+  }
+
+  /**
+   * Use smart fallback based on provider health
+   */
+  async useSmartFallback(): Promise<AIProvider | null> {
+    const healthiestProvider = healthMonitor.getHealthiestProvider();
+    if (healthiestProvider && healthiestProvider !== this.currentProvider) {
+      logger.info(`Smart fallback suggests: ${healthiestProvider}`);
+      return healthiestProvider;
+    }
+    return null;
   }
 
   /**
@@ -187,6 +223,8 @@ export class AIService {
             duration,
             { optimizationCount: result.optimizations.length }
           );
+          // Record health success
+          healthMonitor.recordSuccess(this.currentProvider, duration);
         }
         
         return result;
@@ -194,7 +232,7 @@ export class AIService {
         const duration = Date.now() - startTime;
         logger.error('AI provider error:', error);
         
-        // Track failed attempt
+        // Track failed attempt and record health failure
         if (this.currentProvider) {
           await usageAnalytics.trackCVOptimization(
             this.currentProvider,
@@ -202,6 +240,7 @@ export class AIService {
             duration,
             { error: String(error) }
           );
+          healthMonitor.recordFailure(this.currentProvider, String(error));
         }
         
         // Try fallback providers
@@ -293,6 +332,8 @@ export class AIService {
             duration,
             { hasExtraPrompt: !!extraPrompt }
           );
+          // Record health success
+          healthMonitor.recordSuccess(this.currentProvider, duration);
         }
         
         return result;
@@ -300,7 +341,7 @@ export class AIService {
         const duration = Date.now() - startTime;
         logger.error('AI provider error:', error);
         
-        // Track failed attempt
+        // Track failed attempt and record health failure
         if (this.currentProvider) {
           await usageAnalytics.trackCoverLetterGeneration(
             this.currentProvider,
@@ -308,6 +349,7 @@ export class AIService {
             duration,
             { error: String(error) }
           );
+          healthMonitor.recordFailure(this.currentProvider, String(error));
         }
         
         // Try fallback providers

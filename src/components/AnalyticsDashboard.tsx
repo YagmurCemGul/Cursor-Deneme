@@ -3,6 +3,9 @@ import { OptimizationAnalytics } from '../types';
 import { StorageService } from '../utils/storage';
 import { t, Lang } from '../i18n';
 import { usageAnalytics, UsageStatistics, DailyUsage } from '../utils/usageAnalytics';
+import { PieChart } from './PieChart';
+import { LineChart } from './LineChart';
+import { getProviderColor, LineChartPoint } from '../utils/chartUtils';
 
 interface AnalyticsDashboardProps {
   language: Lang;
@@ -170,9 +173,26 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ language
         </div>
       </div>
 
-      {/* Provider Usage */}
+      {/* Provider Usage Pie Chart */}
       <div className="card" style={{ marginBottom: '20px', padding: '20px' }}>
-        <h3 className="card-subtitle">{language === 'en' ? 'Provider Usage' : 'Sağlayıcı Kullanımı'}</h3>
+        <h3 className="card-subtitle" style={{ marginBottom: '20px' }}>
+          {language === 'en' ? 'Provider Distribution' : 'Sağlayıcı Dağılımı'}
+        </h3>
+        <PieChart
+          data={Object.entries(statistics.providerUsage)
+            .filter(([_, count]) => count > 0)
+            .map(([provider, count]) => ({
+              label: provider === 'openai' ? 'ChatGPT' : provider === 'gemini' ? 'Gemini' : 'Claude',
+              value: count,
+              color: getProviderColor(provider),
+            }))}
+          size={250}
+        />
+      </div>
+
+      {/* Provider Usage Details */}
+      <div className="card" style={{ marginBottom: '20px', padding: '20px' }}>
+        <h3 className="card-subtitle">{language === 'en' ? 'Provider Usage Details' : 'Sağlayıcı Kullanım Detayları'}</h3>
         <div style={{ display: 'grid', gap: '10px' }}>
           {Object.entries(statistics.providerUsage).map(([provider, count]) => (
             <div key={provider} style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
@@ -240,42 +260,41 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ language
 
       {/* Daily Usage Chart */}
       <div className="card" style={{ marginBottom: '20px', padding: '20px' }}>
-        <h3 className="card-subtitle">{language === 'en' ? 'Daily Usage' : 'Günlük Kullanım'}</h3>
-        <div style={{ display: 'flex', alignItems: 'flex-end', gap: '4px', height: '150px', marginTop: '15px' }}>
-          {dailyUsage.slice(-14).map((day, idx) => {
-            const maxEvents = Math.max(...dailyUsage.map(d => d.events), 1);
-            const height = (day.events / maxEvents) * 100;
-            return (
-              <div key={idx} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '5px' }}>
-                <div style={{
-                  width: '100%',
-                  height: `${height}%`,
-                  backgroundColor: day.successRate >= 80 ? '#10b981' : day.successRate >= 50 ? '#f59e0b' : '#ef4444',
-                  borderRadius: '4px 4px 0 0',
-                  transition: 'height 0.3s ease',
-                  position: 'relative',
-                  minHeight: day.events > 0 ? '10px' : '0',
-                }}>
-                  <div style={{
-                    position: 'absolute',
-                    top: '-20px',
-                    left: '50%',
-                    transform: 'translateX(-50%)',
-                    fontSize: '10px',
-                    fontWeight: 'bold',
-                    whiteSpace: 'nowrap',
-                  }}>
-                    {day.events > 0 ? day.events : ''}
-                  </div>
-                </div>
-                <div style={{ fontSize: '9px', opacity: 0.6, transform: 'rotate(-45deg)', whiteSpace: 'nowrap' }}>
-                  {new Date(day.date).toLocaleDateString(language === 'en' ? 'en-US' : 'tr-TR', { month: 'short', day: 'numeric' })}
-                </div>
-              </div>
-            );
-          })}
-        </div>
+        <h3 className="card-subtitle" style={{ marginBottom: '20px' }}>
+          {language === 'en' ? 'Daily Usage Trend' : 'Günlük Kullanım Trendi'}
+        </h3>
+        <LineChart
+          data={dailyUsage.map((day) => ({
+            x: new Date(day.date).toLocaleDateString(language === 'en' ? 'en-US' : 'tr-TR', { month: 'short', day: 'numeric' }),
+            y: day.events,
+          }))}
+          width={700}
+          height={200}
+          color="#667eea"
+          showTrend={true}
+          yLabel={language === 'en' ? 'Events' : 'Etkinlikler'}
+        />
       </div>
+
+      {/* Response Time Trend */}
+      {dailyUsage.length > 0 && (
+        <div className="card" style={{ marginBottom: '20px', padding: '20px' }}>
+          <h3 className="card-subtitle" style={{ marginBottom: '20px' }}>
+            {language === 'en' ? 'Success Rate Trend' : 'Başarı Oranı Trendi'}
+          </h3>
+          <LineChart
+            data={dailyUsage.map((day) => ({
+              x: new Date(day.date).toLocaleDateString(language === 'en' ? 'en-US' : 'tr-TR', { month: 'short', day: 'numeric' }),
+              y: day.successRate,
+            }))}
+            width={700}
+            height={200}
+            color="#10b981"
+            showTrend={true}
+            yLabel={language === 'en' ? 'Success Rate (%)' : 'Başarı Oranı (%)'}
+          />
+        </div>
+      )}
 
       {/* Action Buttons */}
       <div style={{ display: 'flex', gap: '10px' }}>
