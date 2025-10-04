@@ -1,5 +1,5 @@
 import React from 'react';
-import { t, Lang } from '../i18n';
+import { Lang } from '../i18n';
 
 interface DateInputProps {
   label: string;

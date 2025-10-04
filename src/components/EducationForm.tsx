@@ -140,7 +140,7 @@ export const EducationForm: React.FC<EducationFormProps> = ({ education, onChang
                   label={t(language, 'education.end')}
                   value={edu.endDate}
                   onChange={(value) => handleUpdate(edu.id, 'endDate', value)}
-                  disabled={edu.currentlyStudying}
+                  disabled={!!edu.currentlyStudying}
                   language={language}
                   startDate={edu.startDate}
                 />
