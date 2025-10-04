@@ -52,21 +52,20 @@ export const ProfileManager: React.FC<ProfileManagerProps> = ({
       </h2>
       
       {/* Current Profile */}
-      <div className="card" style={{ marginBottom: '20px' }}>
-        <h3 style={{ fontSize: '14px', fontWeight: 600, marginBottom: '10px' }}>
+      <div className="card current-profile-card">
+        <h3 className="card-subtitle">
           Current Profile
         </h3>
         
         <div className="form-group">
           <label className="form-label">Profile Name</label>
-          <div style={{ display: 'flex', gap: '10px' }}>
+          <div className="profile-name-input-group">
             <input
               type="text"
-              className="form-input"
+              className="form-input flex-input"
               value={currentProfileName}
               onChange={(e) => onProfileNameChange(e.target.value)}
               placeholder="My Profile"
-              style={{ flex: 1 }}
             />
             <button className="btn btn-success" onClick={handleSaveProfile}>
               💾 Save Profile
@@ -78,7 +77,7 @@ export const ProfileManager: React.FC<ProfileManagerProps> = ({
       {/* Saved Profiles */}
       {profiles.length > 0 && (
         <div>
-          <h3 style={{ fontSize: '16px', fontWeight: 600, marginBottom: '15px' }}>
+          <h3 className="subsection-title">
             Saved Profiles
           </h3>
           

@@ -102,13 +102,12 @@ export const CoverLetter: React.FC<CoverLetterProps> = ({
           Extra Instructions (Optional)
         </label>
         <textarea
-          className="form-textarea"
+          className="form-textarea prompt-textarea"
           value={extraPrompt}
           onChange={(e) => setExtraPrompt(e.target.value)}
           placeholder="Add any specific requirements or tone preferences for the cover letter..."
-          style={{ minHeight: '100px' }}
         />
-        <div style={{ display: 'flex', gap: '10px', marginTop: '10px' }}>
+        <div className="button-group">
           <button 
             className="btn btn-primary" 
             onClick={() => onGenerate(extraPrompt)}
@@ -127,8 +126,8 @@ export const CoverLetter: React.FC<CoverLetterProps> = ({
       
       {/* Save Prompt Dialog */}
       {showSavePrompt && (
-        <div className="card" style={{ marginTop: '15px' }}>
-          <h3 style={{ fontSize: '14px', fontWeight: 600, marginBottom: '10px' }}>
+        <div className="card save-prompt-card">
+          <h3 className="card-subtitle">
             Save Prompt
           </h3>
           <div className="form-row">
@@ -161,8 +160,8 @@ export const CoverLetter: React.FC<CoverLetterProps> = ({
       
       {/* Saved Prompts */}
       {savedPrompts.length > 0 && (
-        <div style={{ marginTop: '20px' }}>
-          <h3 style={{ fontSize: '14px', fontWeight: 600, marginBottom: '10px' }}>
+        <div className="saved-prompts-section">
+          <h3 className="card-subtitle">
             Saved Prompts
           </h3>
           
@@ -203,7 +202,7 @@ export const CoverLetter: React.FC<CoverLetterProps> = ({
                     </button>
                   </div>
                 </div>
-                <div style={{ fontSize: '13px', color: '#64748b', marginTop: '10px' }}>
+                <div className="prompt-content">
                   {prompt.content}
                 </div>
               </div>
@@ -214,12 +213,12 @@ export const CoverLetter: React.FC<CoverLetterProps> = ({
       
       {/* Cover Letter Preview */}
       {coverLetter && (
-        <div style={{ marginTop: '30px' }}>
-          <h3 style={{ fontSize: '16px', fontWeight: 600, marginBottom: '15px' }}>
+        <div className="preview-section">
+          <h3 className="subsection-title">
             Preview
           </h3>
           
-          <div className="preview-container" style={{ whiteSpace: 'pre-line' }}>
+          <div className="preview-container cover-letter-preview">
             {coverLetter}
           </div>
           
@@ -241,7 +240,7 @@ export const CoverLetter: React.FC<CoverLetterProps> = ({
       )}
       
       {!coverLetter && (
-        <div className="empty-state" style={{ marginTop: '20px' }}>
+        <div className="empty-state empty-state-margin">
           <div className="empty-state-icon">✉️</div>
           <div className="empty-state-text">
             No cover letter generated yet. Fill in your CV and job description, then click "Generate Cover Letter".

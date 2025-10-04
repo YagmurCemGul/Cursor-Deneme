@@ -248,7 +248,7 @@ export const ExperienceForm: React.FC<ExperienceFormProps> = ({ experiences, onC
                         text.split(',').map(s => s.trim()).filter(Boolean).forEach(s => handleAddSkill(exp.id, s));
                       }
                     }}
-                    style={{ flex: 1 }}
+                    className="flex-input"
                   />
                 </div>
                 {exp.skills.length > 0 && (
@@ -270,7 +270,7 @@ export const ExperienceForm: React.FC<ExperienceFormProps> = ({ experiences, onC
             </div>
           ))}
           {/* Add button at the bottom of all experiences */}
-          <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '1rem' }}>
+          <div className="add-button-container">
             <button className="btn btn-primary btn-icon" onClick={handleAdd}>+ Add Experience</button>
           </div>
         </div>

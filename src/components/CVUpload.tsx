@@ -68,7 +68,7 @@ export const CVUpload: React.FC<CVUploadProps> = ({ onCVParsed }) => {
         {isLoading ? (
           <div className="loading">
             <div className="spinner"></div>
-            <p style={{ marginTop: '10px' }}>Parsing your CV...</p>
+            <p className="loading-text">Parsing your CV...</p>
           </div>
         ) : (
           <>

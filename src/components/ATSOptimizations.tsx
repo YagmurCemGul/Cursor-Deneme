@@ -28,7 +28,7 @@ export const ATSOptimizations: React.FC<ATSOptimizationsProps> = ({ optimization
         </div>
       ) : (
         <>
-          <div className="alert alert-success" style={{ marginBottom: '20px' }}>
+          <div className="alert alert-success optimization-summary">
             {appliedOptimizations.length} optimization{appliedOptimizations.length !== 1 ? 's' : ''} applied. 
             Hover over any pill and click the X to remove an optimization.
           </div>
@@ -49,8 +49,8 @@ export const ATSOptimizations: React.FC<ATSOptimizationsProps> = ({ optimization
             ))}
           </div>
           
-          <div style={{ marginTop: '30px' }}>
-            <h3 style={{ fontSize: '16px', fontWeight: 600, marginBottom: '15px' }}>
+          <div className="optimization-details-section">
+            <h3 className="subsection-title">
               Optimization Details
             </h3>
             

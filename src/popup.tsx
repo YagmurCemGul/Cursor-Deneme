@@ -63,11 +63,25 @@ const App: React.FC = () => {
 
   useEffect(() => {
     const mq = window.matchMedia('(prefers-color-scheme: dark)');
-    const update = () => setSystemPrefersDark(mq.matches);
+    const update = (e?: MediaQueryListEvent) => {
+      const prefersDark = e ? e.matches : mq.matches;
+      setSystemPrefersDark(prefersDark);
+    };
     update();
-    mq.addEventListener ? mq.addEventListener('change', update) : mq.addListener(update);
+    
+    // Use modern addEventListener if available, fallback to addListener
+    if (mq.addEventListener) {
+      mq.addEventListener('change', update);
+    } else if (mq.addListener) {
+      mq.addListener(update);
+    }
+    
     return () => {
-      mq.removeEventListener ? mq.removeEventListener('change', update) : mq.removeListener(update);
+      if (mq.removeEventListener) {
+        mq.removeEventListener('change', update);
+      } else if (mq.removeListener) {
+        mq.removeListener(update);
+      }
     };
   }, []);
 
@@ -190,15 +204,15 @@ const App: React.FC = () => {
       <div className="header">
         <h1>🤖 {t(language, 'app.title')}</h1>
         <p>{t(language, 'app.subtitle')}</p>
-        <div style={{ display: 'flex', gap: 10, justifyContent: 'center', marginTop: 10 }}>
-          <select className="form-select" value={language} onChange={(e) => setLanguage(e.target.value as Language)} style={{ width: 150 }}>
-            <option value="en">English</option>
-            <option value="tr">Türkçe</option>
+        <div className="settings-bar">
+          <select className="form-select" value={language} onChange={(e) => setLanguage(e.target.value as Language)}>
+            <option value="en">🌐 English</option>
+            <option value="tr">🌐 Türkçe</option>
           </select>
-          <select className="form-select" value={theme} onChange={(e) => setTheme(e.target.value as Theme)} style={{ width: 150 }}>
-            <option value="light">Light</option>
-            <option value="dark">Dark</option>
-            <option value="system">System</option>
+          <select className="form-select" value={theme} onChange={(e) => setTheme(e.target.value as Theme)}>
+            <option value="light">☀️ Light</option>
+            <option value="dark">🌙 Dark</option>
+            <option value="system">💻 System</option>
           </select>
         </div>
       </div>
@@ -275,7 +289,7 @@ const App: React.FC = () => {
               onChange={(customQuestions) => setCVData({ ...cvData, customQuestions })}
             />
             
-            <div style={{ position: 'sticky', bottom: 0, background: 'white', padding: '20px', borderTop: '2px solid #e2e8f0' }}>
+            <div className="sticky-footer">
               <button 
                 className="btn btn-primary" 
                 onClick={handleOptimizeCV}

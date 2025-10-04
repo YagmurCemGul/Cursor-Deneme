@@ -170,58 +170,56 @@ export const PersonalInfoForm: React.FC<PersonalInfoFormProps> = ({ data, onChan
       </div>
       
       <div className="form-row">
-        <div className="form-group">
-          <label className="form-label">Email *</label>
-          <div style={{ position: 'relative' }}>
-            <input
-              type="email"
-              className={`form-input ${!emailValidation.isValid ? 'error' : ''}`}
-              value={data.email}
-              onChange={(e) => handleChange('email', e.target.value)}
-              onFocus={() => setShowEmailSuggestions(emailSuggestions.length > 0)}
-              onBlur={() => setTimeout(() => setShowEmailSuggestions(false), 200)}
-              placeholder="john.doe@email.com"
-              autoComplete="email"
-            />
-            {emailValidation.message && (
-              <div className={`validation-message ${emailValidation.isValid ? 'success' : 'error'}`}>
-                {emailValidation.message}
-              </div>
-            )}
-            {showEmailSuggestions && emailSuggestions.length > 0 && (
-              <div className="email-suggestions">
-                {emailSuggestions.map((suggestion, index) => (
-                  <div
-                    key={index}
-                    className="suggestion-item"
-                    onClick={() => handleEmailSuggestionClick(suggestion)}
-                  >
-                    {suggestion}
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
+      <div className="form-group">
+        <label className="form-label">Email *</label>
+        <div className="email-input-wrapper">
+          <input
+            type="email"
+            className={`form-input ${!emailValidation.isValid ? 'error' : ''}`}
+            value={data.email}
+            onChange={(e) => handleChange('email', e.target.value)}
+            onFocus={() => setShowEmailSuggestions(emailSuggestions.length > 0)}
+            onBlur={() => setTimeout(() => setShowEmailSuggestions(false), 200)}
+            placeholder="john.doe@email.com"
+            autoComplete="email"
+          />
+          {emailValidation.message && (
+            <div className={`validation-message ${emailValidation.isValid ? 'success' : 'error'}`}>
+              {emailValidation.message}
+            </div>
+          )}
+          {showEmailSuggestions && emailSuggestions.length > 0 && (
+            <div className="email-suggestions">
+              {emailSuggestions.map((suggestion, index) => (
+                <div
+                  key={index}
+                  className="suggestion-item"
+                  onClick={() => handleEmailSuggestionClick(suggestion)}
+                >
+                  {suggestion}
+                </div>
+              ))}
+            </div>
+          )}
         </div>
+      </div>
         
         <div className="form-group">
           <label className="form-label">Phone Number *</label>
-          <div className="form-row" style={{ gap: '5px' }}>
+          <div className="phone-input-group">
             <input
               type="text"
-              className="form-input"
+              className="form-input country-code-input"
               value={data.countryCode}
               onChange={(e) => handleChange('countryCode', e.target.value)}
               placeholder="+1"
-              style={{ width: '70px' }}
             />
             <input
               type="tel"
-              className="form-input"
+              className="form-input flex-input"
               value={data.phoneNumber}
               onChange={(e) => handleChange('phoneNumber', e.target.value)}
               placeholder="(555) 123-4567"
-              style={{ flex: 1 }}
             />
           </div>
         </div>
@@ -242,16 +240,16 @@ export const PersonalInfoForm: React.FC<PersonalInfoFormProps> = ({ data, onChan
 
       <div className="form-group">
         <label className="form-label">Profile Photo</label>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+        <div className="photo-upload-container">
           {data.photoDataUrl ? (
-            <img src={data.photoDataUrl} alt="Profile" style={{ width: 64, height: 64, borderRadius: '50%', objectFit: 'cover', border: '1px solid #e2e8f0' }} />
+            <img src={data.photoDataUrl} alt="Profile" className="photo-preview" />
           ) : (
-            <div style={{ width: 64, height: 64, borderRadius: '50%', background: '#f1f5f9', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#94a3b8', border: '1px solid #e2e8f0' }}>📷</div>
+            <div className="photo-placeholder">📷</div>
           )}
-          <div>
+          <div className="photo-actions">
             <button className="btn btn-secondary" onClick={(e) => { e.preventDefault(); fileInputRef.current?.click(); }}>Upload</button>
             {data.photoDataUrl && (
-              <button className="btn btn-danger" style={{ marginLeft: 8 }} onClick={(e) => { e.preventDefault(); onChange({ ...data }); }}>Remove</button>
+              <button className="btn btn-danger danger-btn-spacing" onClick={(e) => { e.preventDefault(); onChange({ ...data }); }}>Remove</button>
             )}
             <input ref={fileInputRef} type="file" accept="image/*" onChange={handlePhotoSelect} style={{ display: 'none' }} />
           </div>
@@ -292,7 +290,7 @@ export const PersonalInfoForm: React.FC<PersonalInfoFormProps> = ({ data, onChan
             onChange={(e) => handleChange('whatsappLink', e.target.value)}
             placeholder="https://wa.me/..."
           />
-          <div style={{ marginTop: 6 }}>
+          <div className="whatsapp-helper">
             <button
               className="btn btn-secondary"
               onClick={(e) => {
