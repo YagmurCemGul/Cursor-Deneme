@@ -226,4 +226,108 @@ export class StorageService {
       await chrome.storage.local.set({ jobDescriptions });
     }
   }
+
+  // Cloud Sync for Job Descriptions
+  static async syncJobDescriptionsToCloud(): Promise<boolean> {
+    try {
+      const descriptions = await this.getJobDescriptions();
+      const syncData = {
+        descriptions,
+        lastSyncAt: new Date().toISOString(),
+        version: '1.0.0'
+      };
+      
+      await chrome.storage.sync.set({ 
+        jobDescriptionsSync: syncData 
+      });
+      
+      return true;
+    } catch (error) {
+      console.error('Failed to sync to cloud:', error);
+      return false;
+    }
+  }
+
+  static async syncJobDescriptionsFromCloud(): Promise<boolean> {
+    try {
+      const { jobDescriptionsSync } = await chrome.storage.sync.get('jobDescriptionsSync');
+      
+      if (jobDescriptionsSync && jobDescriptionsSync.descriptions) {
+        // Merge with local descriptions (cloud takes precedence for conflicts)
+        const localDescriptions = await this.getJobDescriptions();
+        const cloudDescriptions = jobDescriptionsSync.descriptions;
+        
+        const mergedDescriptions = this.mergeJobDescriptions(localDescriptions, cloudDescriptions);
+        await chrome.storage.local.set({ jobDescriptions: mergedDescriptions });
+        
+        return true;
+      }
+      
+      return false;
+    } catch (error) {
+      console.error('Failed to sync from cloud:', error);
+      return false;
+    }
+  }
+
+  static async getLastSyncTime(): Promise<string | null> {
+    try {
+      const { jobDescriptionsSync } = await chrome.storage.sync.get('jobDescriptionsSync');
+      return jobDescriptionsSync?.lastSyncAt || null;
+    } catch (error) {
+      console.error('Failed to get last sync time:', error);
+      return null;
+    }
+  }
+
+  private static mergeJobDescriptions(
+    local: import('../types').SavedJobDescription[],
+    cloud: import('../types').SavedJobDescription[]
+  ): import('../types').SavedJobDescription[] {
+    const merged = new Map<string, import('../types').SavedJobDescription>();
+    
+    // Add local descriptions
+    local.forEach(desc => merged.set(desc.id, desc));
+    
+    // Merge cloud descriptions (take cloud if newer)
+    cloud.forEach(cloudDesc => {
+      const localDesc = merged.get(cloudDesc.id);
+      if (!localDesc || new Date(cloudDesc.updatedAt) > new Date(localDesc.updatedAt)) {
+        merged.set(cloudDesc.id, cloudDesc);
+      }
+    });
+    
+    return Array.from(merged.values());
+  }
+
+  // Bulk operations
+  static async bulkDeleteJobDescriptions(ids: string[]): Promise<void> {
+    const { jobDescriptions = [] } = await chrome.storage.local.get('jobDescriptions');
+    const filtered = jobDescriptions.filter((j: import('../types').SavedJobDescription) => !ids.includes(j.id));
+    await chrome.storage.local.set({ jobDescriptions: filtered });
+  }
+
+  static async bulkDuplicateJobDescriptions(ids: string[]): Promise<import('../types').SavedJobDescription[]> {
+    const { jobDescriptions = [] } = await chrome.storage.local.get('jobDescriptions');
+    const duplicates: import('../types').SavedJobDescription[] = [];
+    
+    ids.forEach(id => {
+      const original = jobDescriptions.find((j: import('../types').SavedJobDescription) => j.id === id);
+      if (original) {
+        const duplicate = {
+          ...original,
+          id: crypto.randomUUID(),
+          name: `${original.name} (Copy)`,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+          usageCount: 0
+        };
+        duplicates.push(duplicate);
+        jobDescriptions.push(duplicate);
+      }
+    });
+    
+    await chrome.storage.local.set({ jobDescriptions });
+    return duplicates;
+  }
 }
