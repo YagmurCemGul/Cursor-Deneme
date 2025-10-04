@@ -245,9 +245,10 @@ export const ExperienceForm: React.FC<ExperienceFormProps> = ({ experiences, onC
                     }}
                     onPaste={(e) => {
                       const text = e.clipboardData.getData('text');
-                      if (text.includes(',')) {
+                      if (text.includes(',') || text.includes(';') || text.includes('|')) {
                         e.preventDefault();
-                        text.split(',').map(s => s.trim()).filter(Boolean).forEach(s => handleAddSkill(exp.id, s));
+                        text.split(/[,;|]/).map(s => s.trim()).filter(Boolean).forEach(s => handleAddSkill(exp.id, s));
+                        (e.target as HTMLInputElement).value = '';
                       }
                     }}
                     className="flex-input"

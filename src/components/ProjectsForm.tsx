@@ -179,9 +179,10 @@ export const ProjectsForm: React.FC<ProjectsFormProps> = ({ projects, onChange, 
                     }}
                     onPaste={(e) => {
                       const text = e.clipboardData.getData('text');
-                      if (text.includes(',')) {
+                      if (text.includes(',') || text.includes(';') || text.includes('|')) {
                         e.preventDefault();
-                        text.split(',').map(s => s.trim()).filter(Boolean).forEach(s => handleAddSkill(proj.id, s));
+                        text.split(/[,;|]/).map(s => s.trim()).filter(Boolean).forEach(s => handleAddSkill(proj.id, s));
+                        (e.target as HTMLInputElement).value = '';
                       }
                     }}
                     style={{ flex: 1 }}
