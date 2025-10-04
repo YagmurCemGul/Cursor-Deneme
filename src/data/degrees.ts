@@ -1,15 +1,7 @@
-export const degrees: string[] = [
-  'High School Diploma',
-  'Associate Degree',
-  'Bachelor of Arts (BA)',
-  'Bachelor of Science (BSc)',
-  'Bachelor of Engineering (BEng)',
-  'Master of Arts (MA)',
-  'Master of Science (MSc)',
-  'Master of Engineering (MEng)',
-  'Master of Business Administration (MBA)',
-  'Doctor of Philosophy (PhD)',
-  'Doctor of Medicine (MD)',
-  'Doctor of Dental Surgery (DDS)',
-  'Juris Doctor (JD)'
-];
+// This file is maintained for backward compatibility
+// For new implementations, use degreesI18n.ts which provides internationalized degree names
+
+import { degreeOptions } from './degreesI18n';
+
+// Export English degree names for backward compatibility
+export const degrees: string[] = degreeOptions.map(option => option.en);

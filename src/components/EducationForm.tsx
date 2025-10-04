@@ -1,6 +1,6 @@
 import React from 'react';
 import { Education } from '../types';
-import { degrees } from '../data/degrees';
+import { getDegrees } from '../data/degreesI18n';
 import { t, Lang } from '../i18n';
 import { RichTextEditor } from './RichTextEditor';
 import { LocationSelector } from './LocationSelector';
@@ -13,6 +13,8 @@ interface EducationFormProps {
 }
 
 export const EducationForm: React.FC<EducationFormProps> = ({ education, onChange, language }) => {
+  const degrees = getDegrees(language);
+  
   const handleAdd = () => {
     const newEducation: Education = {
       id: Date.now().toString(),
