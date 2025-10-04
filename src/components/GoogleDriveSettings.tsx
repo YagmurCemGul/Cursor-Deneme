@@ -2,10 +2,16 @@ import React, { useState, useEffect } from 'react';
 import { GoogleDriveService, GoogleDriveFile } from '../utils/googleDriveService';
 import { logger } from '../utils/logger';
 import { t, Lang } from '../i18n';
+import { SetupWizard } from './SetupWizard';
+import { HealthMonitorDashboard } from './HealthMonitorDashboard';
+import { VideoTutorial } from './VideoTutorial';
+import { InteractiveGuide } from './InteractiveGuide';
 
 interface GoogleDriveSettingsProps {
   language: Lang;
 }
+
+type ViewMode = 'main' | 'wizard' | 'health' | 'video' | 'guide';
 
 export const GoogleDriveSettings: React.FC<GoogleDriveSettingsProps> = ({ language }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -22,6 +28,8 @@ export const GoogleDriveSettings: React.FC<GoogleDriveSettingsProps> = ({ langua
     details?: string;
   } | null>(null);
   const [showValidation, setShowValidation] = useState(false);
+  const [viewMode, setViewMode] = useState<ViewMode>('main');
+  const [showInteractiveGuide, setShowInteractiveGuide] = useState(false);
 
   useEffect(() => {
     checkAuthStatus();
@@ -188,9 +196,105 @@ export const GoogleDriveSettings: React.FC<GoogleDriveSettingsProps> = ({ langua
     return '📎';
   };
 
+  // Render different views based on viewMode
+  if (viewMode === 'wizard') {
+    return (
+      <SetupWizard
+        language={language}
+        onComplete={() => {
+          setViewMode('main');
+          checkAuthStatus();
+        }}
+        onCancel={() => setViewMode('main')}
+      />
+    );
+  }
+
+  if (viewMode === 'health') {
+    return (
+      <div className="section">
+        <button
+          className="btn btn-secondary btn-sm"
+          onClick={() => setViewMode('main')}
+          style={{ marginBottom: '20px' }}
+        >
+          ← {t(language, 'common.back') || 'Back'}
+        </button>
+        <HealthMonitorDashboard language={language} />
+      </div>
+    );
+  }
+
+  if (viewMode === 'video') {
+    return (
+      <div className="section">
+        <button
+          className="btn btn-secondary btn-sm"
+          onClick={() => setViewMode('main')}
+          style={{ marginBottom: '20px' }}
+        >
+          ← {t(language, 'common.back') || 'Back'}
+        </button>
+        <VideoTutorial language={language} />
+      </div>
+    );
+  }
+
   return (
     <div className="section">
       <h2 className="section-title">☁️ {t(language, 'googleDrive.title')}</h2>
+
+      {/* Interactive Guide */}
+      {showInteractiveGuide && (
+        <InteractiveGuide
+          language={language}
+          onComplete={() => setShowInteractiveGuide(false)}
+          onSkip={() => setShowInteractiveGuide(false)}
+        />
+      )}
+
+      {/* Advanced Features Toolbar */}
+      <div
+        className="advanced-features-toolbar"
+        style={{
+          display: 'flex',
+          gap: '10px',
+          flexWrap: 'wrap',
+          marginBottom: '20px',
+          padding: '15px',
+          background: '#f9f9f9',
+          borderRadius: '8px',
+        }}
+      >
+        <button
+          className="btn btn-secondary btn-sm"
+          onClick={() => setViewMode('wizard')}
+          title={t(language, 'googleDrive.setupWizard')}
+        >
+          🧙 {t(language, 'googleDrive.launchWizard')}
+        </button>
+        <button
+          className="btn btn-secondary btn-sm"
+          onClick={() => setViewMode('health')}
+          title={t(language, 'googleDrive.healthMonitor')}
+        >
+          📊 {t(language, 'googleDrive.viewDashboard')}
+        </button>
+        <button
+          className="btn btn-secondary btn-sm"
+          onClick={() => setViewMode('video')}
+          title={t(language, 'googleDrive.videoTutorial')}
+        >
+          📹 {t(language, 'googleDrive.watchTutorial')}
+        </button>
+        <button
+          className="btn btn-secondary btn-sm"
+          onClick={() => setShowInteractiveGuide(true)}
+          title={t(language, 'googleDrive.interactiveGuide')}
+        >
+          📚 {t(language, 'googleDrive.startGuide')}
+        </button>
+      </div>
 
       {setupRequired && (
         <div className="alert alert-warning" style={{ marginBottom: '20px' }}>

@@ -202,6 +202,50 @@ const dict: Record<string, Record<Lang, string>> = {
     en: 'Note: This will make a non-interactive API call to verify your credentials without requiring sign-in.',
     tr: 'Not: Bu, kimlik bilgilerinizi giriş yapmadan doğrulamak için etkileşimli olmayan bir API çağrısı yapacaktır.',
   },
+  'googleDrive.enhancedValidation': {
+    en: 'Enhanced Validation',
+    tr: 'Gelişmiş Doğrulama',
+  },
+  'googleDrive.runEnhancedValidation': {
+    en: 'Run Enhanced Validation',
+    tr: 'Gelişmiş Doğrulama Çalıştır',
+  },
+  'googleDrive.setupWizard': {
+    en: 'Setup Wizard',
+    tr: 'Kurulum Sihirbazı',
+  },
+  'googleDrive.launchWizard': {
+    en: 'Launch Setup Wizard',
+    tr: 'Kurulum Sihirbazını Başlat',
+  },
+  'googleDrive.healthMonitor': {
+    en: 'Health Monitor',
+    tr: 'Durum İzleyici',
+  },
+  'googleDrive.viewDashboard': {
+    en: 'View Health Dashboard',
+    tr: 'Durum Panosunu Görüntüle',
+  },
+  'googleDrive.videoTutorial': {
+    en: 'Video Tutorial',
+    tr: 'Video Eğitimi',
+  },
+  'googleDrive.watchTutorial': {
+    en: 'Watch Video Tutorial',
+    tr: 'Video Eğitimi İzle',
+  },
+  'googleDrive.interactiveGuide': {
+    en: 'Interactive Guide',
+    tr: 'Etkileşimli Kılavuz',
+  },
+  'googleDrive.startGuide': {
+    en: 'Start Interactive Guide',
+    tr: 'Etkileşimli Kılavuzu Başlat',
+  },
+  'googleDrive.advancedFeatures': {
+    en: 'Advanced Features',
+    tr: 'Gelişmiş Özellikler',
+  },
   'common.errorOptimizing': {
     en: 'Error optimizing CV. Please try again.',
     tr: 'CV optimize edilirken hata oluştu. Lütfen tekrar deneyin.',
