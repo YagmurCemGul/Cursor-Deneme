@@ -4,7 +4,7 @@ import { loadOptions, saveOptions } from '../lib/storage';
 
 function Options() {
   const [apiKey, setApiKey] = useState('');
-  const [provider, setProvider] = useState<'openai' | 'azure'>('openai');
+  const [provider, setProvider] = useState<'openai' | 'azure' | 'gemini' | 'claude'>('openai');
   const [language, setLanguage] = useState<'tr' | 'en'>('tr');
 
   useEffect(() => {
@@ -27,9 +27,11 @@ function Options() {
       <div className="col" style={{ gap: 8 }}>
         <label className="col">
           <span className="label">API Provider</span>
-          <select className="select" value={provider} onChange={(e) => setProvider(e.target.value as any)}>
+          <select className="select" value={provider} onChange={(e) => setProvider(e.target.value as 'openai' | 'azure' | 'gemini' | 'claude')}>
             <option value="openai">OpenAI</option>
             <option value="azure">Azure OpenAI</option>
+            <option value="gemini">Google Gemini</option>
+            <option value="claude">Anthropic Claude</option>
           </select>
         </label>
         <label className="col">

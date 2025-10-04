@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { CVTemplateStyle, defaultCVTemplates, getTemplateById } from '../data/cvTemplates';
+import { CVTemplateStyle, defaultCVTemplates } from '../data/cvTemplates';
 import { StorageService } from '../utils/storage';
 import { t, Lang } from '../i18n';
 
 interface CVTemplateManagerProps {
   language: Lang;
   onSelectTemplate: (templateId: string) => void;
-  currentTemplateId?: string;
+  currentTemplateId?: string | undefined;
 }
 
 export const CVTemplateManager: React.FC<CVTemplateManagerProps> = ({
@@ -24,7 +24,7 @@ export const CVTemplateManager: React.FC<CVTemplateManagerProps> = ({
 
   const loadCustomTemplates = async () => {
     // Load custom templates from storage
-    const templates = await StorageService.getTemplates();
+    await StorageService.getTemplates();
     // For now, we'll work with default templates
     setCustomTemplates([]);
   };
