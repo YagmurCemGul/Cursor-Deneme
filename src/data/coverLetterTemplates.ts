@@ -201,3 +201,44 @@ export const getCoverLetterTemplateById = (id: string): CoverLetterTemplate => {
 export const getDefaultCoverLetterTemplate = (): CoverLetterTemplate => {
   return defaultCoverLetterTemplates[0]!; // Classic Professional
 };
+
+// Helper functions to get i18n keys for templates
+export const getCoverLetterTemplateNameKey = (templateId: string): string => {
+  return `coverTemplates.${templateId}`;
+};
+
+export const getCoverLetterTemplateDescriptionKey = (templateId: string): string => {
+  return `coverTemplates.${templateId}.desc`;
+};
+
+// Mapping of feature text to i18n keys
+const featureToI18nKey: Record<string, string> = {
+  'Traditional Format': 'coverTemplates.feature.traditionalFormat',
+  'Formal Tone': 'coverTemplates.feature.formalTone',
+  'ATS-Friendly': 'coverTemplates.feature.atsFriendly',
+  'Corporate Standard': 'coverTemplates.feature.corporateStandard',
+  'Clean Design': 'coverTemplates.feature.cleanDesign',
+  'Modern Tone': 'coverTemplates.feature.modernTone',
+  'Tech-Friendly': 'coverTemplates.feature.techFriendly',
+  'Concise Format': 'coverTemplates.feature.conciseFormat',
+  'Executive Style': 'coverTemplates.feature.executiveStyle',
+  'Authoritative Tone': 'coverTemplates.feature.authoritativeTone',
+  'Leadership Focus': 'coverTemplates.feature.leadershipFocus',
+  'Premium Look': 'coverTemplates.feature.premiumLook',
+  'Creative Layout': 'coverTemplates.feature.creativeLayout',
+  'Expressive Tone': 'coverTemplates.feature.expressiveTone',
+  'Design Focus': 'coverTemplates.feature.designFocus',
+  'Personality Showcase': 'coverTemplates.feature.personalityShowcase',
+  'Energetic Tone': 'coverTemplates.feature.energeticTone',
+  'Fast-Paced Feel': 'coverTemplates.feature.fastPacedFeel',
+  'Startup Culture': 'coverTemplates.feature.startupCulture',
+  'Direct Communication': 'coverTemplates.feature.directCommunication',
+  'Academic Format': 'coverTemplates.feature.academicFormat',
+  'Scholarly Tone': 'coverTemplates.feature.scholarlyTone',
+  'Research Focus': 'coverTemplates.feature.researchFocus',
+  'Publication Standard': 'coverTemplates.feature.publicationStandard',
+};
+
+export const getCoverLetterFeatureI18nKey = (featureText: string): string => {
+  return featureToI18nKey[featureText] || featureText;
+};
