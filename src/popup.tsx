@@ -19,6 +19,8 @@ import { GoogleDriveSettings } from './components/GoogleDriveSettings';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { ATSScoreCard } from './components/ATSScoreCard';
 import { AnalyticsDashboard } from './components/AnalyticsDashboard';
+import InterviewQuestionsGenerator from './components/InterviewQuestionsGenerator';
+import TalentGapAnalysis from './components/TalentGapAnalysis';
 import { aiService } from './utils/aiService';
 import { AIConfig } from './utils/aiProviders';
 import { StorageService } from './utils/storage';
@@ -28,7 +30,7 @@ import { performanceMonitor } from './utils/performance';
 import { t } from './i18n';
 import './styles.css';
 
-type TabType = 'cv-info' | 'optimize' | 'cover-letter' | 'profiles' | 'settings' | 'analytics';
+type TabType = 'cv-info' | 'optimize' | 'cover-letter' | 'profiles' | 'settings' | 'analytics' | 'interview-questions' | 'talent-gap';
 type Theme = 'light' | 'dark' | 'system';
 type Language = 'en' | 'tr';
 
@@ -240,6 +242,7 @@ const App: React.FC = () => {
     
     // Pop from undo stack
     const previousState = undoStack[undoStack.length - 1];
+    if (!previousState) return;
     setUndoStack(prev => prev.slice(0, -1));
     
     setCVData(previousState.cvData);
@@ -263,6 +266,7 @@ const App: React.FC = () => {
     
     // Pop from redo stack
     const nextState = redoStack[redoStack.length - 1];
+    if (!nextState) return;
     setRedoStack(prev => prev.slice(0, -1));
     
     setCVData(nextState.cvData);
@@ -307,7 +311,7 @@ const App: React.FC = () => {
       const analytics: OptimizationAnalytics = {
         id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
         timestamp: new Date().toISOString(),
-        profileId: currentProfileId.current || undefined,
+        profileId: currentProfileId.current || '',
         optimizationsApplied: result.optimizations.length,
         categoriesOptimized: [...new Set(result.optimizations.map(o => o.category))],
         jobDescriptionLength: jobDescription.length,
@@ -627,6 +631,24 @@ const App: React.FC = () => {
         >
           📊 {t(language, 'analytics.title')}
         </button>
+        <button
+          className={`tab ${activeTab === 'interview-questions' ? 'active' : ''}`}
+          onClick={() => setActiveTab('interview-questions')}
+          role="tab"
+          aria-selected={activeTab === 'interview-questions'}
+          aria-label="Interview Questions"
+        >
+          ❓ Interview Questions
+        </button>
+        <button
+          className={`tab ${activeTab === 'talent-gap' ? 'active' : ''}`}
+          onClick={() => setActiveTab('talent-gap')}
+          role="tab"
+          aria-selected={activeTab === 'talent-gap'}
+          aria-label="Talent Gap Analysis"
+        >
+          🎯 Talent Gap
+        </button>
       </div>
 
       <div className="content">
@@ -763,6 +785,20 @@ const App: React.FC = () => {
 
         {activeTab === 'analytics' && (
           <AnalyticsDashboard language={language} />
+        )}
+
+        {activeTab === 'interview-questions' && (
+          <InterviewQuestionsGenerator 
+            cvData={cvData}
+            jobDescription={jobDescription}
+          />
+        )}
+
+        {activeTab === 'talent-gap' && (
+          <TalentGapAnalysis 
+            cvData={cvData}
+            jobDescription={jobDescription}
+          />
         )}
       </div>
     </div>
