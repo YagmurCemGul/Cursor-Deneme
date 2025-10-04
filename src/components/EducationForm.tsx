@@ -4,6 +4,7 @@ import { degrees } from '../data/degrees';
 import { t, Lang } from '../i18n';
 import { RichTextEditor } from './RichTextEditor';
 import { LocationSelector } from './LocationSelector';
+import { DateInput } from './DateInput';
 
 interface EducationFormProps {
   education: Education[];
@@ -126,35 +127,35 @@ export const EducationForm: React.FC<EducationFormProps> = ({ education, onChang
               </div>
               
               <div className="form-row">
-                <div className="form-group">
-                  <label className="form-label">{t(language, 'education.start')}</label>
-                  <input
-                    type="month"
-                    className="form-input"
-                    value={edu.startDate}
-                    onChange={(e) => handleUpdate(edu.id, 'startDate', e.target.value)}
-                  />
-                </div>
+                <DateInput
+                  label={t(language, 'education.start')}
+                  value={edu.startDate}
+                  onChange={(value) => handleUpdate(edu.id, 'startDate', value)}
+                  language={language}
+                />
                 
-                <div className="form-group">
-                  <label className="form-label">{t(language, 'education.end')}</label>
-                  <input
-                    type="month"
-                    className="form-input"
-                    value={edu.endDate}
-                    onChange={(e) => handleUpdate(edu.id, 'endDate', e.target.value)}
-                    disabled={edu.currentlyStudying}
-                  />
-                </div>
+                <DateInput
+                  label={t(language, 'education.end')}
+                  value={edu.endDate}
+                  onChange={(value) => handleUpdate(edu.id, 'endDate', value)}
+                  disabled={edu.currentlyStudying}
+                  language={language}
+                  startDate={edu.startDate}
+                />
               </div>
 
-              <div className="form-group">
+              <div className="form-group current-work-checkbox">
                 <div className="checkbox-item">
                   <input
                     type="checkbox"
                     id={`current-${edu.id}`}
                     checked={!!edu.currentlyStudying}
-                    onChange={(e) => handleUpdate(edu.id, 'currentlyStudying', e.target.checked)}
+                    onChange={(e) => {
+                      handleUpdate(edu.id, 'currentlyStudying', e.target.checked);
+                      if (e.target.checked) {
+                        handleUpdate(edu.id, 'endDate', '');
+                      }
+                    }}
                   />
                   <label htmlFor={`current-${edu.id}`}>{t(language, 'education.currentlyStudying')}</label>
                 </div>

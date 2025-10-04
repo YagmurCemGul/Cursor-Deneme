@@ -186,7 +186,7 @@ export const CVPreview: React.FC<CVPreviewProps> = ({ cvData, optimizations, lan
                   {exp.title} | {exp.company}
                 </div>
                 <div className="preview-item-subtitle">
-                  {exp.startDate} - {exp.endDate || 'Present'} | {exp.location}
+                  {exp.startDate} - {exp.currentlyWorking ? t(language, 'experience.present') : (exp.endDate || t(language, 'experience.present'))} | {exp.location}
                 </div>
                 {exp.description && (
                   <div className="preview-item-description">
@@ -220,7 +220,7 @@ export const CVPreview: React.FC<CVPreviewProps> = ({ cvData, optimizations, lan
                   {edu.degree} in {edu.fieldOfStudy}
                 </div>
                 <div className="preview-item-subtitle">
-                  {edu.startDate} - {edu.endDate}
+                  {edu.startDate} - {edu.currentlyStudying ? t(language, 'education.expected') : edu.endDate}
                   {edu.grade && ` | GPA: ${edu.grade}`}
                 </div>
                 {edu.description && (
@@ -265,8 +265,10 @@ export const CVPreview: React.FC<CVPreviewProps> = ({ cvData, optimizations, lan
                 <div className="preview-item-title">
                   {proj.name}
                 </div>
-                {proj.associatedWith && (
+                {(proj.startDate || proj.endDate || proj.associatedWith) && (
                   <div className="preview-item-subtitle">
+                    {proj.startDate && `${proj.startDate} - ${proj.currentlyWorking ? t(language, 'experience.present') : (proj.endDate || t(language, 'experience.present'))}`}
+                    {proj.startDate && proj.associatedWith && ' | '}
                     {proj.associatedWith}
                   </div>
                 )}

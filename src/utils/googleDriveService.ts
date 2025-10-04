@@ -278,7 +278,7 @@ export class GoogleDriveService {
       
       cvData.experience.forEach(exp => {
         insertText(`${exp.title} | ${exp.company}\n`, { bold: true });
-        insertText(`${exp.startDate} - ${exp.endDate} | ${exp.location}\n`, { italic: true });
+        insertText(`${exp.startDate} - ${exp.currentlyWorking ? 'Present' : (exp.endDate || 'Present')} | ${exp.location}\n`, { italic: true });
         if (exp.description) {
           insertText(exp.description + '\n');
         }
@@ -296,7 +296,7 @@ export class GoogleDriveService {
       cvData.education.forEach(edu => {
         insertText(edu.school + '\n', { bold: true });
         insertText(`${edu.degree} in ${edu.fieldOfStudy}\n`);
-        insertText(`${edu.startDate} - ${edu.endDate}\n`, { italic: true });
+        insertText(`${edu.startDate} - ${edu.currentlyStudying ? 'Expected' : edu.endDate}\n`, { italic: true });
         if (edu.description) {
           insertText(edu.description + '\n');
         }
@@ -577,7 +577,7 @@ export class GoogleDriveService {
         }
       });
 
-      const expText = `${exp.title} - ${exp.company}\n\n${exp.startDate} - ${exp.endDate}\n${exp.location}\n\n${exp.description}`;
+      const expText = `${exp.title} - ${exp.company}\n\n${exp.startDate} - ${exp.currentlyWorking ? 'Present' : (exp.endDate || 'Present')}\n${exp.location}\n\n${exp.description}`;
       
       requests.push({
         insertText: {
@@ -597,7 +597,7 @@ export class GoogleDriveService {
         }
       });
 
-      const eduText = `${edu.school}\n\n${edu.degree} in ${edu.fieldOfStudy}\n${edu.startDate} - ${edu.endDate}\n\n${edu.description}`;
+      const eduText = `${edu.school}\n\n${edu.degree} in ${edu.fieldOfStudy}\n${edu.startDate} - ${edu.currentlyStudying ? 'Expected' : edu.endDate}\n\n${edu.description}`;
       
       requests.push({
         insertText: {
