@@ -768,8 +768,17 @@ export class GoogleDriveService {
   /**
    * Create a folder in Google Drive
    */
-  static async createFolder(name: string): Promise<GoogleDriveFile> {
+  static async createFolder(name: string, parentId?: string): Promise<GoogleDriveFile> {
     await this.ensureAuthenticated();
+
+    const metadata: any = {
+      name: name,
+      mimeType: 'application/vnd.google-apps.folder',
+    };
+
+    if (parentId) {
+      metadata.parents = [parentId];
+    }
 
     const response = await fetch('https://www.googleapis.com/drive/v3/files', {
       method: 'POST',
@@ -777,10 +786,7 @@ export class GoogleDriveService {
         Authorization: `Bearer ${this.accessToken}`,
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({
-        name: name,
-        mimeType: 'application/vnd.google-apps.folder',
-      }),
+      body: JSON.stringify(metadata),
     });
 
     const result = await response.json();
@@ -791,5 +797,128 @@ export class GoogleDriveService {
       webViewLink: result.webViewLink,
       createdTime: new Date().toISOString(),
     };
+  }
+
+  /**
+   * Move a file to a folder
+   */
+  static async moveFileToFolder(fileId: string, folderId: string): Promise<boolean> {
+    await this.ensureAuthenticated();
+
+    // Get current parents
+    const getResponse = await fetch(
+      `https://www.googleapis.com/drive/v3/files/${fileId}?fields=parents`,
+      {
+        headers: {
+          Authorization: `Bearer ${this.accessToken}`,
+        },
+      }
+    );
+
+    const file = await getResponse.json();
+    const previousParents = file.parents ? file.parents.join(',') : '';
+
+    // Move to new folder
+    const updateResponse = await fetch(
+      `https://www.googleapis.com/drive/v3/files/${fileId}?addParents=${folderId}&removeParents=${previousParents}`,
+      {
+        method: 'PATCH',
+        headers: {
+          Authorization: `Bearer ${this.accessToken}`,
+        },
+      }
+    );
+
+    return updateResponse.ok;
+  }
+
+  /**
+   * List folders in Google Drive
+   */
+  static async listFolders(parentId?: string): Promise<GoogleDriveFile[]> {
+    await this.ensureAuthenticated();
+
+    let query = "mimeType='application/vnd.google-apps.folder'";
+    if (parentId) {
+      query += ` and '${parentId}' in parents`;
+    } else {
+      query += " and 'root' in parents";
+    }
+
+    const response = await fetch(
+      `https://www.googleapis.com/drive/v3/files?q=${encodeURIComponent(query)}&fields=files(id,name,mimeType,webViewLink,createdTime)&orderBy=name`,
+      {
+        headers: {
+          Authorization: `Bearer ${this.accessToken}`,
+        },
+      }
+    );
+
+    const result = await response.json();
+    return result.files || [];
+  }
+
+  /**
+   * Get folder path (breadcrumb)
+   */
+  static async getFolderPath(folderId: string): Promise<string> {
+    await this.ensureAuthenticated();
+
+    const path: string[] = [];
+    let currentId: string | null = folderId;
+
+    while (currentId && currentId !== 'root') {
+      const response = await fetch(
+        `https://www.googleapis.com/drive/v3/files/${currentId}?fields=name,parents`,
+        {
+          headers: {
+            Authorization: `Bearer ${this.accessToken}`,
+          },
+        }
+      );
+
+      const file = await response.json();
+      path.unshift(file.name);
+
+      currentId = file.parents && file.parents.length > 0 ? file.parents[0] : null;
+    }
+
+    return path.join(' / ');
+  }
+
+  /**
+   * Create shareable link for a file
+   */
+  static async createShareableLink(
+    fileId: string,
+    role: 'reader' | 'writer' | 'commenter' = 'reader'
+  ): Promise<string> {
+    await this.ensureAuthenticated();
+
+    // Make file accessible via link
+    await fetch(`https://www.googleapis.com/drive/v3/files/${fileId}/permissions`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${this.accessToken}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        role: role,
+        type: 'anyone',
+      }),
+    });
+
+    // Get the file to retrieve webViewLink
+    const response = await fetch(
+      `https://www.googleapis.com/drive/v3/files/${fileId}?fields=webViewLink`,
+      {
+        headers: {
+          Authorization: `Bearer ${this.accessToken}`,
+        },
+      }
+    );
+
+    const file = await response.json();
+    return file.webViewLink;
   }
 }

@@ -184,3 +184,84 @@ export interface SavedJobDescription {
   updatedAt: string;
   usageCount?: number;
 }
+
+// Export history and batch export types
+export interface ExportRecord {
+  id: string;
+  type: 'cv' | 'cover-letter';
+  formats: ExportFormat[];
+  timestamp: string;
+  fileName: string;
+  success: boolean;
+  profileId?: string;
+  error?: string;
+}
+
+export interface ExportFormat {
+  format: 'pdf' | 'docx' | 'google-docs' | 'google-sheets' | 'google-slides';
+  success: boolean;
+  fileId?: string;
+  filePath?: string;
+  error?: string;
+  driveLink?: string;
+}
+
+export interface BatchExportOptions {
+  formats: ('pdf' | 'docx' | 'google-docs' | 'google-sheets' | 'google-slides')[];
+  cvData: CVData;
+  optimizations: ATSOptimization[];
+  templateId?: string;
+  folderId?: string; // Google Drive folder ID
+  namingTemplate?: string;
+  type: 'cv' | 'cover-letter';
+  coverLetter?: string;
+}
+
+export interface BatchExportProgress {
+  total: number;
+  completed: number;
+  current: string;
+  results: ExportFormat[];
+}
+
+// Custom file naming templates
+export interface NamingTemplate {
+  id: string;
+  name: string;
+  template: string; // e.g., "{firstName}_{lastName}_{type}_{date}.{format}"
+  description?: string;
+  createdAt: string;
+  isDefault?: boolean;
+}
+
+// Available template variables
+export type NamingVariables = {
+  firstName: string;
+  lastName: string;
+  type: 'Resume' | 'CoverLetter';
+  date: string; // YYYY-MM-DD
+  time: string; // HH-MM-SS
+  company?: string;
+  position?: string;
+  format: string; // pdf, docx, etc
+};
+
+// Google Drive folder selection
+export interface DriveFolder {
+  id: string;
+  name: string;
+  path: string; // breadcrumb path
+  parentId?: string;
+  webViewLink?: string;
+}
+
+// Sharing options
+export interface ShareOptions {
+  fileId: string;
+  type: 'link' | 'email';
+  role: 'reader' | 'writer' | 'commenter';
+  recipients?: string[]; // email addresses for email sharing
+  message?: string;
+  includeCV?: boolean;
+  includeCoverLetter?: boolean;
+}
