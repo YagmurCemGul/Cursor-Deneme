@@ -118,13 +118,13 @@ export class StorageService {
     return aiApiKeys;
   }
 
-  static async saveAIProvider(provider: 'openai' | 'gemini' | 'claude'): Promise<void> {
+  static async saveAIProvider(provider: 'openai' | 'gemini' | 'claude' | 'azure-openai' | 'ollama'): Promise<void> {
     const settings = (await this.getSettings()) || {};
     settings.aiProvider = provider;
     await this.saveSettings(settings);
   }
 
-  static async getAIProvider(): Promise<'openai' | 'gemini' | 'claude'> {
+  static async getAIProvider(): Promise<'openai' | 'gemini' | 'claude' | 'azure-openai' | 'ollama'> {
     const settings = (await this.getSettings()) as any;
     return settings?.aiProvider || 'openai';
   }

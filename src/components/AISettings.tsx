@@ -9,7 +9,7 @@ interface AISettingsProps {
   onConfigChange?: () => void;
 }
 
-type AIProvider = 'openai' | 'gemini' | 'claude';
+type AIProvider = 'openai' | 'gemini' | 'claude' | 'azure-openai' | 'ollama';
 
 interface ModelOption {
   value: string;
@@ -33,12 +33,30 @@ const MODEL_OPTIONS: Record<AIProvider, ModelOption[]> = {
     { value: 'claude-3-haiku-20240307', label: 'Claude 3 Haiku (Fast)' },
     { value: 'claude-3-opus-20240229', label: 'Claude 3 Opus (Powerful)' },
   ],
+  'azure-openai': [
+    { value: 'gpt-4o', label: 'GPT-4o' },
+    { value: 'gpt-4o-mini', label: 'GPT-4o Mini' },
+    { value: 'gpt-4-turbo', label: 'GPT-4 Turbo' },
+    { value: 'gpt-4', label: 'GPT-4' },
+    { value: 'gpt-35-turbo', label: 'GPT-3.5 Turbo' },
+  ],
+  ollama: [
+    { value: 'llama2', label: 'Llama 2' },
+    { value: 'llama3', label: 'Llama 3' },
+    { value: 'mistral', label: 'Mistral' },
+    { value: 'mixtral', label: 'Mixtral' },
+    { value: 'codellama', label: 'Code Llama' },
+    { value: 'phi', label: 'Phi' },
+    { value: 'gemma', label: 'Gemma' },
+  ],
 };
 
 const API_KEY_URLS: Record<AIProvider, string> = {
   openai: 'https://platform.openai.com/api-keys',
   gemini: 'https://makersuite.google.com/app/apikey',
   claude: 'https://console.anthropic.com/settings/keys',
+  'azure-openai': 'https://portal.azure.com',
+  ollama: 'https://ollama.ai/download',
 };
 
 export const AISettings: React.FC<AISettingsProps> = ({ language, onConfigChange }) => {
@@ -48,9 +66,14 @@ export const AISettings: React.FC<AISettingsProps> = ({ language, onConfigChange
     openai: false,
     gemini: false,
     claude: false,
+    'azure-openai': false,
+    ollama: false,
   });
   const [model, setModel] = useState<string>('');
   const [temperature, setTemperature] = useState<number>(0.3);
+  const [azureEndpoint, setAzureEndpoint] = useState<string>('');
+  const [azureDeployment, setAzureDeployment] = useState<string>('');
+  const [ollamaEndpoint, setOllamaEndpoint] = useState<string>('http://localhost:11434');
   const [isSaving, setIsSaving] = useState(false);
   const [isTesting, setIsTesting] = useState(false);
   const [testResult, setTestResult] = useState<{ success: boolean; message: string } | null>(null);
@@ -73,6 +96,9 @@ export const AISettings: React.FC<AISettingsProps> = ({ language, onConfigChange
       setApiKeys(savedApiKeys);
       setModel(savedModel || MODEL_OPTIONS[savedProvider][0]?.value || '');
       setTemperature((settings as any)?.aiTemperature || 0.3);
+      setAzureEndpoint((settings as any)?.azureEndpoint || '');
+      setAzureDeployment((settings as any)?.azureDeployment || '');
+      setOllamaEndpoint((settings as any)?.ollamaEndpoint || 'http://localhost:11434');
     } catch (error) {
       logger.error('Error loading AI settings:', error);
     }
@@ -108,6 +134,9 @@ export const AISettings: React.FC<AISettingsProps> = ({ language, onConfigChange
         aiProvider: provider,
         aiModel: model,
         aiTemperature: temperature,
+        azureEndpoint,
+        azureDeployment,
+        ollamaEndpoint,
       };
 
       // Save everything together
@@ -270,12 +299,113 @@ export const AISettings: React.FC<AISettingsProps> = ({ language, onConfigChange
               </div>
             </div>
           </div>
+
+          {/* Azure OpenAI */}
+          <div
+            className={`card ${provider === 'azure-openai' ? 'selected' : ''}`}
+            onClick={() => handleProviderChange('azure-openai')}
+            style={{ cursor: 'pointer', padding: '16px' }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <input
+                type="radio"
+                checked={provider === 'azure-openai'}
+                onChange={() => handleProviderChange('azure-openai')}
+              />
+              <div>
+                <div style={{ fontWeight: 'bold', marginBottom: '4px' }}>Azure OpenAI Service</div>
+                <div style={{ fontSize: '13px', color: '#666' }}>
+                  {language === 'tr' 
+                    ? 'Kurumsal Azure OpenAI hizmeti - Gelişmiş güvenlik ve uyumluluk'
+                    : 'Enterprise Azure OpenAI service - Enhanced security and compliance'}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Ollama */}
+          <div
+            className={`card ${provider === 'ollama' ? 'selected' : ''}`}
+            onClick={() => handleProviderChange('ollama')}
+            style={{ cursor: 'pointer', padding: '16px' }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <input
+                type="radio"
+                checked={provider === 'ollama'}
+                onChange={() => handleProviderChange('ollama')}
+              />
+              <div>
+                <div style={{ fontWeight: 'bold', marginBottom: '4px' }}>🏠 Ollama (Local AI)</div>
+                <div style={{ fontSize: '13px', color: '#666' }}>
+                  {language === 'tr'
+                    ? 'Yerel AI modelleri - Gizlilik odaklı, ücretsiz, internet bağlantısı gerektirmez'
+                    : 'Local AI models - Privacy-focused, free, no internet required'}
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
+      {/* Azure OpenAI Configuration */}
+      {provider === 'azure-openai' && (
+        <div style={{ marginBottom: '24px' }}>
+          <label className="form-label">
+            {language === 'tr' ? 'Azure Endpoint (Uç Nokta)' : 'Azure Endpoint'} *
+          </label>
+          <input
+            type="text"
+            className="form-input"
+            value={azureEndpoint}
+            onChange={(e) => setAzureEndpoint(e.target.value)}
+            placeholder="https://your-resource-name.openai.azure.com"
+            style={{ marginBottom: '12px' }}
+          />
+          <label className="form-label">
+            {language === 'tr' ? 'Deployment Adı' : 'Deployment Name'} *
+          </label>
+          <input
+            type="text"
+            className="form-input"
+            value={azureDeployment}
+            onChange={(e) => setAzureDeployment(e.target.value)}
+            placeholder="gpt-4"
+          />
+        </div>
+      )}
+
+      {/* Ollama Configuration */}
+      {provider === 'ollama' && (
+        <div style={{ marginBottom: '24px' }}>
+          <label className="form-label">
+            {language === 'tr' ? 'Ollama Endpoint' : 'Ollama Endpoint'}
+          </label>
+          <input
+            type="text"
+            className="form-input"
+            value={ollamaEndpoint}
+            onChange={(e) => setOllamaEndpoint(e.target.value)}
+            placeholder="http://localhost:11434"
+          />
+          <p style={{ fontSize: '12px', color: '#666', marginTop: '4px' }}>
+            {language === 'tr'
+              ? 'Ollama\'yı yerel makinenizde çalıştırmanız gerekir. Kurulum için: ollama.ai'
+              : 'You need to run Ollama on your local machine. Install from: ollama.ai'}
+          </p>
+        </div>
+      )}
+
       {/* API Key Input */}
       <div style={{ marginBottom: '24px' }}>
-        <label className="form-label">{t(language, 'settings.apiKey')} *</label>
+        <label className="form-label">
+          {t(language, 'settings.apiKey')} {provider !== 'ollama' && '*'}
+          {provider === 'ollama' && (
+            <span style={{ fontSize: '12px', fontWeight: 'normal', color: '#666' }}>
+              {language === 'tr' ? ' (İsteğe bağlı - güvenli örnekler için)' : ' (Optional - for secured instances)'}
+            </span>
+          )}
+        </label>
         <div style={{ display: 'flex', gap: '8px', marginBottom: '8px' }}>
           <input
             type={showApiKey[provider] ? 'text' : 'password'}
