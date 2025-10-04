@@ -3245,3 +3245,805 @@ body:has(.app-container.dark) {
     font-size: 13px;
   }
 }
+
+/* Photo Filter Tabs */
+.photo-filters-tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 15px;
+  border-bottom: 2px solid #e2e8f0;
+}
+
+.app-container.dark .photo-filters-tabs {
+  border-bottom-color: #1f2a44;
+}
+
+.filter-tab {
+  flex: 1;
+  padding: 10px 15px;
+  background: transparent;
+  border: none;
+  border-bottom: 3px solid transparent;
+  color: #64748b;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.filter-tab:hover {
+  color: #667eea;
+  background: #f8fafc;
+}
+
+.app-container.dark .filter-tab:hover {
+  background: #0b1220;
+}
+
+.filter-tab.active {
+  color: #667eea;
+  border-bottom-color: #667eea;
+}
+
+.filter-tab-content {
+  max-height: 400px;
+  overflow-y: auto;
+  padding-right: 8px;
+}
+
+/* Checkbox groups */
+.checkbox-group label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+}
+
+.checkbox-group input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+}
+
+.checkbox-group span {
+  font-weight: 500;
+}
+
+.filter-help {
+  margin: 5px 0 0 28px;
+  font-size: 12px;
+  color: #64748b;
+  font-style: italic;
+}
+
+.app-container.dark .filter-help {
+  color: #94a3b8;
+}
+
+/* Form select for dropdowns */
+.form-select {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  background: white;
+  color: #1e293b;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.app-container.dark .form-select {
+  background: #0b1220;
+  border-color: #1f2a44;
+  color: #e2e8f0;
+}
+
+.form-select:focus {
+  outline: none;
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+/* Preset titles */
+.filter-presets h4 {
+  margin: 0 0 10px 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: #475569;
+}
+
+.app-container.dark .filter-presets h4 {
+  color: #cbd5e1;
+}
+
+/* Scrollbar styling for filter panel */
+.filter-tab-content::-webkit-scrollbar {
+  width: 6px;
+}
+
+.filter-tab-content::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 3px;
+}
+
+.app-container.dark .filter-tab-content::-webkit-scrollbar-track {
+  background: #0b1220;
+}
+
+.filter-tab-content::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 3px;
+}
+
+.app-container.dark .filter-tab-content::-webkit-scrollbar-thumb {
+  background: #475569;
+}
+
+.filter-tab-content::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* Batch Operations Modal */
+.batch-operations-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+  backdrop-filter: blur(4px);
+}
+
+.batch-operations-modal {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  width: 95%;
+  max-width: 1000px;
+  max-height: 85vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.app-container.dark .batch-operations-modal {
+  background: #0f172a;
+  border: 1px solid #1f2a44;
+}
+
+.batch-operations-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.app-container.dark .batch-operations-header {
+  border-bottom-color: #1f2a44;
+}
+
+.batch-operations-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px 20px;
+  background: #f8fafc;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.app-container.dark .batch-operations-toolbar {
+  background: #0b1220;
+  border-bottom-color: #1f2a44;
+}
+
+.batch-selection-info {
+  font-weight: 600;
+  color: #475569;
+}
+
+.app-container.dark .batch-selection-info {
+  color: #cbd5e1;
+}
+
+.batch-selection-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.batch-operations-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px;
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 20px;
+}
+
+.batch-photos-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 15px;
+  max-height: 500px;
+  overflow-y: auto;
+}
+
+.batch-photo-card {
+  position: relative;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 3px solid #e2e8f0;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.app-container.dark .batch-photo-card {
+  border-color: #1f2a44;
+}
+
+.batch-photo-card.selected {
+  border-color: #667eea;
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+.batch-photo-card img {
+  width: 100%;
+  height: 150px;
+  object-fit: cover;
+  display: block;
+}
+
+.batch-photo-overlay {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+}
+
+.batch-photo-overlay input[type="checkbox"] {
+  width: 20px;
+  height: 20px;
+  cursor: pointer;
+}
+
+.batch-photo-name {
+  padding: 8px;
+  background: rgba(0, 0, 0, 0.7);
+  color: white;
+  font-size: 12px;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.batch-filters-panel {
+  background: #f8fafc;
+  border-radius: 8px;
+  padding: 15px;
+  border: 1px solid #e2e8f0;
+}
+
+.app-container.dark .batch-filters-panel {
+  background: #0b1220;
+  border-color: #1f2a44;
+}
+
+.batch-filters-panel h4 {
+  margin: 0 0 15px 0;
+  font-size: 16px;
+  color: #1e293b;
+}
+
+.app-container.dark .batch-filters-panel h4 {
+  color: #f1f5f9;
+}
+
+.batch-operations-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 20px;
+  border-top: 1px solid #e2e8f0;
+}
+
+.app-container.dark .batch-operations-footer {
+  border-top-color: #1f2a44;
+}
+
+/* Comparison View Modal */
+.comparison-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+  backdrop-filter: blur(4px);
+}
+
+.comparison-modal {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  width: 95%;
+  max-width: 1200px;
+  max-height: 90vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.app-container.dark .comparison-modal {
+  background: #0f172a;
+  border: 1px solid #1f2a44;
+}
+
+.comparison-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.app-container.dark .comparison-header {
+  border-bottom-color: #1f2a44;
+}
+
+.comparison-mode-selector {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  padding: 15px;
+  background: #f8fafc;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.app-container.dark .comparison-mode-selector {
+  background: #0b1220;
+  border-bottom-color: #1f2a44;
+}
+
+.comparison-content {
+  flex: 1;
+  overflow: hidden;
+  padding: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.comparison-side-by-side {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  width: 100%;
+  height: 100%;
+}
+
+.comparison-image-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #000;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.comparison-image-container img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}
+
+.comparison-label {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  background: rgba(0, 0, 0, 0.7);
+  color: white;
+  padding: 5px 15px;
+  border-radius: 4px;
+  font-weight: 600;
+}
+
+.comparison-slider {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.comparison-slider-container {
+  position: relative;
+  flex: 1;
+  overflow: hidden;
+  border-radius: 8px;
+}
+
+.comparison-slider-image {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+}
+
+.comparison-slider-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  overflow: hidden;
+}
+
+.comparison-slider-handle {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+  background: #667eea;
+  transform: translateX(-50%);
+  cursor: ew-resize;
+  z-index: 10;
+}
+
+.comparison-slider-line {
+  width: 40px;
+  height: 40px;
+  background: #667eea;
+  border-radius: 50%;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  box-shadow: 0 0 10px rgba(102, 126, 234, 0.5);
+}
+
+.comparison-slider-input {
+  width: 100%;
+}
+
+.comparison-overlay-mode {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.comparison-overlay-container {
+  position: relative;
+  flex: 1;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.comparison-overlay-base,
+.comparison-overlay-top {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.comparison-overlay-top {
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+.comparison-overlay-controls {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.comparison-overlay-controls span {
+  font-weight: 600;
+  color: #475569;
+  min-width: 60px;
+}
+
+.app-container.dark .comparison-overlay-controls span {
+  color: #cbd5e1;
+}
+
+.comparison-overlay-controls input[type="range"] {
+  flex: 1;
+}
+
+.comparison-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 20px;
+  border-top: 1px solid #e2e8f0;
+}
+
+.app-container.dark .comparison-footer {
+  border-top-color: #1f2a44;
+}
+
+/* Cloud Sync Modal */
+.cloud-sync-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+  backdrop-filter: blur(4px);
+}
+
+.cloud-sync-modal {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  width: 95%;
+  max-width: 900px;
+  max-height: 90vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.app-container.dark .cloud-sync-modal {
+  background: #0f172a;
+  border: 1px solid #1f2a44;
+}
+
+.cloud-sync-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.app-container.dark .cloud-sync-header {
+  border-bottom-color: #1f2a44;
+}
+
+.cloud-sync-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 15px;
+  padding: 20px;
+  background: #f8fafc;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.app-container.dark .cloud-sync-stats {
+  background: #0b1220;
+  border-bottom-color: #1f2a44;
+}
+
+.cloud-stat-card {
+  text-align: center;
+  padding: 15px;
+  background: white;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+}
+
+.app-container.dark .cloud-stat-card {
+  background: #0f172a;
+  border-color: #1f2a44;
+}
+
+.cloud-stat-value {
+  font-size: 24px;
+  font-weight: 700;
+  color: #667eea;
+  margin-bottom: 5px;
+}
+
+.cloud-stat-label {
+  font-size: 13px;
+  color: #64748b;
+}
+
+.app-container.dark .cloud-stat-label {
+  color: #94a3b8;
+}
+
+.cloud-sync-status {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr) auto;
+  gap: 15px;
+  padding: 20px;
+  background: #f8fafc;
+  border-bottom: 1px solid #e2e8f0;
+  align-items: center;
+}
+
+.app-container.dark .cloud-sync-status {
+  background: #0b1220;
+  border-bottom-color: #1f2a44;
+}
+
+.sync-status-item {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.sync-status-item span {
+  font-size: 13px;
+  color: #64748b;
+}
+
+.app-container.dark .sync-status-item span {
+  color: #94a3b8;
+}
+
+.sync-status-item strong {
+  font-size: 16px;
+  color: #1e293b;
+}
+
+.app-container.dark .sync-status-item strong {
+  color: #f1f5f9;
+}
+
+.cloud-sync-actions {
+  display: flex;
+  gap: 10px;
+  padding: 15px 20px;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.app-container.dark .cloud-sync-actions {
+  border-bottom-color: #1f2a44;
+}
+
+.cloud-sync-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px;
+}
+
+.cloud-sync-content h4 {
+  margin: 0 0 15px 0;
+  font-size: 16px;
+  color: #1e293b;
+}
+
+.app-container.dark .cloud-sync-content h4 {
+  color: #f1f5f9;
+}
+
+.cloud-empty-state {
+  text-align: center;
+  padding: 40px 20px;
+  color: #64748b;
+}
+
+.app-container.dark .cloud-empty-state {
+  color: #94a3b8;
+}
+
+.cloud-photos-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 15px;
+}
+
+.cloud-photo-card {
+  border: 2px solid #e2e8f0;
+  border-radius: 8px;
+  overflow: hidden;
+  transition: all 0.2s ease;
+}
+
+.app-container.dark .cloud-photo-card {
+  border-color: #1f2a44;
+}
+
+.cloud-photo-card:hover {
+  border-color: #667eea;
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
+}
+
+.cloud-photo-card img {
+  width: 100%;
+  height: 200px;
+  object-fit: cover;
+  display: block;
+}
+
+.cloud-photo-info {
+  padding: 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.cloud-photo-date {
+  font-size: 12px;
+  color: #64748b;
+}
+
+.app-container.dark .cloud-photo-date {
+  color: #94a3b8;
+}
+
+.cloud-badge {
+  font-size: 11px;
+  padding: 3px 8px;
+  border-radius: 4px;
+  font-weight: 600;
+}
+
+.cloud-badge.synced {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.app-container.dark .cloud-badge.synced {
+  background: #14532d;
+  color: #86efac;
+}
+
+.cloud-badge.shared {
+  background: #dbeafe;
+  color: #1e40af;
+}
+
+.app-container.dark .cloud-badge.shared {
+  background: #1e3a8a;
+  color: #93c5fd;
+}
+
+.cloud-photo-actions {
+  display: flex;
+  gap: 5px;
+  padding: 10px;
+  border-top: 1px solid #e2e8f0;
+}
+
+.app-container.dark .cloud-photo-actions {
+  border-top-color: #1f2a44;
+}
+
+.cloud-photo-actions .btn {
+  flex: 1;
+}
+
+.cloud-sync-footer {
+  padding: 20px;
+  border-top: 1px solid #e2e8f0;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.app-container.dark .cloud-sync-footer {
+  border-top-color: #1f2a44;
+}
+
+.cloud-sync-note {
+  font-size: 13px;
+  color: #64748b;
+  font-style: italic;
+  margin: 0;
+}
+
+.app-container.dark .cloud-sync-note {
+  color: #94a3b8;
+}

@@ -1,5 +1,5 @@
 import React, { useRef, useState } from 'react';
-import { PersonalInfo, PhotoFilters, PhotoHistoryItem } from '../types';
+import { PersonalInfo, PhotoFilters, PhotoHistoryItem, AIPhotoEnhancement } from '../types';
 import { logger } from '../utils/logger';
 import { t, Lang } from '../i18n';
 import { PhotoCropper } from './PhotoCropper';
@@ -365,7 +365,7 @@ export const PersonalInfoForm: React.FC<PersonalInfoFormProps> = ({ data, onChan
     }
   };
 
-  const handleCropComplete = async (croppedDataUrl: string, filters?: PhotoFilters) => {
+  const handleCropComplete = async (croppedDataUrl: string, filters?: PhotoFilters, aiEnhancements?: AIPhotoEnhancement) => {
     setShowCropper(false);
     setPhotoLoading(true);
 
@@ -388,6 +388,9 @@ export const PersonalInfoForm: React.FC<PersonalInfoFormProps> = ({ data, onChan
       };
       if (filters) {
         updates.photoFilters = filters;
+      }
+      if (aiEnhancements) {
+        updates.aiEnhancements = aiEnhancements;
       }
       onChange({ 
         ...data,
@@ -641,6 +644,7 @@ export const PersonalInfoForm: React.FC<PersonalInfoFormProps> = ({ data, onChan
             onCancel={handleCropCancel}
             language={language}
             {...(data.photoFilters ? { initialFilters: data.photoFilters } : {})}
+            {...(data.aiEnhancements ? { initialAIEnhancements: data.aiEnhancements } : {})}
           />
         )}
         {showHistory && (
