@@ -6,7 +6,23 @@
   "permissions": [
     "storage",
     "activeTab",
-    "downloads"
+    "downloads",
+    "identity"
+  ],
+  "oauth2": {
+    "client_id": "YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com",
+    "scopes": [
+      "https://www.googleapis.com/auth/drive.file",
+      "https://www.googleapis.com/auth/documents",
+      "https://www.googleapis.com/auth/spreadsheets",
+      "https://www.googleapis.com/auth/presentations"
+    ]
+  },
+  "host_permissions": [
+    "https://www.googleapis.com/*",
+    "https://docs.googleapis.com/*",
+    "https://sheets.googleapis.com/*",
+    "https://slides.googleapis.com/*"
   ],
   "action": {
     "default_popup": "popup.html",

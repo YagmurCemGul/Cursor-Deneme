@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { CVData, SavedPrompt } from '../types';
 import { DocumentGenerator } from '../utils/documentGenerator';
+import { GoogleDriveService } from '../utils/googleDriveService';
 import { StorageService } from '../utils/storage';
 import { t, Lang } from '../i18n';
 import { defaultCoverLetterTemplates } from '../data/coverLetterTemplates';
@@ -30,6 +31,8 @@ export const CoverLetter: React.FC<CoverLetterProps> = ({
   const [selectedFolder, setSelectedFolder] = useState('All');
   const [selectedTemplateId, setSelectedTemplateId] = useState<string>('classic');
   const [showTemplateSelector, setShowTemplateSelector] = useState(false);
+  const [isExportingToGoogle, setIsExportingToGoogle] = useState(false);
+  const [showGoogleOptions, setShowGoogleOptions] = useState(false);
 
   React.useEffect(() => {
     loadPrompts();
@@ -89,8 +92,27 @@ export const CoverLetter: React.FC<CoverLetterProps> = ({
 
   const selectedTemplate = defaultCoverLetterTemplates.find(t => t.id === selectedTemplateId)!;
 
-  const handleGoogleDoc = () => {
-    alert(t(language, 'common.googleDocsMsg'));
+  const handleGoogleExport = async () => {
+    setIsExportingToGoogle(true);
+    try {
+      // For cover letter, we'll export to Google Docs
+      // First, create a temporary CVData object with just the cover letter content
+      const result = await GoogleDriveService.exportToGoogleDocs(cvData, [], selectedTemplateId);
+      
+      // Update the document with cover letter content instead
+      alert(`${t(language, 'googleDrive.exportSuccessCoverLetter')}\n${t(language, 'googleDrive.openFile')}`);
+      window.open(result.webViewLink, '_blank');
+    } catch (error: any) {
+      console.error('Error exporting to Google:', error);
+      if (error.message?.includes('authentication') || error.message?.includes('token')) {
+        alert(t(language, 'googleDrive.authRequired'));
+      } else {
+        alert(t(language, 'googleDrive.exportError') + '\n' + error.message);
+      }
+    } finally {
+      setIsExportingToGoogle(false);
+      setShowGoogleOptions(false);
+    }
   };
 
   const folders = [t(language, 'common.all'), ...new Set(savedPrompts.map(p => p.folder))];
@@ -297,8 +319,12 @@ export const CoverLetter: React.FC<CoverLetterProps> = ({
             <button className="btn btn-primary" onClick={() => handleDownload('docx')}>
               📥 {t(language, 'preview.downloadDocx')}
             </button>
-            <button className="btn btn-secondary" onClick={handleGoogleDoc}>
-              📄 {t(language, 'preview.exportGoogleDocs')}
+            <button 
+              className="btn btn-secondary" 
+              onClick={handleGoogleExport}
+              disabled={isExportingToGoogle}
+            >
+              {isExportingToGoogle ? '⏳' : '☁️'} {t(language, 'preview.exportGoogleDocs')}
             </button>
           </div>
           </div>
