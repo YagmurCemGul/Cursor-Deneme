@@ -297,6 +297,11 @@ const dict: Record<string, Record<Lang, string>> = {
   'cover.emptyState': { en: 'No cover letter generated yet. Fill in your CV and job description, then click "Generate Cover Letter".', tr: 'Henüz niyet mektubu oluşturulmadı. CV\'nizi ve iş ilanını doldurun, ardından "Niyet Mektubu Oluştur" butonuna tıklayın.' },
   'cover.load': { en: 'Load', tr: 'Yükle' },
   'cover.errorGenerating': { en: 'Error generating cover letter. Please try again.', tr: 'Niyet mektubu oluşturulurken hata oluştu. Lütfen tekrar deneyin.' },
+  'cover.errorDetails': { en: 'Error details', tr: 'Hata detayları' },
+  'cover.errorNoApiKey': { en: 'AI service is not configured. Please add your API key in Settings to use AI-powered cover letter generation.', tr: 'YZ hizmeti yapılandırılmamış. YZ destekli niyet mektubu oluşturma için Ayarlar\'dan API anahtarınızı ekleyin.' },
+  'cover.errorGoToSettings': { en: 'Go to Settings tab and configure your AI provider (OpenAI, Gemini, or Claude)', tr: 'Ayarlar sekmesine gidin ve YZ sağlayıcınızı yapılandırın (OpenAI, Gemini veya Claude)' },
+  'cover.errorRateLimit': { en: 'API rate limit exceeded. Please wait a moment and try again.', tr: 'API hız sınırı aşıldı. Lütfen bir süre bekleyin ve tekrar deneyin.' },
+  'cover.errorNetwork': { en: 'Network error. Please check your internet connection and try again.', tr: 'Ağ hatası. Lütfen internet bağlantınızı kontrol edin ve tekrar deneyin.' },
   'cover.needJobDesc': { en: 'Please enter a job description first!', tr: 'Lütfen önce iş ilanı açıklamasını girin!' },
   
   // Cover Letter Templates

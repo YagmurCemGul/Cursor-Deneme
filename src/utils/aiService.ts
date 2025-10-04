@@ -6,7 +6,7 @@ export class AIService {
   private useMockMode: boolean = false;
 
   constructor(config?: AIConfig) {
-    if (config && config.apiKey) {
+    if (config && config.apiKey && config.apiKey.trim()) {
       try {
         this.provider = createAIProvider(config);
         this.useMockMode = false;
@@ -15,6 +15,7 @@ export class AIService {
         this.useMockMode = true;
       }
     } else {
+      console.warn('No API key provided - AI service running in mock mode');
       this.useMockMode = true;
     }
   }
@@ -78,17 +79,22 @@ export class AIService {
   }
 
   async generateCoverLetter(cvData: CVData, jobDescription: string, extraPrompt?: string): Promise<string> {
+    // Validate inputs
+    this.validateCoverLetterInputs(cvData, jobDescription);
+
     // If we have a real provider configured, use it
     if (!this.useMockMode && this.provider) {
       try {
         return await this.provider.generateCoverLetter(cvData, jobDescription, extraPrompt);
-      } catch (error) {
-        console.error('AI provider error, falling back to mock:', error);
-        // Fall through to mock mode
+      } catch (error: any) {
+        console.error('AI provider error:', error);
+        // Don't fall back to mock mode - let user know what went wrong
+        throw error;
       }
     }
 
-    // Mock/fallback implementation
+    // Mock/fallback implementation (when no API key is configured)
+    console.warn('Running in mock mode - no API key configured');
     try {
       // Extract job information from description
       const jobInfo = this.extractJobInfo(jobDescription);
@@ -102,7 +108,32 @@ export class AIService {
       return coverLetter;
     } catch (error) {
       console.error('Error generating cover letter:', error);
-      throw error;
+      throw new Error('Failed to generate cover letter. Please check your CV data and job description.');
+    }
+  }
+
+  /**
+   * Validate inputs for cover letter generation
+   */
+  private validateCoverLetterInputs(cvData: CVData, jobDescription: string): void {
+    if (!jobDescription || jobDescription.trim().length < 50) {
+      throw new Error('Job description is too short. Please provide a detailed job description (at least 50 characters).');
+    }
+
+    if (!cvData.personalInfo.firstName || !cvData.personalInfo.lastName) {
+      throw new Error('Please fill in your name in the Personal Information section.');
+    }
+
+    if (!cvData.personalInfo.email) {
+      throw new Error('Please fill in your email in the Personal Information section.');
+    }
+
+    if (cvData.skills.length === 0) {
+      throw new Error('Please add at least one skill to your CV.');
+    }
+
+    if (cvData.experience.length === 0) {
+      console.warn('No experience entries found - cover letter may be less effective');
     }
   }
 

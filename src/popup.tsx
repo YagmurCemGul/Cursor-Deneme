@@ -159,9 +159,24 @@ const App: React.FC = () => {
       setCVData(result.optimizedCV);
       setOptimizations(result.optimizations);
       setActiveTab('optimize');
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error optimizing CV:', error);
-      alert(t(language, 'common.errorOptimizing'));
+      
+      // Show specific error message if available
+      const errorMessage = error?.message || t(language, 'common.errorOptimizing');
+      
+      // Check if error is about missing API key
+      if (errorMessage.toLowerCase().includes('api key')) {
+        alert(
+          t(language, 'common.errorOptimizing') + '\n\n' +
+          t(language, 'cover.errorGoToSettings')
+        );
+      } else {
+        alert(
+          t(language, 'common.errorOptimizing') + '\n\n' +
+          errorMessage
+        );
+      }
     } finally {
       setIsOptimizing(false);
     }
@@ -177,9 +192,29 @@ const App: React.FC = () => {
     try {
       const letter = await aiService.generateCoverLetter(cvData, jobDescription, extraPrompt);
       setCoverLetter(letter);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error generating cover letter:', error);
-      alert(t(language, 'cover.errorGenerating'));
+      
+      // Show specific error message if available, otherwise show generic message
+      const errorMessage = error?.message || t(language, 'cover.errorGenerating');
+      
+      // Check if error is about missing API key
+      if (errorMessage.toLowerCase().includes('api key') || errorMessage.toLowerCase().includes('mock mode')) {
+        alert(
+          t(language, 'cover.errorNoApiKey') + '\n\n' +
+          t(language, 'cover.errorGoToSettings')
+        );
+      } else if (errorMessage.toLowerCase().includes('rate limit')) {
+        alert(t(language, 'cover.errorRateLimit'));
+      } else if (errorMessage.toLowerCase().includes('network')) {
+        alert(t(language, 'cover.errorNetwork'));
+      } else {
+        // Show the specific error message from the API
+        alert(
+          t(language, 'cover.errorGenerating') + '\n\n' +
+          t(language, 'cover.errorDetails') + ': ' + errorMessage
+        );
+      }
     } finally {
       setIsGeneratingCoverLetter(false);
     }
