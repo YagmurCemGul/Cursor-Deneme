@@ -24,16 +24,90 @@ export class GoogleDriveService {
   private static tokenExpiry: number = 0;
 
   /**
+   * Validate OAuth2 configuration in manifest.json
+   */
+  private static async validateOAuth2Config(): Promise<{ valid: boolean; error?: string }> {
+    try {
+      // Get the manifest
+      const manifest = chrome.runtime.getManifest();
+      const oauth2 = (manifest as any).oauth2;
+      
+      if (!oauth2) {
+        return {
+          valid: false,
+          error: 'OAuth2 configuration is missing from manifest.json'
+        };
+      }
+
+      const clientId = oauth2.client_id;
+      
+      if (!clientId) {
+        return {
+          valid: false,
+          error: 'Client ID is not configured in manifest.json'
+        };
+      }
+
+      // Check if it's still the placeholder value
+      if (clientId === 'YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com' || 
+          clientId.includes('YOUR_GOOGLE_CLIENT_ID') ||
+          clientId === 'YOUR_CLIENT_ID') {
+        return {
+          valid: false,
+          error: 'SETUP_REQUIRED'
+        };
+      }
+
+      // Validate client ID format
+      if (!clientId.endsWith('.apps.googleusercontent.com')) {
+        return {
+          valid: false,
+          error: 'Invalid Client ID format. Must end with .apps.googleusercontent.com'
+        };
+      }
+
+      return { valid: true };
+    } catch (error) {
+      return {
+        valid: false,
+        error: 'Failed to validate OAuth2 configuration'
+      };
+    }
+  }
+
+  /**
    * Initialize Google API client and authenticate
    */
   static async authenticate(): Promise<boolean> {
     try {
+      // First, validate the OAuth2 configuration
+      const validation = await this.validateOAuth2Config();
+      if (!validation.valid) {
+        const errorMsg = validation.error === 'SETUP_REQUIRED'
+          ? 'Google Drive integration requires setup. Please configure your Google Client ID in manifest.json. See GOOGLE_DRIVE_INTEGRATION.md for instructions.'
+          : validation.error;
+        throw new Error(errorMsg || 'OAuth2 configuration validation failed');
+      }
+
       // Use Chrome Identity API for OAuth2
       return new Promise((resolve, reject) => {
         chrome.identity.getAuthToken({ interactive: true }, (token) => {
           if (chrome.runtime.lastError) {
-            console.error('Auth error:', chrome.runtime.lastError);
-            reject(chrome.runtime.lastError);
+            const error = chrome.runtime.lastError;
+            console.error('Auth error:', error);
+            
+            // Provide helpful error messages
+            let errorMessage = error.message || 'Authentication failed';
+            
+            if (errorMessage.includes('bad client id')) {
+              errorMessage = 'Invalid Client ID. Please verify your Google Client ID in manifest.json matches the one from Google Cloud Console.';
+            } else if (errorMessage.includes('invalid_client')) {
+              errorMessage = 'Invalid OAuth2 client configuration. Make sure all required APIs are enabled in Google Cloud Console.';
+            } else if (errorMessage.includes('access_denied')) {
+              errorMessage = 'Access denied. Please grant the required permissions.';
+            }
+            
+            reject(new Error(errorMessage));
             return;
           }
           
@@ -42,13 +116,13 @@ export class GoogleDriveService {
             this.tokenExpiry = Date.now() + 3600000; // 1 hour
             resolve(true);
           } else {
-            reject(new Error('No token received'));
+            reject(new Error('No authentication token received from Google'));
           }
         });
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error('Authentication failed:', error);
-      return false;
+      throw error;
     }
   }
 
