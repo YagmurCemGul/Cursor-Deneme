@@ -42,6 +42,17 @@ export class ErrorBoundary extends Component<Props, State> {
       errorInfo,
     });
 
+    // Track error for frequency analysis
+    import('../utils/errorTracking').then(({ ErrorTrackingService }) => {
+      ErrorTrackingService.trackError(error, 'React Component', {
+        componentStack: errorInfo.componentStack,
+      }).catch(() => {
+        // Silently fail to avoid infinite loops
+      });
+    }).catch(() => {
+      // Silently fail if error tracking is not available
+    });
+
     // Call optional error handler
     if (this.props.onError) {
       this.props.onError(error, errorInfo);

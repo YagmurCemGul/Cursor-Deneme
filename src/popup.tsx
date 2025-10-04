@@ -19,6 +19,7 @@ import { GoogleDriveSettings } from './components/GoogleDriveSettings';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { ATSScoreCard } from './components/ATSScoreCard';
 import { AnalyticsDashboard } from './components/AnalyticsDashboard';
+import { ErrorMonitoringDashboard } from './components/ErrorMonitoringDashboard';
 import { aiService } from './utils/aiService';
 import { AIConfig } from './utils/aiProviders';
 import { StorageService } from './utils/storage';
@@ -28,7 +29,7 @@ import { performanceMonitor } from './utils/performance';
 import { t } from './i18n';
 import './styles.css';
 
-type TabType = 'cv-info' | 'optimize' | 'cover-letter' | 'profiles' | 'settings' | 'analytics';
+type TabType = 'cv-info' | 'optimize' | 'cover-letter' | 'profiles' | 'settings' | 'analytics' | 'error-monitoring';
 type Theme = 'light' | 'dark' | 'system';
 type Language = 'en' | 'tr';
 
@@ -137,6 +138,15 @@ const App: React.FC = () => {
 
     // Initialize AI service with saved configuration
     await initializeAIService();
+    
+    // Start error prevention monitoring
+    import('./utils/errorPrevention').then(({ ErrorPreventionService }) => {
+      ErrorPreventionService.startMonitoring();
+      logger.info('Error prevention monitoring started');
+    }).catch((error) => {
+      logger.error('Failed to start error prevention monitoring:', error);
+    });
+
     // Restore settings
     const settings = await StorageService.getSettings<{
       theme?: Theme;
@@ -627,6 +637,15 @@ const App: React.FC = () => {
         >
           📊 {t(language, 'analytics.title')}
         </button>
+        <button
+          className={`tab ${activeTab === 'error-monitoring' ? 'active' : ''}`}
+          onClick={() => setActiveTab('error-monitoring')}
+          role="tab"
+          aria-selected={activeTab === 'error-monitoring'}
+          aria-label="Error Monitoring"
+        >
+          🔍 Error Monitor
+        </button>
       </div>
 
       <div className="content">
@@ -763,6 +782,10 @@ const App: React.FC = () => {
 
         {activeTab === 'analytics' && (
           <AnalyticsDashboard language={language} />
+        )}
+
+        {activeTab === 'error-monitoring' && (
+          <ErrorMonitoringDashboard />
         )}
       </div>
     </div>

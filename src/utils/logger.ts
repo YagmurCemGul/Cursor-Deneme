@@ -104,7 +104,7 @@ class Logger {
   }
 
   /**
-   * Logs an error message
+   * Logs an error message and tracks it for frequency analysis
    * 
    * @param {string} message - The message to log
    * @param {Error|any} [error] - Optional error object
@@ -114,6 +114,18 @@ class Logger {
   error(message: string, error?: Error | any, ...args: any[]): void {
     if (this.shouldLog(LogLevel.ERROR)) {
       console.error(this.formatMessage('ERROR', message), error, ...args);
+      
+      // Track error for frequency analysis
+      // Import dynamically to avoid circular dependencies
+      import('./errorTracking').then(({ ErrorTrackingService }) => {
+        const errorObj = error instanceof Error ? error : new Error(message);
+        const metadata = args.length > 0 ? { additionalData: args } : undefined;
+        ErrorTrackingService.trackError(errorObj, this.prefix, metadata).catch(() => {
+          // Silently fail to avoid infinite loops
+        });
+      }).catch(() => {
+        // Silently fail if error tracking is not available
+      });
     }
   }
 
