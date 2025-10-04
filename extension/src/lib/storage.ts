@@ -10,9 +10,11 @@ const STORAGE_KEYS = {
 } as const;
 
 type Options = {
-  apiProvider?: 'openai' | 'azure';
+  apiProvider?: 'openai' | 'azure' | 'gemini' | 'claude';
   apiKey?: string;
   language?: 'tr' | 'en';
+  aiModel?: string;
+  aiTemperature?: number;
 };
 
 export const storage = {

@@ -839,6 +839,12 @@ body:has(.app-container.dark) {
   transform: translateY(-2px);
 }
 
+.card.selected {
+  border: 2px solid #4f46e5;
+  background: rgba(79, 70, 229, 0.05);
+  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+}
+
 .card-header {
   display: flex;
   justify-content: space-between;

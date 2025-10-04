@@ -98,4 +98,36 @@ export class StorageService {
     const { apiKey = null } = await chrome.storage.local.get('apiKey');
     return apiKey;
   }
+
+  // Multi-AI Provider API Keys
+  static async saveAPIKeys(apiKeys: import('../types/storage').AIApiKeys): Promise<void> {
+    await chrome.storage.local.set({ aiApiKeys: apiKeys });
+  }
+
+  static async getAPIKeys(): Promise<import('../types/storage').AIApiKeys> {
+    const { aiApiKeys = {} } = await chrome.storage.local.get('aiApiKeys');
+    return aiApiKeys;
+  }
+
+  static async saveAIProvider(provider: 'openai' | 'gemini' | 'claude'): Promise<void> {
+    const settings = await this.getSettings() || {};
+    settings.aiProvider = provider;
+    await this.saveSettings(settings);
+  }
+
+  static async getAIProvider(): Promise<'openai' | 'gemini' | 'claude'> {
+    const settings = await this.getSettings() as any;
+    return settings?.aiProvider || 'openai';
+  }
+
+  static async saveAIModel(model: string): Promise<void> {
+    const settings = await this.getSettings() || {};
+    (settings as any).aiModel = model;
+    await this.saveSettings(settings);
+  }
+
+  static async getAIModel(): Promise<string | undefined> {
+    const settings = await this.getSettings() as any;
+    return settings?.aiModel;
+  }
 }

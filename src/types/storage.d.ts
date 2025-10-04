@@ -14,7 +14,7 @@ export type StorageKey = typeof STORAGE_KEYS[keyof typeof STORAGE_KEYS];
 
 export interface ChromeStorageData {
   [STORAGE_KEYS.PROFILE_DATA]?: import('../types').CVData;
-  [STORAGE_KEYS.API_KEYS]?: Record<string, string>;
+  [STORAGE_KEYS.API_KEYS]?: AIApiKeys;
   [STORAGE_KEYS.SETTINGS]?: AppSettings;
   [STORAGE_KEYS.TEMPLATES]?: import('../types').CVTemplate[];
   [STORAGE_KEYS.APPLICATIONS]?: JobApplication[];
@@ -28,6 +28,14 @@ export interface AppSettings {
   autoSave: boolean;
   defaultTemplate: string;
   aiProvider: 'openai' | 'gemini' | 'claude';
+  aiModel?: string; // Optional model selection for the provider
+  aiTemperature?: number; // Temperature setting for AI responses (0-1)
+}
+
+export interface AIApiKeys {
+  openai?: string;
+  gemini?: string;
+  claude?: string;
 }
 
 export interface JobApplication {
