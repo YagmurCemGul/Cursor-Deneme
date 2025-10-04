@@ -3,6 +3,7 @@ import { Experience } from '../types';
 import { t, Lang } from '../i18n';
 import { RichTextEditor } from './RichTextEditor';
 import { LocationSelector } from './LocationSelector';
+import { DateInput } from './DateInput';
 
 interface ExperienceFormProps {
   experiences: Experience[];
@@ -21,6 +22,7 @@ export const ExperienceForm: React.FC<ExperienceFormProps> = ({ experiences, onC
       company: '',
       startDate: '',
       endDate: '',
+      currentlyWorking: false,
       location: '',
       country: '',
       city: '',
@@ -128,25 +130,39 @@ export const ExperienceForm: React.FC<ExperienceFormProps> = ({ experiences, onC
               </div>
               
               <div className="form-row">
-                <div className="form-group">
-                  <label className="form-label">{t(language, 'experience.start')} *</label>
-                  <input
-                    type="month"
-                    className="form-input"
-                    value={exp.startDate}
-                    onChange={(e) => handleUpdate(exp.id, 'startDate', e.target.value)}
-                  />
-                </div>
+                <DateInput
+                  label={t(language, 'experience.start')}
+                  value={exp.startDate}
+                  onChange={(value) => handleUpdate(exp.id, 'startDate', value)}
+                  required={true}
+                  language={language}
+                />
                 
-                <div className="form-group">
-                  <label className="form-label">{t(language, 'experience.end')}</label>
+                <DateInput
+                  label={t(language, 'experience.end')}
+                  value={exp.endDate}
+                  onChange={(value) => handleUpdate(exp.id, 'endDate', value)}
+                  disabled={exp.currentlyWorking}
+                  language={language}
+                  startDate={exp.startDate}
+                  placeholder={t(language, 'experience.present')}
+                />
+              </div>
+
+              <div className="form-group current-work-checkbox">
+                <div className="checkbox-item">
                   <input
-                    type="month"
-                    className="form-input"
-                    value={exp.endDate}
-                    onChange={(e) => handleUpdate(exp.id, 'endDate', e.target.value)}
-                    placeholder={t(language, 'experience.present')}
+                    type="checkbox"
+                    id={`current-${exp.id}`}
+                    checked={!!exp.currentlyWorking}
+                    onChange={(e) => {
+                      handleUpdate(exp.id, 'currentlyWorking', e.target.checked);
+                      if (e.target.checked) {
+                        handleUpdate(exp.id, 'endDate', '');
+                      }
+                    }}
                   />
+                  <label htmlFor={`current-${exp.id}`}>{t(language, 'experience.currentlyWorking')}</label>
                 </div>
               </div>
               

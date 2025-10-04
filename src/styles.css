@@ -2504,3 +2504,67 @@ body:has(.app-container.dark) {
 .app-container.dark .location-search-input:focus {
   outline-color: #60a5fa;
 }
+
+/* Date Input Error and Hint Styles */
+.form-input-error {
+  border-color: #ef4444 !important;
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1) !important;
+}
+
+.app-container.dark .form-input-error {
+  border-color: #f87171 !important;
+  box-shadow: 0 0 0 3px rgba(248, 113, 113, 0.1) !important;
+}
+
+.form-error {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 6px;
+  font-size: 12px;
+  color: #dc2626;
+  font-weight: 500;
+}
+
+.app-container.dark .form-error {
+  color: #f87171;
+}
+
+.form-hint {
+  margin-top: 4px;
+  font-size: 12px;
+  color: #64748b;
+  font-style: italic;
+}
+
+.app-container.dark .form-hint {
+  color: #94a3b8;
+}
+
+/* Currently Working/Studying Checkbox */
+.current-work-checkbox {
+  margin-bottom: 15px;
+}
+
+.current-work-checkbox .checkbox-item {
+  padding: 10px;
+  background: #f8fafc;
+  border-radius: 6px;
+  border: 1px solid #e2e8f0;
+  transition: all 0.2s;
+}
+
+.current-work-checkbox .checkbox-item:hover {
+  background: #f1f5f9;
+  border-color: #cbd5e1;
+}
+
+.app-container.dark .current-work-checkbox .checkbox-item {
+  background: #1e293b;
+  border-color: #334155;
+}
+
+.app-container.dark .current-work-checkbox .checkbox-item:hover {
+  background: #334155;
+  border-color: #475569;
+}

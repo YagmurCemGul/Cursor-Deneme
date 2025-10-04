@@ -3,6 +3,7 @@ import { Project } from '../types';
 import { t, Lang } from '../i18n';
 import { RichTextEditor } from './RichTextEditor';
 import { LocationSelector } from './LocationSelector';
+import { DateInput } from './DateInput';
 
 interface ProjectsFormProps {
   projects: Project[];
@@ -108,35 +109,35 @@ export const ProjectsForm: React.FC<ProjectsFormProps> = ({ projects, onChange, 
               </div>
               
               <div className="form-row">
-                <div className="form-group">
-                  <label className="form-label">{t(language, 'projects.start')}</label>
-                  <input
-                    type="month"
-                    className="form-input"
-                    value={proj.startDate}
-                    onChange={(e) => handleUpdate(proj.id, 'startDate', e.target.value)}
-                  />
-                </div>
+                <DateInput
+                  label={t(language, 'projects.start')}
+                  value={proj.startDate}
+                  onChange={(value) => handleUpdate(proj.id, 'startDate', value)}
+                  language={language}
+                />
                 
-                <div className="form-group">
-                  <label className="form-label">{t(language, 'projects.end')}</label>
-                  <input
-                    type="month"
-                    className="form-input"
-                    value={proj.endDate}
-                    onChange={(e) => handleUpdate(proj.id, 'endDate', e.target.value)}
-                    disabled={proj.currentlyWorking}
-                  />
-                </div>
+                <DateInput
+                  label={t(language, 'projects.end')}
+                  value={proj.endDate}
+                  onChange={(value) => handleUpdate(proj.id, 'endDate', value)}
+                  disabled={proj.currentlyWorking}
+                  language={language}
+                  startDate={proj.startDate}
+                />
               </div>
               
-              <div className="form-group">
+              <div className="form-group current-work-checkbox">
                 <div className="checkbox-item">
                   <input
                     type="checkbox"
                     id={`currently-working-${proj.id}`}
                     checked={proj.currentlyWorking}
-                    onChange={(e) => handleUpdate(proj.id, 'currentlyWorking', e.target.checked)}
+                    onChange={(e) => {
+                      handleUpdate(proj.id, 'currentlyWorking', e.target.checked);
+                      if (e.target.checked) {
+                        handleUpdate(proj.id, 'endDate', '');
+                      }
+                    }}
                   />
                   <label htmlFor={`currently-working-${proj.id}`}>
                     {t(language, 'projects.currently')}

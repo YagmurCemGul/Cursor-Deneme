@@ -201,7 +201,7 @@ export class DocumentGenerator {
             new Paragraph({
               children: [
                 new TextRun({ 
-                  text: `${exp.startDate} - ${exp.endDate} | ${exp.location}`,
+                  text: `${exp.startDate} - ${exp.currentlyWorking ? 'Present' : (exp.endDate || 'Present')} | ${exp.location}`,
                   italics: true 
                 }),
               ],
@@ -228,7 +228,7 @@ export class DocumentGenerator {
             new Paragraph({
               children: [
                 new TextRun({ 
-                  text: `${edu.startDate} - ${edu.endDate}`,
+                  text: `${edu.startDate} - ${edu.currentlyStudying ? 'Expected' : edu.endDate}`,
                   italics: true 
                 }),
               ],
@@ -372,7 +372,7 @@ export class DocumentGenerator {
         doc.setFontSize(9);
         doc.setFont('helvetica', 'italic');
         doc.setTextColor(textColor[0], textColor[1], textColor[2]);
-        doc.text(`${exp.startDate} - ${exp.endDate} | ${exp.location}`, 20, yPosition);
+        doc.text(`${exp.startDate} - ${exp.currentlyWorking ? 'Present' : (exp.endDate || 'Present')} | ${exp.location}`, 20, yPosition);
         yPosition += 6;
         
         doc.setFontSize(10);
@@ -418,7 +418,7 @@ export class DocumentGenerator {
         
         doc.setFontSize(9);
         doc.setFont('helvetica', 'italic');
-        doc.text(`${edu.startDate} - ${edu.endDate}`, 20, yPosition);
+        doc.text(`${edu.startDate} - ${edu.currentlyStudying ? 'Expected' : edu.endDate}`, 20, yPosition);
         yPosition += 8;
       });
     }

@@ -20,6 +20,7 @@ export interface Experience {
   company: string;
   startDate: string;
   endDate: string;
+  currentlyWorking?: boolean;
   location: string; // backward compatibility string
   country?: string; // ISO country name
   city?: string;
