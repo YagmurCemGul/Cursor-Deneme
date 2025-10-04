@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { Experience } from '../types';
-import { countries, citiesByCountry } from '../data/locations';
 import { t, Lang } from '../i18n';
 import { RichTextEditor } from './RichTextEditor';
+import { LocationSelector } from './LocationSelector';
 
 interface ExperienceFormProps {
   experiences: Experience[];
@@ -150,45 +150,19 @@ export const ExperienceForm: React.FC<ExperienceFormProps> = ({ experiences, onC
                 </div>
               </div>
               
-              <div className="form-row">
-                <div className="form-group">
-                  <label className="form-label">{t(language, 'experience.country')}</label>
-                  <select
-                    className="form-select"
-                    value={exp.country || ''}
-                    onChange={(e) => {
-                      const country = e.target.value;
-                      const firstCity = country ? citiesByCountry[country]?.[0] || '' : '';
-                      handleUpdate(exp.id, 'country', country);
-                      handleUpdate(exp.id, 'city', firstCity);
-                      handleUpdate(exp.id, 'location', country && firstCity ? `${firstCity}, ${country}` : country || '');
-                    }}
-                  >
-                    <option value="">{t(language, 'experience.selectCountry')}</option>
-                    {countries.map((c) => (
-                      <option key={c} value={c}>{c}</option>
-                    ))}
-                  </select>
-                </div>
-                <div className="form-group">
-                  <label className="form-label">{t(language, 'experience.city')}</label>
-                  <select
-                    className="form-select"
-                    value={exp.city || ''}
-                    onChange={(e) => {
-                      const city = e.target.value;
-                      handleUpdate(exp.id, 'city', city);
-                      handleUpdate(exp.id, 'location', exp.country && city ? `${city}, ${exp.country}` : city);
-                    }}
-                    disabled={!exp.country}
-                  >
-                    <option value="">{exp.country ? t(language, 'experience.selectCity') : t(language, 'experience.selectCountryFirst')}</option>
-                    {(exp.country ? citiesByCountry[exp.country] || [] : []).map((ct) => (
-                      <option key={ct} value={ct}>{ct}</option>
-                    ))}
-                  </select>
-                </div>
-              </div>
+              <LocationSelector
+                country={exp.country || ''}
+                city={exp.city || ''}
+                onCountryChange={(country) => {
+                  handleUpdate(exp.id, 'country', country);
+                  handleUpdate(exp.id, 'location', country && exp.city ? `${exp.city}, ${country}` : country || '');
+                }}
+                onCityChange={(city) => {
+                  handleUpdate(exp.id, 'city', city);
+                  handleUpdate(exp.id, 'location', exp.country && city ? `${city}, ${exp.country}` : exp.country || '');
+                }}
+                language={language}
+              />
 
               <div className="form-group">
                 <label className="form-label">{t(language, 'experience.locationType')}</label>
@@ -239,7 +213,6 @@ export const ExperienceForm: React.FC<ExperienceFormProps> = ({ experiences, onC
                         (e.target as HTMLInputElement).value = '';
                       }
                     }}
-                    className="flex-input"
                   />
                 </div>
                 {exp.skills.length > 0 && (
