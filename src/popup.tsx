@@ -57,6 +57,7 @@ const App: React.FC = () => {
   const [language, setLanguage] = useState<Language>('en');
   const [systemPrefersDark, setSystemPrefersDark] = useState(false);
   const [focusedOptimizationId, setFocusedOptimizationId] = useState<string | null>(null);
+  const [selectedTemplateId, setSelectedTemplateId] = useState<string>('classic');
 
   useEffect(() => {
     loadInitial();
@@ -90,9 +91,10 @@ const App: React.FC = () => {
     const key = await StorageService.getAPIKey();
     if (key) setApiKey(key);
     // Restore settings
-    const settings = await StorageService.getSettings<{ theme?: Theme; language?: Language }>();
+    const settings = await StorageService.getSettings<{ theme?: Theme; language?: Language; templateId?: string }>();
     if (settings?.theme) setTheme(settings.theme);
     if (settings?.language) setLanguage(settings.language);
+    if (settings?.templateId) setSelectedTemplateId(settings.templateId);
     // Restore draft
     const draft = await StorageService.getDraft<{
       activeTab: TabType;
@@ -123,10 +125,10 @@ const App: React.FC = () => {
   // Persist settings
   useEffect(() => {
     const timeout = setTimeout(() => {
-      StorageService.saveSettings({ theme, language });
+      StorageService.saveSettings({ theme, language, templateId: selectedTemplateId });
     }, 200);
     return () => clearTimeout(timeout);
-  }, [theme, language]);
+  }, [theme, language, selectedTemplateId]);
 
   const handleCVParsed = (parsedData: Partial<CVData>) => {
     setCVData(prev => ({
@@ -326,6 +328,7 @@ const App: React.FC = () => {
               optimizations={optimizations}
               language={language}
               focusedOptimizationId={focusedOptimizationId}
+              templateId={selectedTemplateId}
             />
           </>
         )}
@@ -348,6 +351,8 @@ const App: React.FC = () => {
             currentProfileName={profileName}
             onProfileNameChange={setProfileName}
             language={language}
+            currentTemplateId={selectedTemplateId}
+            onTemplateChange={setSelectedTemplateId}
           />
         )}
       </div>

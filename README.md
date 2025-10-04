@@ -4,6 +4,13 @@ A powerful Chrome Extension that uses AI to optimize your CV and generate ATS-fr
 
 ## 🌟 Features
 
+### CV Templates
+- **🎨 8 Professional Templates**: Choose from Classic, Modern, Executive, Creative, Compact, Academic, Tech, and Startup styles
+- **🎯 Industry-Specific**: Templates tailored for different industries and career levels
+- **🖌️ Full Customization**: Each template with unique colors, fonts, and layouts
+- **👁️ Live Preview**: See how each template looks before selecting
+- **💾 Persistent Selection**: Your template choice is saved automatically
+
 ### CV Management
 - **📄 CV Upload**: Upload your existing CV in PDF or DOCX format with automatic parsing
 - **👤 Complete Profile Form**: Comprehensive forms for:
@@ -46,7 +53,9 @@ A powerful Chrome Extension that uses AI to optimize your CV and generate ATS-fr
 
 ### Profile & Template Management
 - **💾 Save Profiles**: Save multiple CV profiles for different job types
-- **📁 Template System**: Save CV templates for quick reuse
+- **🎨 Professional Templates**: 8 pre-made CV templates (Classic, Modern, Executive, Creative, Compact, Academic, Tech, Startup)
+- **📋 Template Gallery**: Browse and preview all available templates
+- **✨ Template Customization**: Each template with unique color schemes and layouts
 - **✏️ Editable Names**: Rename profiles and organize them
 - **🔄 Quick Loading**: Load saved profiles with one click
 
@@ -221,7 +230,11 @@ ai-cv-optimizer/
 ✅ Resume writing rules implementation
 ✅ Cover letter writing rules implementation
 ✅ Auto-fill from uploaded CV
-✅ Template system
+✅ **8 Professional CV Templates**
+✅ **Template Selection UI with Preview**
+✅ **Template-based PDF/DOCX Export**
+✅ **Industry-Specific Template Designs**
+✅ **Color Schemes and Layout Options**
 
 ## 🎨 UI Components
 
