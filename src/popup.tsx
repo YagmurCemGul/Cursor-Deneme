@@ -19,6 +19,7 @@ import { GoogleDriveSettings } from './components/GoogleDriveSettings';
 import { aiService } from './utils/aiService';
 import { AIConfig } from './utils/aiProviders';
 import { StorageService } from './utils/storage';
+import { applyCVOptimizations } from './utils/cvOptimizer';
 import { t } from './i18n';
 import './styles.css';
 
@@ -50,6 +51,8 @@ const App: React.FC = () => {
     projects: [],
     customQuestions: []
   });
+  // Store the original CV data before optimizations are applied
+  const [originalCVData, setOriginalCVData] = useState<CVData | null>(null);
   const [optimizations, setOptimizations] = useState<ATSOptimization[]>([]);
   const [coverLetter, setCoverLetter] = useState('');
   const [isOptimizing, setIsOptimizing] = useState(false);
@@ -106,6 +109,7 @@ const App: React.FC = () => {
       activeTab: TabType;
       jobDescription: string;
       cvData: CVData;
+      originalCVData?: CVData;
       optimizations: ATSOptimization[];
       coverLetter: string;
       profileName: string;
@@ -114,6 +118,7 @@ const App: React.FC = () => {
       setActiveTab(draft.activeTab || 'cv-info');
       setJobDescription(draft.jobDescription || '');
       setCVData(draft.cvData || cvData);
+      setOriginalCVData(draft.originalCVData || null);
       setOptimizations(draft.optimizations || []);
       setCoverLetter(draft.coverLetter || '');
       setProfileName(draft.profileName || '');
@@ -123,10 +128,10 @@ const App: React.FC = () => {
   // Autosave draft when critical state changes
   useEffect(() => {
     const timeout = setTimeout(() => {
-      StorageService.saveDraft({ activeTab, jobDescription, cvData, optimizations, coverLetter, profileName });
+      StorageService.saveDraft({ activeTab, jobDescription, cvData, originalCVData, optimizations, coverLetter, profileName });
     }, 400);
     return () => clearTimeout(timeout);
-  }, [activeTab, jobDescription, cvData, optimizations, coverLetter, profileName]);
+  }, [activeTab, jobDescription, cvData, originalCVData, optimizations, coverLetter, profileName]);
 
   // Persist settings
   useEffect(() => {
@@ -145,6 +150,19 @@ const App: React.FC = () => {
         ...parsedData.personalInfo
       }
     }));
+    // Clear optimizations when CV is re-uploaded
+    setOptimizations([]);
+    setOriginalCVData(null);
+  };
+
+  // Handler to update CV data and clear optimizations (when manually editing)
+  const handleCVDataChange = (newCVData: CVData) => {
+    setCVData(newCVData);
+    // If there are optimizations active and user manually edits, clear them
+    if (optimizations.length > 0) {
+      setOptimizations([]);
+      setOriginalCVData(null);
+    }
   };
 
   const handleOptimizeCV = async () => {
@@ -156,7 +174,9 @@ const App: React.FC = () => {
     setIsOptimizing(true);
     try {
       const result = await aiService.optimizeCV(cvData, jobDescription);
-      setCVData(result.optimizedCV);
+      // Store the original CV data before any optimizations
+      setOriginalCVData(JSON.parse(JSON.stringify(cvData)));
+      // Set optimizations (all initially unapplied)
       setOptimizations(result.optimizations);
       setActiveTab('optimize');
     } catch (error: any) {
@@ -179,6 +199,17 @@ const App: React.FC = () => {
       }
     } finally {
       setIsOptimizing(false);
+    }
+  };
+
+  // Handle optimization changes - apply optimizations to original CV data
+  const handleOptimizationsChange = (newOptimizations: ATSOptimization[]) => {
+    setOptimizations(newOptimizations);
+    
+    // Apply optimizations to the original CV data
+    if (originalCVData) {
+      const optimizedCV = applyCVOptimizations(originalCVData, newOptimizations);
+      setCVData(optimizedCV);
     }
   };
 
@@ -264,6 +295,9 @@ const App: React.FC = () => {
     setCVData(profile.data);
     setProfileName(profile.name);
     setActiveTab('cv-info');
+    // Clear optimizations when loading a new profile
+    setOptimizations([]);
+    setOriginalCVData(null);
     alert(t(language, 'profile.loadSuccess'));
   };
 
@@ -333,43 +367,43 @@ const App: React.FC = () => {
             
             <PersonalInfoForm 
               data={cvData.personalInfo}
-              onChange={(personalInfo) => setCVData({ ...cvData, personalInfo })}
+              onChange={(personalInfo) => handleCVDataChange({ ...cvData, personalInfo })}
               language={language}
             />
             
             <SkillsForm 
               skills={cvData.skills}
-              onChange={(skills) => setCVData({ ...cvData, skills })}
+              onChange={(skills) => handleCVDataChange({ ...cvData, skills })}
               language={language}
             />
             
             <ExperienceForm 
               experiences={cvData.experience}
-              onChange={(experience) => setCVData({ ...cvData, experience })}
+              onChange={(experience) => handleCVDataChange({ ...cvData, experience })}
               language={language}
             />
             
             <EducationForm 
               education={cvData.education}
-              onChange={(education) => setCVData({ ...cvData, education })}
+              onChange={(education) => handleCVDataChange({ ...cvData, education })}
               language={language}
             />
             
             <CertificationsForm 
               certifications={cvData.certifications}
-              onChange={(certifications) => setCVData({ ...cvData, certifications })}
+              onChange={(certifications) => handleCVDataChange({ ...cvData, certifications })}
               language={language}
             />
             
             <ProjectsForm 
               projects={cvData.projects}
-              onChange={(projects) => setCVData({ ...cvData, projects })}
+              onChange={(projects) => handleCVDataChange({ ...cvData, projects })}
               language={language}
             />
             
             <CustomQuestionsForm 
               questions={cvData.customQuestions}
-              onChange={(customQuestions) => setCVData({ ...cvData, customQuestions })}
+              onChange={(customQuestions) => handleCVDataChange({ ...cvData, customQuestions })}
               language={language}
             />
             
@@ -390,7 +424,7 @@ const App: React.FC = () => {
           <>
             <ATSOptimizations 
               optimizations={optimizations}
-              onChange={setOptimizations}
+              onChange={handleOptimizationsChange}
               language={language}
               onOptimizationFocus={setFocusedOptimizationId}
               focusedOptimizationId={focusedOptimizationId}

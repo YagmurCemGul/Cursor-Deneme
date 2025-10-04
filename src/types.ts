@@ -101,6 +101,7 @@ export interface ATSOptimization {
   originalText: string;
   optimizedText: string;
   applied: boolean;
+  section?: string; // Which CV section this applies to (e.g., 'summary', 'experience', 'skills')
 }
 
 export interface SavedPrompt {
