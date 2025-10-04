@@ -79,6 +79,7 @@ export class DocumentGenerator {
                         alignment: AlignmentType.CENTER,
                         children: [
                           new ImageRun({
+                            type: 'png',
                             data: photoBuffer,
                             transformation: {
                               width: 100,
