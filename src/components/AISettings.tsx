@@ -98,14 +98,21 @@ export const AISettings: React.FC<AISettingsProps> = ({ language, onConfigChange
     setSaveMessage('');
     
     try {
+      // Get current settings first to avoid race conditions
+      const currentSettings = await StorageService.getSettings() || {};
+      
+      // Update all settings in one object to prevent race conditions
+      const updatedSettings = {
+        ...currentSettings,
+        aiProvider: provider,
+        aiModel: model,
+        aiTemperature: temperature
+      };
+      
+      // Save everything together
       await Promise.all([
-        StorageService.saveAIProvider(provider),
         StorageService.saveAPIKeys(apiKeys),
-        StorageService.saveAIModel(model),
-        StorageService.saveSettings({
-          ...await StorageService.getSettings() || {},
-          aiTemperature: temperature
-        })
+        StorageService.saveSettings(updatedSettings)
       ]);
 
       setSaveMessage(t(language, 'settings.saveSuccess'));
