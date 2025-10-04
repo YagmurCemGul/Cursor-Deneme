@@ -16,7 +16,7 @@ class Logger {
 
   constructor(prefix: string = '[AI-CV-Optimizer]') {
     this.prefix = prefix;
-    
+
     // Set log level based on environment
     if (process.env.NODE_ENV === 'development') {
       this.level = LogLevel.DEBUG;

@@ -10,7 +10,7 @@ import {
   extractLinkedInUsername,
   extractGitHubUsername,
   buildWhatsAppLink,
-  ValidationResult
+  ValidationResult,
 } from '../utils/urlValidation';
 
 interface PersonalInfoFormProps {
@@ -20,25 +20,44 @@ interface PersonalInfoFormProps {
 }
 
 export const PersonalInfoForm: React.FC<PersonalInfoFormProps> = ({ data, onChange, language }) => {
-  const [emailValidation, setEmailValidation] = useState<{ isValid: boolean; message: string }>({ isValid: true, message: '' });
+  const [emailValidation, setEmailValidation] = useState<{ isValid: boolean; message: string }>({
+    isValid: true,
+    message: '',
+  });
   const [emailSuggestions, setEmailSuggestions] = useState<string[]>([]);
   const [showEmailSuggestions, setShowEmailSuggestions] = useState(false);
   const [photoError, setPhotoError] = useState<string>('');
   const [photoLoading, setPhotoLoading] = useState(false);
   const [showCropper, setShowCropper] = useState(false);
   const [tempPhotoUrl, setTempPhotoUrl] = useState<string>('');
-  
+
   // URL validation states
-  const [linkedInValidation, setLinkedInValidation] = useState<ValidationResult>({ isValid: true, message: '', type: '' });
-  const [githubValidation, setGithubValidation] = useState<ValidationResult>({ isValid: true, message: '', type: '' });
-  const [portfolioValidation, setPortfolioValidation] = useState<ValidationResult>({ isValid: true, message: '', type: '' });
-  const [whatsappValidation, setWhatsappValidation] = useState<ValidationResult>({ isValid: true, message: '', type: '' });
-  
+  const [linkedInValidation, setLinkedInValidation] = useState<ValidationResult>({
+    isValid: true,
+    message: '',
+    type: '',
+  });
+  const [githubValidation, setGithubValidation] = useState<ValidationResult>({
+    isValid: true,
+    message: '',
+    type: '',
+  });
+  const [portfolioValidation, setPortfolioValidation] = useState<ValidationResult>({
+    isValid: true,
+    message: '',
+    type: '',
+  });
+  const [whatsappValidation, setWhatsappValidation] = useState<ValidationResult>({
+    isValid: true,
+    message: '',
+    type: '',
+  });
+
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   const handleChange = (field: keyof PersonalInfo, value: string) => {
     let processedValue = value;
-    
+
     // Handle URL field validations and auto-extraction
     if (field === 'linkedInUsername') {
       processedValue = extractLinkedInUsername(value);
@@ -51,9 +70,9 @@ export const PersonalInfoForm: React.FC<PersonalInfoFormProps> = ({ data, onChan
     } else if (field === 'whatsappLink') {
       setWhatsappValidation(validateWhatsAppLink(value));
     }
-    
+
     onChange({ ...data, [field]: processedValue });
-    
+
     // Enhanced email validation and suggestions
     if (field === 'email') {
       validateEmail(value);
@@ -64,43 +83,45 @@ export const PersonalInfoForm: React.FC<PersonalInfoFormProps> = ({ data, onChan
   const validateEmail = (email: string) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
     const commonDomains = ['gmail.com', 'yahoo.com', 'outlook.com', 'hotmail.com', 'icloud.com'];
-    
+
     if (!email) {
       setEmailValidation({ isValid: true, message: '' });
       return;
     }
-    
+
     if (!emailRegex.test(email)) {
       setEmailValidation({ isValid: false, message: t(language, 'personal.invalidEmailFormat') });
       return;
     }
-    
+
     // Check for common typos in domain
     const [localPart, domain] = email.split('@');
     if (!domain || !localPart) {
       setEmailValidation({ isValid: false, message: t(language, 'personal.invalidEmailFormat') });
       return;
     }
-    
-    const domainSuggestions = commonDomains.filter(d => 
-      d.includes(domain) || domain.includes(d) || 
-      calculateLevenshteinDistance(domain, d) <= 2
+
+    const domainSuggestions = commonDomains.filter(
+      (d) =>
+        d.includes(domain) || domain.includes(d) || calculateLevenshteinDistance(domain, d) <= 2
     );
-    
+
     if (domainSuggestions.length > 0 && !commonDomains.includes(domain) && domainSuggestions[0]) {
-      setEmailValidation({ 
-        isValid: false, 
-        message: `${t(language, 'personal.didYouMean')} ${localPart}@${domainSuggestions[0]}?` 
+      setEmailValidation({
+        isValid: false,
+        message: `${t(language, 'personal.didYouMean')} ${localPart}@${domainSuggestions[0]}?`,
       });
       return;
     }
-    
+
     setEmailValidation({ isValid: true, message: t(language, 'personal.validEmail') });
   };
 
   const calculateLevenshteinDistance = (str1: string, str2: string): number => {
-    const matrix = Array(str2.length + 1).fill(null).map(() => Array(str1.length + 1).fill(0));
-    
+    const matrix = Array(str2.length + 1)
+      .fill(null)
+      .map(() => Array(str1.length + 1).fill(0));
+
     for (let i = 0; i <= str1.length; i++) {
       const row = matrix[0];
       if (row) row[i] = i;
@@ -109,7 +130,7 @@ export const PersonalInfoForm: React.FC<PersonalInfoFormProps> = ({ data, onChan
       const row = matrix[j];
       if (row) row[0] = j;
     }
-    
+
     for (let j = 1; j <= str2.length; j++) {
       for (let i = 1; i <= str1.length; i++) {
         const indicator = str1[i - 1] === str2[j - 1] ? 0 : 1;
@@ -124,7 +145,7 @@ export const PersonalInfoForm: React.FC<PersonalInfoFormProps> = ({ data, onChan
         }
       }
     }
-    
+
     const lastRow = matrix[str2.length];
     return lastRow?.[str1.length] ?? 0;
   };
@@ -135,12 +156,12 @@ export const PersonalInfoForm: React.FC<PersonalInfoFormProps> = ({ data, onChan
       setShowEmailSuggestions(false);
       return;
     }
-    
+
     const [localPart, domain] = email.split('@');
     const commonDomains = ['gmail.com', 'yahoo.com', 'outlook.com', 'hotmail.com', 'icloud.com'];
-    
+
     if (domain && localPart && !commonDomains.includes(domain)) {
-      const suggestions = commonDomains.map(d => `${localPart}@${d}`);
+      const suggestions = commonDomains.map((d) => `${localPart}@${d}`);
       setEmailSuggestions(suggestions);
       setShowEmailSuggestions(true);
     } else {
@@ -164,7 +185,7 @@ export const PersonalInfoForm: React.FC<PersonalInfoFormProps> = ({ data, onChan
           const canvas = document.createElement('canvas');
           let width = img.width;
           let height = img.height;
-          
+
           // Maintain aspect ratio, max dimension 500px
           const maxDimension = 500;
           if (width > height && width > maxDimension) {
@@ -174,22 +195,22 @@ export const PersonalInfoForm: React.FC<PersonalInfoFormProps> = ({ data, onChan
             width = (width * maxDimension) / height;
             height = maxDimension;
           }
-          
+
           canvas.width = width;
           canvas.height = height;
           const ctx = canvas.getContext('2d');
           ctx?.drawImage(img, 0, 0, width, height);
-          
+
           // Try different quality levels to meet size requirement
           let quality = 0.9;
           let dataUrl = canvas.toDataURL('image/jpeg', quality);
-          
+
           // Estimate size and reduce quality if needed
           while (dataUrl.length > maxSizeMB * 1024 * 1024 * 1.37 && quality > 0.1) {
             quality -= 0.1;
             dataUrl = canvas.toDataURL('image/jpeg', quality);
           }
-          
+
           resolve(dataUrl);
         };
         img.onerror = reject;
@@ -203,10 +224,10 @@ export const PersonalInfoForm: React.FC<PersonalInfoFormProps> = ({ data, onChan
   const handlePhotoSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    
+
     setPhotoError('');
     setPhotoLoading(true);
-    
+
     // Validate file type
     const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
     if (!validTypes.includes(file.type)) {
@@ -214,7 +235,7 @@ export const PersonalInfoForm: React.FC<PersonalInfoFormProps> = ({ data, onChan
       setPhotoLoading(false);
       return;
     }
-    
+
     // Validate file size (max 10MB before compression)
     const maxSize = 10 * 1024 * 1024;
     if (file.size > maxSize) {
@@ -222,7 +243,7 @@ export const PersonalInfoForm: React.FC<PersonalInfoFormProps> = ({ data, onChan
       setPhotoLoading(false);
       return;
     }
-    
+
     try {
       // Load image for cropping
       const reader = new FileReader();
@@ -247,13 +268,13 @@ export const PersonalInfoForm: React.FC<PersonalInfoFormProps> = ({ data, onChan
   const handleCropComplete = async (croppedDataUrl: string) => {
     setShowCropper(false);
     setPhotoLoading(true);
-    
+
     try {
       // Create a file from the cropped data URL for compression
       const response = await fetch(croppedDataUrl);
       const blob = await response.blob();
       const file = new File([blob], 'cropped.jpg', { type: 'image/jpeg' });
-      
+
       // Compress the cropped image
       const compressedDataUrl = await compressImage(file, 0.3);
       onChange({ ...data, photoDataUrl: compressedDataUrl });
@@ -274,10 +295,8 @@ export const PersonalInfoForm: React.FC<PersonalInfoFormProps> = ({ data, onChan
 
   return (
     <div className="section">
-      <h2 className="section-title">
-        👤 {t(language, 'personal.section')}
-      </h2>
-      
+      <h2 className="section-title">👤 {t(language, 'personal.section')}</h2>
+
       <div className="form-row-3">
         <div className="form-group">
           <label className="form-label">{t(language, 'personal.firstName')} *</label>
@@ -289,7 +308,7 @@ export const PersonalInfoForm: React.FC<PersonalInfoFormProps> = ({ data, onChan
             placeholder="John"
           />
         </div>
-        
+
         <div className="form-group">
           <label className="form-label">{t(language, 'personal.middleName')}</label>
           <input
@@ -300,7 +319,7 @@ export const PersonalInfoForm: React.FC<PersonalInfoFormProps> = ({ data, onChan
             placeholder="Michael"
           />
         </div>
-        
+
         <div className="form-group">
           <label className="form-label">{t(language, 'personal.lastName')} *</label>
           <input
@@ -312,42 +331,44 @@ export const PersonalInfoForm: React.FC<PersonalInfoFormProps> = ({ data, onChan
           />
         </div>
       </div>
-      
+
       <div className="form-row">
-      <div className="form-group">
-        <label className="form-label">{t(language, 'personal.email')} *</label>
-        <div className="email-input-wrapper">
-          <input
-            type="email"
-            className={`form-input ${!emailValidation.isValid ? 'error' : ''}`}
-            value={data.email}
-            onChange={(e) => handleChange('email', e.target.value)}
-            onFocus={() => setShowEmailSuggestions(emailSuggestions.length > 0)}
-            onBlur={() => setTimeout(() => setShowEmailSuggestions(false), 200)}
-            placeholder="john.doe@email.com"
-            autoComplete="email"
-          />
-          {emailValidation.message && (
-            <div className={`validation-message ${emailValidation.isValid ? 'success' : 'error'}`}>
-              {emailValidation.message}
-            </div>
-          )}
-          {showEmailSuggestions && emailSuggestions.length > 0 && (
-            <div className="email-suggestions">
-              {emailSuggestions.map((suggestion, index) => (
-                <div
-                  key={index}
-                  className="suggestion-item"
-                  onClick={() => handleEmailSuggestionClick(suggestion)}
-                >
-                  {suggestion}
-                </div>
-              ))}
-            </div>
-          )}
+        <div className="form-group">
+          <label className="form-label">{t(language, 'personal.email')} *</label>
+          <div className="email-input-wrapper">
+            <input
+              type="email"
+              className={`form-input ${!emailValidation.isValid ? 'error' : ''}`}
+              value={data.email}
+              onChange={(e) => handleChange('email', e.target.value)}
+              onFocus={() => setShowEmailSuggestions(emailSuggestions.length > 0)}
+              onBlur={() => setTimeout(() => setShowEmailSuggestions(false), 200)}
+              placeholder="john.doe@email.com"
+              autoComplete="email"
+            />
+            {emailValidation.message && (
+              <div
+                className={`validation-message ${emailValidation.isValid ? 'success' : 'error'}`}
+              >
+                {emailValidation.message}
+              </div>
+            )}
+            {showEmailSuggestions && emailSuggestions.length > 0 && (
+              <div className="email-suggestions">
+                {emailSuggestions.map((suggestion, index) => (
+                  <div
+                    key={index}
+                    className="suggestion-item"
+                    onClick={() => handleEmailSuggestionClick(suggestion)}
+                  >
+                    {suggestion}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
-      </div>
-        
+
         <div className="form-group">
           <label className="form-label">{t(language, 'personal.phoneNumber')} *</label>
           <div className="phone-input-group">
@@ -368,7 +389,7 @@ export const PersonalInfoForm: React.FC<PersonalInfoFormProps> = ({ data, onChan
           </div>
         </div>
       </div>
-      
+
       <div className="form-group">
         <label className="form-label">{t(language, 'personal.linkedin')}</label>
         <div className="input-prefix">
@@ -401,19 +422,24 @@ export const PersonalInfoForm: React.FC<PersonalInfoFormProps> = ({ data, onChan
             <div className="photo-placeholder">📷</div>
           )}
           <div className="photo-actions">
-            <button 
-              className="btn btn-secondary" 
-              onClick={(e) => { e.preventDefault(); fileInputRef.current?.click(); }}
+            <button
+              className="btn btn-secondary"
+              onClick={(e) => {
+                e.preventDefault();
+                fileInputRef.current?.click();
+              }}
               disabled={photoLoading}
             >
-              {data.photoDataUrl ? '🔄 ' + t(language, 'personal.change') : '📤 ' + t(language, 'personal.upload')}
+              {data.photoDataUrl
+                ? '🔄 ' + t(language, 'personal.change')
+                : '📤 ' + t(language, 'personal.upload')}
             </button>
             {data.photoDataUrl && (
               <>
-                <button 
-                  className="btn btn-secondary" 
-                  onClick={(e) => { 
-                    e.preventDefault(); 
+                <button
+                  className="btn btn-secondary"
+                  onClick={(e) => {
+                    e.preventDefault();
                     setTempPhotoUrl(data.photoDataUrl!);
                     setShowCropper(true);
                   }}
@@ -421,10 +447,10 @@ export const PersonalInfoForm: React.FC<PersonalInfoFormProps> = ({ data, onChan
                 >
                   ✂️ {t(language, 'personal.editPhoto')}
                 </button>
-                <button 
-                  className="btn btn-danger" 
-                  onClick={(e) => { 
-                    e.preventDefault(); 
+                <button
+                  className="btn btn-danger"
+                  onClick={(e) => {
+                    e.preventDefault();
                     const { photoDataUrl, ...rest } = data;
                     onChange(rest as PersonalInfo);
                     setPhotoError('');
@@ -435,12 +461,12 @@ export const PersonalInfoForm: React.FC<PersonalInfoFormProps> = ({ data, onChan
                 </button>
               </>
             )}
-            <input 
-              ref={fileInputRef} 
-              type="file" 
-              accept="image/jpeg,image/jpg,image/png,image/webp" 
-              onChange={handlePhotoSelect} 
-              style={{ display: 'none' }} 
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/jpeg,image/jpg,image/png,image/webp"
+              onChange={handlePhotoSelect}
+              style={{ display: 'none' }}
             />
           </div>
         </div>
@@ -463,7 +489,7 @@ export const PersonalInfoForm: React.FC<PersonalInfoFormProps> = ({ data, onChan
           />
         )}
       </div>
-      
+
       <div className="form-group">
         <label className="form-label">{t(language, 'personal.github')}</label>
         <div className="input-prefix">
@@ -482,7 +508,7 @@ export const PersonalInfoForm: React.FC<PersonalInfoFormProps> = ({ data, onChan
           </div>
         )}
       </div>
-      
+
       <div className="form-row">
         <div className="form-group">
           <label className="form-label">{t(language, 'personal.portfolio')}</label>
@@ -499,7 +525,7 @@ export const PersonalInfoForm: React.FC<PersonalInfoFormProps> = ({ data, onChan
             </div>
           )}
         </div>
-        
+
         <div className="form-group">
           <label className="form-label">{t(language, 'personal.whatsapp')}</label>
           <input
@@ -531,7 +557,7 @@ export const PersonalInfoForm: React.FC<PersonalInfoFormProps> = ({ data, onChan
           </div>
         </div>
       </div>
-      
+
       <div className="form-group">
         <label className="form-label">{t(language, 'personal.summary')}</label>
         <textarea

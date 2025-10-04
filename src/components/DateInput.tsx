@@ -26,7 +26,7 @@ export const DateInput: React.FC<DateInputProps> = ({
   maxDate,
   startDate,
   error,
-  placeholder
+  placeholder,
 }) => {
   const [localError, setLocalError] = React.useState<string>('');
 
@@ -38,27 +38,25 @@ export const DateInput: React.FC<DateInputProps> = ({
 
     // Check if end date is before start date
     if (startDate && newValue < startDate) {
-      const errorMsg = language === 'tr' 
-        ? 'Bitiş tarihi başlangıç tarihinden önce olamaz' 
-        : 'End date cannot be before start date';
+      const errorMsg =
+        language === 'tr'
+          ? 'Bitiş tarihi başlangıç tarihinden önce olamaz'
+          : 'End date cannot be before start date';
       setLocalError(errorMsg);
       return false;
     }
 
     // Check if date is in the future (beyond current month)
     if (maxDate && newValue > maxDate) {
-      const errorMsg = language === 'tr' 
-        ? 'Tarih gelecekte olamaz' 
-        : 'Date cannot be in the future';
+      const errorMsg =
+        language === 'tr' ? 'Tarih gelecekte olamaz' : 'Date cannot be in the future';
       setLocalError(errorMsg);
       return false;
     }
 
     // Check min date
     if (minDate && newValue < minDate) {
-      const errorMsg = language === 'tr' 
-        ? 'Tarih çok eski' 
-        : 'Date is too early';
+      const errorMsg = language === 'tr' ? 'Tarih çok eski' : 'Date is too early';
       setLocalError(errorMsg);
       return false;
     }
@@ -111,9 +109,7 @@ export const DateInput: React.FC<DateInputProps> = ({
       )}
       {!hasError && !disabled && startDate && (
         <div className="form-hint">
-          {language === 'tr' 
-            ? `Başlangıç tarihinden sonra olmalıdır` 
-            : `Must be after start date`}
+          {language === 'tr' ? `Başlangıç tarihinden sonra olmalıdır` : `Must be after start date`}
         </div>
       )}
     </div>

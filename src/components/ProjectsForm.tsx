@@ -24,33 +24,35 @@ export const ProjectsForm: React.FC<ProjectsFormProps> = ({ projects, onChange, 
       associatedWith: '',
       country: '',
       city: '',
-      location: ''
+      location: '',
     };
     onChange([...projects, newProject]);
   };
 
   const handleUpdate = (id: string, field: keyof Project, value: string | string[] | boolean) => {
-    onChange(projects.map(proj => 
-      proj.id === id ? { ...proj, [field]: value } : proj
-    ));
+    onChange(projects.map((proj) => (proj.id === id ? { ...proj, [field]: value } : proj)));
   };
 
   const handleRemove = (id: string) => {
-    onChange(projects.filter(proj => proj.id !== id));
+    onChange(projects.filter((proj) => proj.id !== id));
   };
 
   const handleAddSkill = (id: string, skill: string) => {
     if (!skill.trim()) return;
-    const project = projects.find(p => p.id === id);
+    const project = projects.find((p) => p.id === id);
     if (project && !project.skills.includes(skill.trim())) {
       handleUpdate(id, 'skills', [...project.skills, skill.trim()]);
     }
   };
 
   const handleRemoveSkill = (id: string, skillToRemove: string) => {
-    const project = projects.find(p => p.id === id);
+    const project = projects.find((p) => p.id === id);
     if (project) {
-      handleUpdate(id, 'skills', project.skills.filter(s => s !== skillToRemove));
+      handleUpdate(
+        id,
+        'skills',
+        project.skills.filter((s) => s !== skillToRemove)
+      );
     }
   };
 
@@ -62,7 +64,7 @@ export const ProjectsForm: React.FC<ProjectsFormProps> = ({ projects, onChange, 
           + {t(language, 'projects.add')}
         </button>
       </h2>
-      
+
       {projects.length === 0 ? (
         <div className="empty-state">
           <div className="empty-state-icon">🚀</div>
@@ -76,14 +78,11 @@ export const ProjectsForm: React.FC<ProjectsFormProps> = ({ projects, onChange, 
                 <span style={{ fontWeight: 600, color: '#64748b' }}>
                   {t(language, 'projects.number')} #{index + 1}
                 </span>
-                <button 
-                  className="btn btn-danger btn-icon"
-                  onClick={() => handleRemove(proj.id)}
-                >
+                <button className="btn btn-danger btn-icon" onClick={() => handleRemove(proj.id)}>
                   🗑️ {t(language, 'common.remove')}
                 </button>
               </div>
-              
+
               <div className="form-group">
                 <label className="form-label">{t(language, 'projects.name')} *</label>
                 <input
@@ -94,7 +93,7 @@ export const ProjectsForm: React.FC<ProjectsFormProps> = ({ projects, onChange, 
                   placeholder="E-Commerce Platform"
                 />
               </div>
-              
+
               <div className="form-group">
                 <label className="form-label">{t(language, 'projects.description')}</label>
                 <RichTextEditor
@@ -107,7 +106,7 @@ export const ProjectsForm: React.FC<ProjectsFormProps> = ({ projects, onChange, 
                   templateType="project"
                 />
               </div>
-              
+
               <div className="form-row">
                 <DateInput
                   label={t(language, 'projects.start')}
@@ -115,7 +114,7 @@ export const ProjectsForm: React.FC<ProjectsFormProps> = ({ projects, onChange, 
                   onChange={(value) => handleUpdate(proj.id, 'startDate', value)}
                   language={language}
                 />
-                
+
                 <DateInput
                   label={t(language, 'projects.end')}
                   value={proj.endDate}
@@ -125,7 +124,7 @@ export const ProjectsForm: React.FC<ProjectsFormProps> = ({ projects, onChange, 
                   startDate={proj.startDate}
                 />
               </div>
-              
+
               <div className="form-group current-work-checkbox">
                 <div className="checkbox-item">
                   <input
@@ -144,7 +143,7 @@ export const ProjectsForm: React.FC<ProjectsFormProps> = ({ projects, onChange, 
                   </label>
                 </div>
               </div>
-              
+
               <div className="form-group">
                 <label className="form-label">{t(language, 'projects.associated')}</label>
                 <input
@@ -161,15 +160,23 @@ export const ProjectsForm: React.FC<ProjectsFormProps> = ({ projects, onChange, 
                 city={proj.city || ''}
                 onCountryChange={(country) => {
                   handleUpdate(proj.id, 'country', country);
-                  handleUpdate(proj.id, 'location', country && proj.city ? `${proj.city}, ${country}` : country || '');
+                  handleUpdate(
+                    proj.id,
+                    'location',
+                    country && proj.city ? `${proj.city}, ${country}` : country || ''
+                  );
                 }}
                 onCityChange={(city) => {
                   handleUpdate(proj.id, 'city', city);
-                  handleUpdate(proj.id, 'location', proj.country && city ? `${city}, ${proj.country}` : proj.country || '');
+                  handleUpdate(
+                    proj.id,
+                    'location',
+                    proj.country && city ? `${city}, ${proj.country}` : proj.country || ''
+                  );
                 }}
                 language={language}
               />
-              
+
               <div className="form-group">
                 <label className="form-label">{t(language, 'projects.skills')}</label>
                 <div className="skills-input-container">
@@ -188,7 +195,11 @@ export const ProjectsForm: React.FC<ProjectsFormProps> = ({ projects, onChange, 
                       const text = e.clipboardData.getData('text');
                       if (text.includes(',') || text.includes(';') || text.includes('|')) {
                         e.preventDefault();
-                        text.split(/[,;|]/).map(s => s.trim()).filter(Boolean).forEach(s => handleAddSkill(proj.id, s));
+                        text
+                          .split(/[,;|]/)
+                          .map((s) => s.trim())
+                          .filter(Boolean)
+                          .forEach((s) => handleAddSkill(proj.id, s));
                         (e.target as HTMLInputElement).value = '';
                       }
                     }}
@@ -200,7 +211,7 @@ export const ProjectsForm: React.FC<ProjectsFormProps> = ({ projects, onChange, 
                     {proj.skills.map((skill, idx) => (
                       <div key={idx} className="skill-tag">
                         {skill}
-                        <span 
+                        <span
                           className="skill-tag-remove"
                           onClick={() => handleRemoveSkill(proj.id, skill)}
                         >
@@ -215,7 +226,9 @@ export const ProjectsForm: React.FC<ProjectsFormProps> = ({ projects, onChange, 
           ))}
           {/* Add button at the bottom of all projects */}
           <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '1rem' }}>
-            <button className="btn btn-primary btn-icon" onClick={handleAdd}>+ {t(language, 'projects.add')}</button>
+            <button className="btn btn-primary btn-icon" onClick={handleAdd}>
+              + {t(language, 'projects.add')}
+            </button>
           </div>
         </div>
       )}

@@ -35,14 +35,12 @@ export const config: AppConfig = {
  */
 export function validateConfig(): void {
   const requiredVars: string[] = [];
-  
+
   // Add any required environment variables here
   // Example: if (!process.env.REACT_APP_API_URL) requiredVars.push('REACT_APP_API_URL');
-  
+
   if (requiredVars.length > 0) {
-    throw new Error(
-      `Missing required environment variables: ${requiredVars.join(', ')}`
-    );
+    throw new Error(`Missing required environment variables: ${requiredVars.join(', ')}`);
   }
 }
 

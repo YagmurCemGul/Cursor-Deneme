@@ -59,25 +59,25 @@ describe('ErrorBoundary', () => {
   });
 
   it('should reset error state when Try Again is clicked', () => {
-    const { rerender } = render(
+    let shouldThrow = true;
+    const DynamicComponent = () => <ThrowError shouldThrow={shouldThrow} />;
+
+    render(
       <ErrorBoundary>
-        <ThrowError shouldThrow={true} />
+        <DynamicComponent />
       </ErrorBoundary>
     );
-    
+
     expect(screen.getByText(/Something went wrong/i)).toBeInTheDocument();
-    
-    // Click Try Again button
+
+    // Update to non-throwing state before clicking
+    shouldThrow = false;
+
+    // Click Try Again button to reset error boundary
     const tryAgainButton = screen.getByText('Try Again');
     fireEvent.click(tryAgainButton);
-    
-    // Rerender with non-throwing component
-    rerender(
-      <ErrorBoundary>
-        <ThrowError shouldThrow={false} />
-      </ErrorBoundary>
-    );
-    
+
+    // The error boundary should now render the children successfully
     expect(screen.getByText('No error')).toBeInTheDocument();
   });
 });

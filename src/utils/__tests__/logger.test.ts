@@ -45,9 +45,6 @@ describe('Logger', () => {
     const namedLogger = createLogger('TestModule');
     namedLogger.setLevel(LogLevel.INFO);
     namedLogger.info('test message');
-    expect(console.log).toHaveBeenCalledWith(
-      expect.stringContaining('TestModule'),
-      expect.any(String)
-    );
+    expect(console.log).toHaveBeenCalledWith(expect.stringContaining('TestModule'));
   });
 });

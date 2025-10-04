@@ -21,7 +21,7 @@ export const ProfileManager: React.FC<ProfileManagerProps> = ({
   onProfileNameChange,
   language,
   currentTemplateId,
-  onTemplateChange
+  onTemplateChange,
 }) => {
   const [profiles, setProfiles] = useState<CVProfile[]>([]);
   const [, setTemplates] = useState<CVTemplate[]>([]);
@@ -35,7 +35,7 @@ export const ProfileManager: React.FC<ProfileManagerProps> = ({
   const loadData = async () => {
     const [loadedProfiles, loadedTemplates] = await Promise.all([
       StorageService.getProfiles(),
-      StorageService.getTemplates()
+      StorageService.getTemplates(),
     ]);
     setProfiles(loadedProfiles);
     setTemplates(loadedTemplates);
@@ -56,19 +56,17 @@ export const ProfileManager: React.FC<ProfileManagerProps> = ({
 
   return (
     <div className="section">
-      <h2 className="section-title">
-        💾 {t(language, 'profile.section')}
-      </h2>
-      
+      <h2 className="section-title">💾 {t(language, 'profile.section')}</h2>
+
       {/* Tabs */}
       <div className="subtabs">
-        <button 
+        <button
           className={`subtab ${activeTab === 'profiles' ? 'active' : ''}`}
           onClick={() => setActiveTab('profiles')}
         >
           💾 {t(language, 'tabs.profiles')}
         </button>
-        <button 
+        <button
           className={`subtab ${activeTab === 'templates' ? 'active' : ''}`}
           onClick={() => setActiveTab('templates')}
         >
@@ -80,10 +78,8 @@ export const ProfileManager: React.FC<ProfileManagerProps> = ({
         <>
           {/* Current Profile */}
           <div className="card current-profile-card">
-            <h3 className="card-subtitle">
-              {t(language, 'profile.current')}
-            </h3>
-            
+            <h3 className="card-subtitle">{t(language, 'profile.current')}</h3>
+
             <div className="form-group">
               <label className="form-label">{t(language, 'profile.name')}</label>
               <div className="profile-name-input-group">
@@ -100,22 +96,21 @@ export const ProfileManager: React.FC<ProfileManagerProps> = ({
               </div>
             </div>
           </div>
-          
+
           {/* Saved Profiles */}
           {profiles.length > 0 && (
             <div>
-              <h3 className="subsection-title">
-                {t(language, 'profile.saved')}
-              </h3>
-              
+              <h3 className="subsection-title">{t(language, 'profile.saved')}</h3>
+
               <div className="card-list">
-                {profiles.map(profile => (
+                {profiles.map((profile) => (
                   <div key={profile.id} className="card">
                     <div className="card-header">
                       <div>
                         <div className="card-title">{profile.name}</div>
                         <div className="card-meta">
-                          {t(language, 'profile.updated')}: {new Date(profile.updatedAt).toLocaleDateString()}
+                          {t(language, 'profile.updated')}:{' '}
+                          {new Date(profile.updatedAt).toLocaleDateString()}
                         </div>
                       </div>
                       <div className="card-actions">
@@ -138,13 +133,11 @@ export const ProfileManager: React.FC<ProfileManagerProps> = ({
               </div>
             </div>
           )}
-          
+
           {profiles.length === 0 && (
             <div className="empty-state">
               <div className="empty-state-icon">💾</div>
-              <div className="empty-state-text">
-                {t(language, 'profile.emptyState')}
-              </div>
+              <div className="empty-state-text">{t(language, 'profile.emptyState')}</div>
             </div>
           )}
         </>
