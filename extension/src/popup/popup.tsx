@@ -87,7 +87,7 @@ export function Popup() {
 
   function sanitizeFileBase(): string {
     const name = `${profile?.personal.firstName ?? 'Name'}_${profile?.personal.lastName ?? 'Surname'}_${job.title ?? 'Resume'}`;
-    return name.replace(/\s+/g, '_').replace(/[^a-zA-Z0-9_\-\.]/g, '');
+    return name.replace(/\s+/g, '_').replace(/[^a-zA-Z0-9_\-.]/g, '');
   }
 
   async function saveProfile(updated: ResumeProfile) {

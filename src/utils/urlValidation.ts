@@ -21,15 +21,16 @@ export function validateUrl(url: string): ValidationResult {
 
   // Check if URL has protocol
   const hasProtocol = /^https?:\/\//i.test(trimmedUrl);
-  
+
   // Comprehensive URL pattern
-  const comprehensivePattern = /^(https?:\/\/)?(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&\/\/=]*)$/;
+  const comprehensivePattern =
+    /^(https?:\/\/)?(www\.)?[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_+.~#?&/=]*)$/;
 
   if (!comprehensivePattern.test(trimmedUrl)) {
     return {
       isValid: false,
       message: 'Please enter a valid URL (e.g., https://example.com)',
-      type: 'error'
+      type: 'error',
     };
   }
 
@@ -38,7 +39,7 @@ export function validateUrl(url: string): ValidationResult {
     return {
       isValid: true,
       message: 'Consider adding https:// at the beginning',
-      type: 'warning'
+      type: 'warning',
     };
   }
 
@@ -47,7 +48,7 @@ export function validateUrl(url: string): ValidationResult {
     return {
       isValid: false,
       message: 'URL cannot contain spaces',
-      type: 'error'
+      type: 'error',
     };
   }
 
@@ -56,14 +57,14 @@ export function validateUrl(url: string): ValidationResult {
     return {
       isValid: true,
       message: 'Local URL detected - ensure this is accessible to employers',
-      type: 'warning'
+      type: 'warning',
     };
   }
 
   return {
     isValid: true,
     message: 'Valid URL',
-    type: 'success'
+    type: 'success',
   };
 }
 
@@ -78,7 +79,7 @@ export function validateLinkedInUsername(username: string): ValidationResult {
   const trimmedUsername = username.trim();
 
   // Remove any protocol or domain if user pasted full URL
-  let cleanUsername = trimmedUsername
+  const cleanUsername = trimmedUsername
     .replace(/^https?:\/\/(www\.)?linkedin\.com\/in\//i, '')
     .replace(/^linkedin\.com\/in\//i, '')
     .replace(/^www\.linkedin\.com\/in\//i, '')
@@ -90,15 +91,16 @@ export function validateLinkedInUsername(username: string): ValidationResult {
   if (!linkedInPattern.test(cleanUsername)) {
     return {
       isValid: false,
-      message: 'LinkedIn username should be 3-100 characters (letters, numbers, hyphens, underscores)',
-      type: 'error'
+      message:
+        'LinkedIn username should be 3-100 characters (letters, numbers, hyphens, underscores)',
+      type: 'error',
     };
   }
 
   return {
     isValid: true,
     message: 'Valid LinkedIn username',
-    type: 'success'
+    type: 'success',
   };
 }
 
@@ -113,7 +115,7 @@ export function validateGitHubUsername(username: string): ValidationResult {
   const trimmedUsername = username.trim();
 
   // Remove any protocol or domain if user pasted full URL
-  let cleanUsername = trimmedUsername
+  const cleanUsername = trimmedUsername
     .replace(/^https?:\/\/(www\.)?github\.com\//i, '')
     .replace(/^github\.com\//i, '')
     .replace(/^www\.github\.com\//i, '')
@@ -126,7 +128,7 @@ export function validateGitHubUsername(username: string): ValidationResult {
     return {
       isValid: false,
       message: 'GitHub username should be 1-39 characters, alphanumeric and hyphens only',
-      type: 'error'
+      type: 'error',
     };
   }
 
@@ -135,14 +137,14 @@ export function validateGitHubUsername(username: string): ValidationResult {
     return {
       isValid: false,
       message: 'GitHub username cannot contain consecutive hyphens',
-      type: 'error'
+      type: 'error',
     };
   }
 
   return {
     isValid: true,
     message: 'Valid GitHub username',
-    type: 'success'
+    type: 'success',
   };
 }
 
@@ -163,7 +165,7 @@ export function validateWhatsAppLink(link: string): ValidationResult {
     return {
       isValid: false,
       message: 'WhatsApp link should be in format: https://wa.me/1234567890',
-      type: 'error'
+      type: 'error',
     };
   }
 
@@ -172,14 +174,14 @@ export function validateWhatsAppLink(link: string): ValidationResult {
     return {
       isValid: false,
       message: 'WhatsApp link must start with https://',
-      type: 'error'
+      type: 'error',
     };
   }
 
   return {
     isValid: true,
     message: 'Valid WhatsApp link',
-    type: 'success'
+    type: 'success',
   };
 }
 
@@ -192,29 +194,37 @@ export function validatePortfolioUrl(url: string): ValidationResult {
   }
 
   const result = validateUrl(url);
-  
+
   // Additional checks for portfolio URLs
   if (result.isValid && result.type !== 'error') {
     const trimmedUrl = url.trim().toLowerCase();
-    
+
     // Warn if it's a social media link (should use dedicated fields)
     if (trimmedUrl.includes('linkedin.com') || trimmedUrl.includes('github.com')) {
       return {
         isValid: true,
         message: 'Consider using dedicated LinkedIn/GitHub fields instead',
-        type: 'warning'
+        type: 'warning',
       };
     }
 
     // Check for common portfolio platforms
-    const portfolioPlatforms = ['github.io', 'netlify.app', 'vercel.app', 'herokuapp.com', 'wixsite.com', 'wordpress.com', 'medium.com'];
-    const isKnownPlatform = portfolioPlatforms.some(platform => trimmedUrl.includes(platform));
-    
+    const portfolioPlatforms = [
+      'github.io',
+      'netlify.app',
+      'vercel.app',
+      'herokuapp.com',
+      'wixsite.com',
+      'wordpress.com',
+      'medium.com',
+    ];
+    const isKnownPlatform = portfolioPlatforms.some((platform) => trimmedUrl.includes(platform));
+
     if (isKnownPlatform && result.type === '') {
       return {
         isValid: true,
         message: 'Valid portfolio URL',
-        type: 'success'
+        type: 'success',
       };
     }
   }
@@ -231,11 +241,11 @@ export function validateCredentialUrl(url: string): ValidationResult {
   }
 
   const result = validateUrl(url);
-  
+
   // Additional checks for credential URLs
   if (result.isValid && result.type !== 'error') {
     const trimmedUrl = url.trim().toLowerCase();
-    
+
     // Check for common certification platforms
     const certPlatforms = [
       'credly.com',
@@ -246,16 +256,16 @@ export function validateCredentialUrl(url: string): ValidationResult {
       'microsoft.com/learn',
       'aws.amazon.com',
       'cloud.google.com',
-      'acclaim.com'
+      'acclaim.com',
     ];
-    
-    const isKnownPlatform = certPlatforms.some(platform => trimmedUrl.includes(platform));
-    
+
+    const isKnownPlatform = certPlatforms.some((platform) => trimmedUrl.includes(platform));
+
     if (isKnownPlatform) {
       return {
         isValid: true,
         message: 'Valid certification URL',
-        type: 'success'
+        type: 'success',
       };
     }
   }
@@ -272,7 +282,7 @@ export function normalizeUrl(url: string): string {
   }
 
   let normalized = url.trim();
-  
+
   // Add https:// if no protocol
   if (!/^https?:\/\//i.test(normalized)) {
     normalized = 'https://' + normalized;
@@ -286,7 +296,7 @@ export function normalizeUrl(url: string): string {
  */
 export function extractLinkedInUsername(input: string): string {
   if (!input) return '';
-  
+
   return input
     .replace(/^https?:\/\/(www\.)?linkedin\.com\/in\//i, '')
     .replace(/^linkedin\.com\/in\//i, '')
@@ -299,7 +309,7 @@ export function extractLinkedInUsername(input: string): string {
  */
 export function extractGitHubUsername(input: string): string {
   if (!input) return '';
-  
+
   return input
     .replace(/^https?:\/\/(www\.)?github\.com\//i, '')
     .replace(/^github\.com\//i, '')
@@ -313,10 +323,10 @@ export function extractGitHubUsername(input: string): string {
 export function buildWhatsAppLink(countryCode: string, phoneNumber: string): string {
   const cc = countryCode.replace(/\D/g, '');
   const phone = phoneNumber.replace(/\D/g, '');
-  
+
   if (!cc || !phone) {
     return '';
   }
-  
+
   return `https://wa.me/${cc}${phone}`;
 }

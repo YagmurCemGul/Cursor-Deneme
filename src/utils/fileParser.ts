@@ -34,7 +34,7 @@ export class FileParser {
       this.configurePdfJsWorker();
       const arrayBuffer = await file.arrayBuffer();
       const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
-      
+
       let fullText = '';
       for (let i = 1; i <= pdf.numPages; i++) {
         const page = await pdf.getPage(i);
@@ -80,47 +80,53 @@ export class FileParser {
     const whatsappMatch = text.match(whatsappRegex);
 
     // Enhanced name extraction: look for multiple patterns
-    const lines = text.split('\n').map(l => l.trim()).filter(Boolean);
+    const lines = text
+      .split('\n')
+      .map((l) => l.trim())
+      .filter(Boolean);
     let nameLine = '';
-    
+
     // Try different name patterns
     const namePatterns = [
       /^(?:[A-ZÇĞİÖŞÜ][a-zçğıöşü]+\s){1,2}[A-ZÇĞİÖŞÜ][a-zçğıöşü]+$/, // Standard name
       /^(?:[A-ZÇĞİÖŞÜ][a-zçğıöşü]+\s){2,3}[A-ZÇĞİÖŞÜ][a-zçğıöşü]+$/, // Name with middle name
-      /^[A-ZÇĞİÖŞÜ][a-zçğıöşü]+\s+[A-ZÇĞİÖŞÜ][a-zçğıöşü]+$/ // Simple two-word name
+      /^[A-ZÇĞİÖŞÜ][a-zçğıöşü]+\s+[A-ZÇĞİÖŞÜ][a-zçğıöşü]+$/, // Simple two-word name
     ];
-    
+
     for (const pattern of namePatterns) {
-      const found = lines.find(l => pattern.test(l));
+      const found = lines.find((l) => pattern.test(l));
       if (found) {
         nameLine = found;
         break;
       }
     }
-    
+
     if (!nameLine) {
       nameLine = lines[0] || '';
     }
-    
+
     const nameParts = nameLine.trim().split(/\s+/);
 
     // Enhanced Summary extraction
     const summaryPatterns = [
       /^(summary|about me|hakkımda|profile|objective|career objective)/i,
       /^(professional summary|executive summary)/i,
-      /^(overview|introduction)/i
+      /^(overview|introduction)/i,
     ];
-    
+
     let summary = '';
     for (const pattern of summaryPatterns) {
-      const summaryIdx = lines.findIndex(l => pattern.test(l));
+      const summaryIdx = lines.findIndex((l) => pattern.test(l));
       if (summaryIdx >= 0) {
         // Extract content until next section or end
-        const nextSectionIdx = lines.findIndex((l, idx) => 
-          idx > summaryIdx && /^[A-Z][A-Z\s]+$/.test(l) && l.length > 3
+        const nextSectionIdx = lines.findIndex(
+          (l, idx) => idx > summaryIdx && /^[A-Z][A-Z\s]+$/.test(l) && l.length > 3
         );
         const endIdx = nextSectionIdx > summaryIdx ? nextSectionIdx : summaryIdx + 8;
-        summary = lines.slice(summaryIdx + 1, endIdx).join(' ').slice(0, 800);
+        summary = lines
+          .slice(summaryIdx + 1, endIdx)
+          .join(' ')
+          .slice(0, 800);
         break;
       }
     }
@@ -129,17 +135,20 @@ export class FileParser {
     const skillsPatterns = [
       /^(skills?|technical skills?|core competencies?|technologies?|tools?)/i,
       /^(programming languages?|languages?)/i,
-      /^(software|applications?)/i
+      /^(software|applications?)/i,
     ];
-    
+
     let parsedSkills: string[] = [];
     for (const pattern of skillsPatterns) {
-      const skillsLine = lines.find(l => pattern.test(l));
+      const skillsLine = lines.find((l) => pattern.test(l));
       if (skillsLine) {
-        const skillsText = skillsLine.split(/skills?|technical skills?|core competencies?|technologies?|tools?|programming languages?|languages?|software|applications?/i)[1];
+        const skillsText = skillsLine.split(
+          /skills?|technical skills?|core competencies?|technologies?|tools?|programming languages?|languages?|software|applications?/i
+        )[1];
         if (skillsText) {
-          parsedSkills = skillsText.split(/[•,;|•\n]/)
-            .map(s => s.trim())
+          parsedSkills = skillsText
+            .split(/[•,;|•\n]/)
+            .map((s) => s.trim())
             .filter(Boolean)
             .slice(0, 20); // Limit to 20 skills
         }
@@ -150,48 +159,53 @@ export class FileParser {
     // Extract Experience section
     const experiencePatterns = [
       /^(experience|work experience|employment|career|professional experience)/i,
-      /^(work history|employment history)/i
+      /^(work history|employment history)/i,
     ];
-    
+
     const experiences = this.extractExperienceSection(lines, experiencePatterns);
 
     // Extract Education section
     const educationPatterns = [
       /^(education|academic background|qualifications?)/i,
-      /^(degrees?|academic qualifications?)/i
+      /^(degrees?|academic qualifications?)/i,
     ];
-    
+
     const education = this.extractEducationSection(lines, educationPatterns);
 
     // Extract Certifications/Licenses section
     const certificationPatterns = [
       /^(certifications?|licenses?|certificates?)/i,
-      /^(professional certifications?|licenses? and certifications?)/i
+      /^(professional certifications?|licenses? and certifications?)/i,
     ];
-    
+
     const certifications = this.extractCertificationSection(lines, certificationPatterns);
 
     // Extract Projects section
     const projectPatterns = [
       /^(projects?|portfolio|personal projects?)/i,
-      /^(key projects?|notable projects?)/i
+      /^(key projects?|notable projects?)/i,
     ];
-    
+
     const projects = this.extractProjectSection(lines, projectPatterns);
 
     // Enhanced portfolio URL extraction
     const portfolioPatterns = [
       /(portfolio|website|site|personal website):?\s*(.*)/i,
-      /(https?:\/\/[^\s]+)/g
+      /(https?:\/\/[^\s]+)/g,
     ];
-    
+
     let portfolioUrl = '';
     for (const pattern of portfolioPatterns) {
       const match = text.match(pattern);
       if (match) {
         const url = match[2] || match[1] || '';
         const urlMatch = url.match(portfolioRegex);
-        if (urlMatch && urlMatch[0] && !urlMatch[0].includes('linkedin') && !urlMatch[0].includes('github')) {
+        if (
+          urlMatch &&
+          urlMatch[0] &&
+          !urlMatch[0].includes('linkedin') &&
+          !urlMatch[0].includes('github')
+        ) {
           portfolioUrl = urlMatch[0];
           break;
         }
@@ -218,45 +232,46 @@ export class FileParser {
         whatsappLink: whatsappLink,
         phoneNumber,
         countryCode,
-        summary
+        summary,
       },
       skills: parsedSkills,
       experience: experiences,
       education: education,
       certifications: certifications,
       projects: projects,
-      customQuestions: []
+      customQuestions: [],
     };
   }
 
   private static extractExperienceSection(lines: string[], patterns: RegExp[]): Experience[] {
     const experiences: Experience[] = [];
     let experienceStartIdx = -1;
-    
+
     for (const pattern of patterns) {
-      const idx = lines.findIndex(l => pattern.test(l));
+      const idx = lines.findIndex((l) => pattern.test(l));
       if (idx >= 0) {
         experienceStartIdx = idx;
         break;
       }
     }
-    
+
     if (experienceStartIdx === -1) return experiences;
-    
+
     // Find the end of experience section
-    const nextSectionIdx = lines.findIndex((l, idx) => 
-      idx > experienceStartIdx && 
-      /^(education|skills?|projects?|certifications?|achievements?)/i.test(l)
+    const nextSectionIdx = lines.findIndex(
+      (l, idx) =>
+        idx > experienceStartIdx &&
+        /^(education|skills?|projects?|certifications?|achievements?)/i.test(l)
     );
-    
+
     const endIdx = nextSectionIdx > experienceStartIdx ? nextSectionIdx : lines.length;
     const experienceLines = lines.slice(experienceStartIdx + 1, endIdx);
-    
+
     // Parse individual experiences
     let currentExp: Partial<Experience> | null = null;
     for (let i = 0; i < experienceLines.length; i++) {
       const line = experienceLines[i];
-      
+
       // Check if this line looks like a job title/company
       if (line && /^[A-Z][a-zA-Z\s&]+$/.test(line) && line.length > 5 && line.length < 50) {
         if (currentExp && currentExp.id) {
@@ -274,7 +289,7 @@ export class FileParser {
           city: '',
           locationType: '',
           description: '',
-          skills: []
+          skills: [],
         };
       } else if (currentExp && line && line.includes(' - ')) {
         // Parse date range and company
@@ -282,7 +297,7 @@ export class FileParser {
         if (parts.length >= 2 && parts[0] && parts[1]) {
           currentExp.company = parts[0].trim();
           const dateRange = parts[1].trim();
-          const dates = dateRange.split(/[–\-]/);
+          const dates = dateRange.split(/[–-]/);
           if (dates.length >= 2 && dates[0] && dates[1]) {
             currentExp.startDate = dates[0].trim();
             currentExp.endDate = dates[1].trim();
@@ -290,45 +305,47 @@ export class FileParser {
         }
       } else if (currentExp && line && line.length > 20) {
         // Add to description
-        currentExp.description = (currentExp.description || '') + (currentExp.description ? '\n' : '') + line;
+        currentExp.description =
+          (currentExp.description || '') + (currentExp.description ? '\n' : '') + line;
       }
     }
-    
+
     if (currentExp && currentExp.id) {
       experiences.push(currentExp as Experience);
     }
-    
+
     return experiences;
   }
 
   private static extractEducationSection(lines: string[], patterns: RegExp[]): Education[] {
     const education: Education[] = [];
     let educationStartIdx = -1;
-    
+
     for (const pattern of patterns) {
-      const idx = lines.findIndex(l => pattern.test(l));
+      const idx = lines.findIndex((l) => pattern.test(l));
       if (idx >= 0) {
         educationStartIdx = idx;
         break;
       }
     }
-    
+
     if (educationStartIdx === -1) return education;
-    
+
     // Find the end of education section
-    const nextSectionIdx = lines.findIndex((l, idx) => 
-      idx > educationStartIdx && 
-      /^(experience|skills?|projects?|certifications?|achievements?)/i.test(l)
+    const nextSectionIdx = lines.findIndex(
+      (l, idx) =>
+        idx > educationStartIdx &&
+        /^(experience|skills?|projects?|certifications?|achievements?)/i.test(l)
     );
-    
+
     const endIdx = nextSectionIdx > educationStartIdx ? nextSectionIdx : lines.length;
     const educationLines = lines.slice(educationStartIdx + 1, endIdx);
-    
+
     // Parse individual education entries
     let currentEdu: Partial<Education> | null = null;
     for (let i = 0; i < educationLines.length; i++) {
       const line = educationLines[i];
-      
+
       // Check if this line looks like a degree/school
       if (line && /^[A-Z][a-zA-Z\s&]+$/.test(line) && line.length > 5 && line.length < 50) {
         if (currentEdu && currentEdu.id) {
@@ -345,7 +362,7 @@ export class FileParser {
           grade: '',
           activities: '',
           description: '',
-          skills: []
+          skills: [],
         };
       } else if (currentEdu && line && line.includes(' - ')) {
         // Parse date range and degree
@@ -353,7 +370,7 @@ export class FileParser {
         if (parts.length >= 2 && parts[0] && parts[1]) {
           currentEdu.degree = parts[0].trim();
           const dateRange = parts[1].trim();
-          const dates = dateRange.split(/[–\-]/);
+          const dates = dateRange.split(/[–-]/);
           if (dates.length >= 2 && dates[0] && dates[1]) {
             currentEdu.startDate = dates[0].trim();
             currentEdu.endDate = dates[1].trim();
@@ -361,40 +378,41 @@ export class FileParser {
         }
       } else if (currentEdu && line && line.length > 10) {
         // Add to description
-        currentEdu.description = (currentEdu.description || '') + (currentEdu.description ? '\n' : '') + line;
+        currentEdu.description =
+          (currentEdu.description || '') + (currentEdu.description ? '\n' : '') + line;
       }
     }
-    
+
     if (currentEdu && currentEdu.id) {
       education.push(currentEdu as Education);
     }
-    
+
     return education;
   }
 
   private static extractCertificationSection(lines: string[], patterns: RegExp[]): Certification[] {
     const certifications: Certification[] = [];
     let certStartIdx = -1;
-    
+
     for (const pattern of patterns) {
-      const idx = lines.findIndex(l => pattern.test(l));
+      const idx = lines.findIndex((l) => pattern.test(l));
       if (idx >= 0) {
         certStartIdx = idx;
         break;
       }
     }
-    
+
     if (certStartIdx === -1) return certifications;
-    
+
     // Find the end of certification section
-    const nextSectionIdx = lines.findIndex((l, idx) => 
-      idx > certStartIdx && 
-      /^(experience|education|skills?|projects?|achievements?)/i.test(l)
+    const nextSectionIdx = lines.findIndex(
+      (l, idx) =>
+        idx > certStartIdx && /^(experience|education|skills?|projects?|achievements?)/i.test(l)
     );
-    
+
     const endIdx = nextSectionIdx > certStartIdx ? nextSectionIdx : lines.length;
     const certLines = lines.slice(certStartIdx + 1, endIdx);
-    
+
     // Parse individual certifications
     for (const line of certLines) {
       if (line.length > 10 && line.includes(' - ')) {
@@ -410,43 +428,44 @@ export class FileParser {
             credentialId: '',
             credentialUrl: '',
             description: '',
-            skills: []
+            skills: [],
           } as Certification);
         }
       }
     }
-    
+
     return certifications;
   }
 
   private static extractProjectSection(lines: string[], patterns: RegExp[]): Project[] {
     const projects: Project[] = [];
     let projectStartIdx = -1;
-    
+
     for (const pattern of patterns) {
-      const idx = lines.findIndex(l => pattern.test(l));
+      const idx = lines.findIndex((l) => pattern.test(l));
       if (idx >= 0) {
         projectStartIdx = idx;
         break;
       }
     }
-    
+
     if (projectStartIdx === -1) return projects;
-    
+
     // Find the end of project section
-    const nextSectionIdx = lines.findIndex((l, idx) => 
-      idx > projectStartIdx && 
-      /^(experience|education|skills?|certifications?|achievements?)/i.test(l)
+    const nextSectionIdx = lines.findIndex(
+      (l, idx) =>
+        idx > projectStartIdx &&
+        /^(experience|education|skills?|certifications?|achievements?)/i.test(l)
     );
-    
+
     const endIdx = nextSectionIdx > projectStartIdx ? nextSectionIdx : lines.length;
     const projectLines = lines.slice(projectStartIdx + 1, endIdx);
-    
+
     // Parse individual projects
     let currentProj: Partial<Project> | null = null;
     for (let i = 0; i < projectLines.length; i++) {
       const line = projectLines[i];
-      
+
       // Check if this line looks like a project name
       if (line && /^[A-Z][a-zA-Z\s&]+$/.test(line) && line.length > 5 && line.length < 50) {
         if (currentProj && currentProj.id) {
@@ -460,18 +479,19 @@ export class FileParser {
           startDate: '',
           endDate: '',
           currentlyWorking: false,
-          associatedWith: ''
+          associatedWith: '',
         };
       } else if (currentProj && line && line.length > 20) {
         // Add to description
-        currentProj.description = (currentProj.description || '') + (currentProj.description ? '\n' : '') + line;
+        currentProj.description =
+          (currentProj.description || '') + (currentProj.description ? '\n' : '') + line;
       }
     }
-    
+
     if (currentProj && currentProj.id) {
       projects.push(currentProj as Project);
     }
-    
+
     return projects;
   }
 }

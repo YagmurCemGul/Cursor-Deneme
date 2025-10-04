@@ -7,10 +7,10 @@ export const STORAGE_KEYS = {
   TEMPLATES: 'templates',
   APPLICATIONS: 'applications',
   SAVED_PROMPTS: 'savedPrompts',
-  CV_PROFILES: 'cvProfiles'
+  CV_PROFILES: 'cvProfiles',
 } as const;
 
-export type StorageKey = typeof STORAGE_KEYS[keyof typeof STORAGE_KEYS];
+export type StorageKey = (typeof STORAGE_KEYS)[keyof typeof STORAGE_KEYS];
 
 export interface ChromeStorageData {
   [STORAGE_KEYS.PROFILE_DATA]?: import('../types').CVData;

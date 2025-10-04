@@ -36,20 +36,15 @@ export const defaultCoverLetterTemplates: CoverLetterTemplate[] = [
       headerFormat: 'left',
       includeDate: true,
       includeAddress: true,
-      signatureStyle: 'formal'
+      signatureStyle: 'formal',
     },
     colors: {
       primary: '#000000',
       text: '#333333',
-      accent: '#1a73e8'
+      accent: '#1a73e8',
     },
     tone: 'formal',
-    features: [
-      'Traditional Format',
-      'Formal Tone',
-      'ATS-Friendly',
-      'Corporate Standard'
-    ]
+    features: ['Traditional Format', 'Formal Tone', 'ATS-Friendly', 'Corporate Standard'],
   },
   {
     id: 'modern',
@@ -64,20 +59,15 @@ export const defaultCoverLetterTemplates: CoverLetterTemplate[] = [
       headerFormat: 'left',
       includeDate: true,
       includeAddress: false,
-      signatureStyle: 'modern'
+      signatureStyle: 'modern',
     },
     colors: {
       primary: '#2c3e50',
       text: '#2d3748',
-      accent: '#10b981'
+      accent: '#10b981',
     },
     tone: 'modern',
-    features: [
-      'Clean Design',
-      'Modern Tone',
-      'Tech-Friendly',
-      'Concise Format'
-    ]
+    features: ['Clean Design', 'Modern Tone', 'Tech-Friendly', 'Concise Format'],
   },
   {
     id: 'executive',
@@ -92,20 +82,15 @@ export const defaultCoverLetterTemplates: CoverLetterTemplate[] = [
       headerFormat: 'center',
       includeDate: true,
       includeAddress: true,
-      signatureStyle: 'formal'
+      signatureStyle: 'formal',
     },
     colors: {
       primary: '#1e3a8a',
       text: '#374151',
-      accent: '#dc2626'
+      accent: '#dc2626',
     },
     tone: 'executive',
-    features: [
-      'Executive Style',
-      'Authoritative Tone',
-      'Leadership Focus',
-      'Premium Look'
-    ]
+    features: ['Executive Style', 'Authoritative Tone', 'Leadership Focus', 'Premium Look'],
   },
   {
     id: 'creative',
@@ -120,20 +105,15 @@ export const defaultCoverLetterTemplates: CoverLetterTemplate[] = [
       headerFormat: 'left',
       includeDate: true,
       includeAddress: false,
-      signatureStyle: 'casual'
+      signatureStyle: 'casual',
     },
     colors: {
       primary: '#7c3aed',
       text: '#1f2937',
-      accent: '#ec4899'
+      accent: '#ec4899',
     },
     tone: 'creative',
-    features: [
-      'Creative Layout',
-      'Expressive Tone',
-      'Design Focus',
-      'Personality Showcase'
-    ]
+    features: ['Creative Layout', 'Expressive Tone', 'Design Focus', 'Personality Showcase'],
   },
   {
     id: 'startup',
@@ -148,20 +128,15 @@ export const defaultCoverLetterTemplates: CoverLetterTemplate[] = [
       headerFormat: 'left',
       includeDate: false,
       includeAddress: false,
-      signatureStyle: 'casual'
+      signatureStyle: 'casual',
     },
     colors: {
       primary: '#ea580c',
       text: '#292524',
-      accent: '#06b6d4'
+      accent: '#06b6d4',
     },
     tone: 'friendly',
-    features: [
-      'Energetic Tone',
-      'Fast-Paced Feel',
-      'Startup Culture',
-      'Direct Communication'
-    ]
+    features: ['Energetic Tone', 'Fast-Paced Feel', 'Startup Culture', 'Direct Communication'],
   },
   {
     id: 'academic',
@@ -176,25 +151,20 @@ export const defaultCoverLetterTemplates: CoverLetterTemplate[] = [
       headerFormat: 'left',
       includeDate: true,
       includeAddress: true,
-      signatureStyle: 'formal'
+      signatureStyle: 'formal',
     },
     colors: {
       primary: '#000000',
       text: '#000000',
-      accent: '#b45309'
+      accent: '#b45309',
     },
     tone: 'formal',
-    features: [
-      'Academic Format',
-      'Scholarly Tone',
-      'Research Focus',
-      'Publication Standard'
-    ]
-  }
+    features: ['Academic Format', 'Scholarly Tone', 'Research Focus', 'Publication Standard'],
+  },
 ];
 
 export const getCoverLetterTemplateById = (id: string): CoverLetterTemplate => {
-  const template = defaultCoverLetterTemplates.find(t => t.id === id);
+  const template = defaultCoverLetterTemplates.find((t) => t.id === id);
   return template ?? defaultCoverLetterTemplates[0]!;
 };
 

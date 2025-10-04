@@ -25,7 +25,7 @@ export const CVUpload: React.FC<CVUploadProps> = ({ onCVParsed, language }) => {
   const handleDrop = async (e: React.DragEvent) => {
     e.preventDefault();
     setIsDragging(false);
-    
+
     const file = e.dataTransfer.files[0];
     if (file) {
       await processFile(file);
@@ -42,7 +42,7 @@ export const CVUpload: React.FC<CVUploadProps> = ({ onCVParsed, language }) => {
   const processFile = async (file: File) => {
     setIsLoading(true);
     setFileName(file.name);
-    
+
     try {
       const parsedData = await FileParser.parseFile(file);
       onCVParsed(parsedData);
@@ -56,10 +56,8 @@ export const CVUpload: React.FC<CVUploadProps> = ({ onCVParsed, language }) => {
 
   return (
     <div className="section">
-      <h2 className="section-title">
-        📄 {t(language, 'upload.section')}
-      </h2>
-      
+      <h2 className="section-title">📄 {t(language, 'upload.section')}</h2>
+
       <div
         className={`upload-zone ${isDragging ? 'drag-over' : ''}`}
         onDragOver={handleDragOver}
@@ -76,14 +74,14 @@ export const CVUpload: React.FC<CVUploadProps> = ({ onCVParsed, language }) => {
           <>
             <div className="upload-icon">📁</div>
             <div className="upload-text">
-              {fileName ? `${t(language, 'upload.uploaded')}: ${fileName}` : t(language, 'upload.drag')}
+              {fileName
+                ? `${t(language, 'upload.uploaded')}: ${fileName}`
+                : t(language, 'upload.drag')}
             </div>
-            <div className="upload-subtext">
-              {t(language, 'upload.supported')}
-            </div>
+            <div className="upload-subtext">{t(language, 'upload.supported')}</div>
           </>
         )}
-        
+
         <input
           id="cv-upload-input"
           type="file"

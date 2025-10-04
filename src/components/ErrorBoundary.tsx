@@ -36,7 +36,7 @@ export class ErrorBoundary extends Component<Props, State> {
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo): void {
     logger.error('React Error Boundary caught an error:', error, errorInfo);
-    
+
     this.setState({
       error,
       errorInfo,
@@ -74,13 +74,9 @@ export class ErrorBoundary extends Component<Props, State> {
             margin: '10px',
           }}
         >
-          <h2 style={{ color: '#c00', margin: '0 0 10px 0' }}>
-            ⚠️ Something went wrong
-          </h2>
+          <h2 style={{ color: '#c00', margin: '0 0 10px 0' }}>⚠️ Something went wrong</h2>
           <details style={{ whiteSpace: 'pre-wrap', fontSize: '12px' }}>
-            <summary style={{ cursor: 'pointer', marginBottom: '10px' }}>
-              Error Details
-            </summary>
+            <summary style={{ cursor: 'pointer', marginBottom: '10px' }}>Error Details</summary>
             <div style={{ marginTop: '10px' }}>
               <strong>Error:</strong>
               <pre style={{ backgroundColor: '#fff', padding: '10px', overflow: 'auto' }}>
