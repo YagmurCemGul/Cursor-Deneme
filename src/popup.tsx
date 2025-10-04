@@ -32,7 +32,7 @@ import './styles.css';
 
 type TabType = 'cv-info' | 'optimize' | 'cover-letter' | 'profiles' | 'settings' | 'analytics' | 'interview-questions' | 'talent-gap';
 type Theme = 'light' | 'dark' | 'system';
-type Language = 'en' | 'tr';
+type Language = 'en' | 'tr' | 'de' | 'es' | 'fr' | 'zh' | 'ar' | 'pt' | 'ja' | 'ko' | 'it' | 'nl';
 
 const App: React.FC = () => {
   const [activeTab, setActiveTab] = useState<TabType>('cv-info');
@@ -491,6 +491,16 @@ const App: React.FC = () => {
           >
             <option value="en">🌐 English</option>
             <option value="tr">🌐 Türkçe</option>
+            <option value="de">🌐 Deutsch</option>
+            <option value="es">🌐 Español</option>
+            <option value="fr">🌐 Français</option>
+            <option value="zh">🌐 中文</option>
+            <option value="ar">🌐 العربية</option>
+            <option value="pt">🌐 Português</option>
+            <option value="ja">🌐 日本語</option>
+            <option value="ko">🌐 한국어</option>
+            <option value="it">🌐 Italiano</option>
+            <option value="nl">🌐 Nederlands</option>
           </select>
           <select
             className="form-select"
