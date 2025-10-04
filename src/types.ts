@@ -227,4 +227,125 @@ export interface CustomTemplate {
   createdAt: string;
   updatedAt: string;
   metadata?: TemplateMetadata;
+  category?: string;
+  folderId?: string;
+}
+
+// Template Ratings and Reviews
+export interface TemplateRating {
+  id: string;
+  templateId: string;
+  rating: number; // 1-5 stars
+  review?: string;
+  createdAt: string;
+  updatedAt?: string;
+  helpful?: number; // helpful votes
+  tags?: string[]; // e.g., ['professional', 'clean', 'modern']
+}
+
+export interface TemplateReview {
+  id: string;
+  templateId: string;
+  userId?: string;
+  rating: number;
+  title: string;
+  review: string;
+  pros?: string[];
+  cons?: string[];
+  createdAt: string;
+  updatedAt?: string;
+  helpful: number;
+  notHelpful: number;
+  verified?: boolean; // verified user/purchase
+}
+
+// Job Application Success Tracking
+export interface JobApplication {
+  id: string;
+  templateId: string;
+  jobTitle: string;
+  company: string;
+  industry: string;
+  appliedDate: string;
+  status: 'applied' | 'screening' | 'interview' | 'offer' | 'rejected' | 'accepted' | 'withdrawn';
+  statusDate: string;
+  notes?: string;
+  templateVersion?: string;
+}
+
+export interface TemplateSuccessMetrics {
+  templateId: string;
+  totalApplications: number;
+  interviewRate: number; // percentage that got interviews
+  offerRate: number; // percentage that got offers
+  acceptanceRate: number; // percentage that were accepted
+  averageResponseTime: number; // days
+  topIndustries: string[];
+  topCompanies: string[];
+  lastUpdated: string;
+}
+
+// Template Categories and Folders
+export interface TemplateFolder {
+  id: string;
+  name: string;
+  description?: string;
+  parentId?: string; // for nested folders
+  color?: string;
+  icon?: string;
+  createdAt: string;
+  updatedAt: string;
+  order: number;
+}
+
+export interface TemplateCategory {
+  id: string;
+  name: string;
+  description?: string;
+  icon?: string;
+  color?: string;
+  templates: string[]; // template IDs
+  createdAt: string;
+  updatedAt: string;
+}
+
+// Enhanced Analytics
+export interface AnalyticsDateRange {
+  start: string;
+  end: string;
+  preset?: 'today' | 'week' | 'month' | 'quarter' | 'year' | 'all' | 'custom';
+}
+
+export interface AnalyticsExportOptions {
+  format: 'json' | 'csv' | 'pdf' | 'excel';
+  dateRange: AnalyticsDateRange;
+  includeCharts?: boolean;
+  sections?: ('summary' | 'usage' | 'success' | 'ratings' | 'trends')[];
+}
+
+export interface TemplateAnalyticsSummary {
+  templateId: string;
+  templateName: string;
+  dateRange: AnalyticsDateRange;
+  usage: {
+    totalUses: number;
+    uniqueUsers: number;
+    averageUsesPerDay: number;
+    peakUsageDate: string;
+  };
+  success: {
+    applications: number;
+    interviewRate: number;
+    offerRate: number;
+  };
+  ratings: {
+    averageRating: number;
+    totalReviews: number;
+    distribution: Record<number, number>; // rating -> count
+  };
+  trends: {
+    usageGrowth: number; // percentage
+    ratingTrend: 'up' | 'down' | 'stable';
+    popularityRank: number;
+  };
 }
