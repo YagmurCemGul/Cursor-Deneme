@@ -8,6 +8,13 @@ interface ErrorDisplayProps {
   onDismiss?: () => void;
   showDetails?: boolean;
   variant?: 'danger' | 'warning' | 'info';
+  recoveryActions?: Array<{
+    label: string;
+    action: () => void;
+    icon?: string;
+    primary?: boolean;
+  }>;
+  showCommonSolutions?: boolean;
 }
 
 export const ErrorDisplay: React.FC<ErrorDisplayProps> = ({
@@ -17,6 +24,8 @@ export const ErrorDisplay: React.FC<ErrorDisplayProps> = ({
   onDismiss,
   showDetails = true,
   variant = 'danger',
+  recoveryActions,
+  showCommonSolutions = true,
 }) => {
   const [showFullError, setShowFullError] = React.useState(false);
 
@@ -52,6 +61,44 @@ export const ErrorDisplay: React.FC<ErrorDisplayProps> = ({
   // Check if error is about AI configuration
   const isAIConfigError = errorMessage.toLowerCase().includes('ai provider not configured') ||
                           errorMessage.toLowerCase().includes('api key');
+
+  // Check for other common error types
+  const isNetworkError = errorMessage.toLowerCase().includes('network') ||
+                         errorMessage.toLowerCase().includes('connection') ||
+                         errorMessage.toLowerCase().includes('timeout');
+  
+  const isRateLimitError = errorMessage.toLowerCase().includes('rate limit') ||
+                           errorMessage.toLowerCase().includes('too many requests');
+  
+  const isValidationError = errorMessage.toLowerCase().includes('validation') ||
+                            errorMessage.toLowerCase().includes('invalid input');
+
+  const getCommonSolutions = () => {
+    if (isNetworkError) {
+      return [
+        t(language, 'error.solution.checkInternet'),
+        t(language, 'error.solution.tryAgainLater'),
+        t(language, 'error.solution.checkFirewall'),
+      ];
+    }
+    if (isRateLimitError) {
+      return [
+        t(language, 'error.solution.waitBeforeRetry'),
+        t(language, 'error.solution.upgradeApiPlan'),
+        t(language, 'error.solution.useAnotherProvider'),
+      ];
+    }
+    if (isValidationError) {
+      return [
+        t(language, 'error.solution.checkInputs'),
+        t(language, 'error.solution.fillRequiredFields'),
+        t(language, 'error.solution.correctFormat'),
+      ];
+    }
+    return [];
+  };
+
+  const commonSolutions = showCommonSolutions ? getCommonSolutions() : [];
 
   return (
     <div className={`error-display error-${variant}`}>
@@ -92,11 +139,34 @@ export const ErrorDisplay: React.FC<ErrorDisplayProps> = ({
         </div>
       )}
 
-      {onRetry && (
+      {commonSolutions.length > 0 && (
+        <div className="error-solutions">
+          <strong>💡 {t(language, 'error.possibleSolutions')}:</strong>
+          <ul>
+            {commonSolutions.map((solution, index) => (
+              <li key={index}>{solution}</li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {(onRetry || recoveryActions) && (
         <div className="error-actions">
-          <button className="btn btn-primary" onClick={onRetry}>
-            🔄 {t(language, 'error.tryAgain')}
-          </button>
+          {onRetry && (
+            <button className="btn btn-primary" onClick={onRetry}>
+              🔄 {t(language, 'error.tryAgain')}
+            </button>
+          )}
+          {recoveryActions?.map((action, index) => (
+            <button
+              key={index}
+              className={`btn ${action.primary ? 'btn-primary' : 'btn-secondary'}`}
+              onClick={action.action}
+            >
+              {action.icon && <span>{action.icon} </span>}
+              {action.label}
+            </button>
+          ))}
         </div>
       )}
 
@@ -253,9 +323,47 @@ export const ErrorDisplay: React.FC<ErrorDisplayProps> = ({
           max-height: 200px;
         }
 
+        .error-solutions {
+          margin-top: 12px;
+          padding: 12px;
+          background: rgba(59, 130, 246, 0.05);
+          border-radius: 6px;
+          border-left: 3px solid #3b82f6;
+        }
+
+        .error-solutions strong {
+          display: block;
+          margin-bottom: 8px;
+          color: #1e40af;
+          font-size: 13px;
+        }
+
+        .error-solutions ul {
+          list-style: none;
+          padding: 0;
+          margin: 0;
+        }
+
+        .error-solutions li {
+          padding: 4px 0;
+          font-size: 13px;
+          color: #374151;
+          display: flex;
+          align-items: flex-start;
+          gap: 8px;
+        }
+
+        .error-solutions li:before {
+          content: '→';
+          color: #3b82f6;
+          font-weight: 600;
+          flex-shrink: 0;
+        }
+
         .error-actions {
           margin-top: 16px;
           display: flex;
+          flex-wrap: wrap;
           gap: 8px;
         }
 
