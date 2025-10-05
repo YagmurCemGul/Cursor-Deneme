@@ -227,103 +227,43 @@ export class StorageService {
     }
   }
 
-  // Custom CV Templates
-  static async saveCustomCVTemplate(template: import('../types').CustomCVTemplate): Promise<void> {
-    const { customCVTemplates = [] } = await chrome.storage.local.get('customCVTemplates');
-    const existingIndex = customCVTemplates.findIndex((t: import('../types').CustomCVTemplate) => t.id === template.id);
-
-    if (existingIndex >= 0) {
-      customCVTemplates[existingIndex] = { ...template, updatedAt: new Date().toISOString() };
-    } else {
-      customCVTemplates.push(template);
-    }
-
-    await chrome.storage.local.set({ customCVTemplates });
+  // Provider Usage Analytics
+  static async saveProviderUsage(usage: import('../types/storage').ProviderUsageAnalytics): Promise<void> {
+    const { providerAnalytics = [] } = await chrome.storage.local.get('providerAnalytics');
+    providerAnalytics.push(usage);
+    // Keep only last 100 entries
+    const trimmed = providerAnalytics.slice(-100);
+    await chrome.storage.local.set({ providerAnalytics: trimmed });
   }
 
-  static async getCustomCVTemplates(): Promise<import('../types').CustomCVTemplate[]> {
-    const { customCVTemplates = [] } = await chrome.storage.local.get('customCVTemplates');
-    return customCVTemplates;
+  static async getProviderAnalytics(): Promise<import('../types/storage').ProviderUsageAnalytics[]> {
+    const { providerAnalytics = [] } = await chrome.storage.local.get('providerAnalytics');
+    return providerAnalytics.sort((a: import('../types/storage').ProviderUsageAnalytics, b: import('../types/storage').ProviderUsageAnalytics) => 
+      new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+    );
   }
 
-  static async deleteCustomCVTemplate(templateId: string): Promise<void> {
-    const { customCVTemplates = [] } = await chrome.storage.local.get('customCVTemplates');
-    const filtered = customCVTemplates.filter((t: import('../types').CustomCVTemplate) => t.id !== templateId);
-    await chrome.storage.local.set({ customCVTemplates: filtered });
+  static async clearProviderAnalytics(): Promise<void> {
+    await chrome.storage.local.set({ providerAnalytics: [] });
   }
 
-  // Custom Cover Letter Templates
-  static async saveCustomCoverLetterTemplate(template: import('../types').CustomCoverLetterTemplate): Promise<void> {
-    const { customCoverLetterTemplates = [] } = await chrome.storage.local.get('customCoverLetterTemplates');
-    const existingIndex = customCoverLetterTemplates.findIndex((t: import('../types').CustomCoverLetterTemplate) => t.id === template.id);
-
-    if (existingIndex >= 0) {
-      customCoverLetterTemplates[existingIndex] = { ...template, updatedAt: new Date().toISOString() };
-    } else {
-      customCoverLetterTemplates.push(template);
-    }
-
-    await chrome.storage.local.set({ customCoverLetterTemplates });
+  // Performance Metrics
+  static async savePerformanceMetrics(metrics: import('../types/storage').PerformanceMetrics): Promise<void> {
+    const { performanceMetrics = [] } = await chrome.storage.local.get('performanceMetrics');
+    performanceMetrics.push(metrics);
+    // Keep only last 100 entries
+    const trimmed = performanceMetrics.slice(-100);
+    await chrome.storage.local.set({ performanceMetrics: trimmed });
   }
 
-  static async getCustomCoverLetterTemplates(): Promise<import('../types').CustomCoverLetterTemplate[]> {
-    const { customCoverLetterTemplates = [] } = await chrome.storage.local.get('customCoverLetterTemplates');
-    return customCoverLetterTemplates;
+  static async getPerformanceMetrics(): Promise<import('../types/storage').PerformanceMetrics[]> {
+    const { performanceMetrics = [] } = await chrome.storage.local.get('performanceMetrics');
+    return performanceMetrics.sort((a: import('../types/storage').PerformanceMetrics, b: import('../types/storage').PerformanceMetrics) => 
+      new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+    );
   }
 
-  static async deleteCustomCoverLetterTemplate(templateId: string): Promise<void> {
-    const { customCoverLetterTemplates = [] } = await chrome.storage.local.get('customCoverLetterTemplates');
-    const filtered = customCoverLetterTemplates.filter((t: import('../types').CustomCoverLetterTemplate) => t.id !== templateId);
-    await chrome.storage.local.set({ customCoverLetterTemplates: filtered });
-  }
-
-  // Template Categories
-  static async saveTemplateCategory(category: import('../types').TemplateCategory): Promise<void> {
-    const { templateCategories = [] } = await chrome.storage.local.get('templateCategories');
-    const existingIndex = templateCategories.findIndex((c: import('../types').TemplateCategory) => c.id === category.id);
-
-    if (existingIndex >= 0) {
-      templateCategories[existingIndex] = category;
-    } else {
-      templateCategories.push(category);
-    }
-
-    await chrome.storage.local.set({ templateCategories });
-  }
-
-  static async getTemplateCategories(): Promise<import('../types').TemplateCategory[]> {
-    const { templateCategories = [] } = await chrome.storage.local.get('templateCategories');
-    return templateCategories;
-  }
-
-  // Template Ratings
-  static async saveTemplateRating(rating: import('../types').TemplateRating): Promise<void> {
-    const { templateRatings = [] } = await chrome.storage.local.get('templateRatings');
-    const existingIndex = templateRatings.findIndex((r: import('../types').TemplateRating) => r.id === rating.id);
-
-    if (existingIndex >= 0) {
-      templateRatings[existingIndex] = rating;
-    } else {
-      templateRatings.push(rating);
-    }
-
-    await chrome.storage.local.set({ templateRatings });
-  }
-
-  static async getTemplateRatings(templateId?: string): Promise<import('../types').TemplateRating[]> {
-    const { templateRatings = [] } = await chrome.storage.local.get('templateRatings');
-    if (templateId) {
-      return templateRatings.filter((r: import('../types').TemplateRating) => r.templateId === templateId);
-    }
-    return templateRatings;
-  }
-
-  static async getAverageTemplateRating(templateId: string): Promise<{ average: number; total: number }> {
-    const ratings = await this.getTemplateRatings(templateId);
-    if (ratings.length === 0) {
-      return { average: 0, total: 0 };
-    }
-    const sum = ratings.reduce((acc: number, r: import('../types').TemplateRating) => acc + r.rating, 0);
-    return { average: sum / ratings.length, total: ratings.length };
+  static async clearPerformanceMetrics(): Promise<void> {
+    await chrome.storage.local.set({ performanceMetrics: [] });
   }
 }

@@ -49,6 +49,28 @@ export interface AIApiKeys {
   ollama?: string; // Optional API key for secured Ollama instances
 }
 
+export interface ProviderUsageAnalytics {
+  id: string;
+  provider: 'openai' | 'gemini' | 'claude';
+  operation: 'optimizeCV' | 'generateCoverLetter';
+  timestamp: string;
+  success: boolean;
+  duration: number; // in milliseconds
+  errorMessage?: string;
+}
+
+export interface PerformanceMetrics {
+  id: string;
+  provider: 'openai' | 'gemini' | 'claude';
+  operation: 'optimizeCV' | 'generateCoverLetter';
+  timestamp: string;
+  duration: number; // in milliseconds
+  success: boolean;
+  errorMessage?: string;
+  tokensUsed?: number;
+  costEstimate?: number;
+}
+
 export interface JobApplication {
   id: string;
   company: string;

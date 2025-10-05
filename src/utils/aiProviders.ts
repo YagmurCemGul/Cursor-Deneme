@@ -12,6 +12,42 @@
 
 import { CVData, ATSOptimization } from '../types';
 import { logger } from './logger';
+import { StorageService } from './storage';
+
+/**
+ * Track provider usage and performance
+ */
+async function trackProviderUsage(
+  provider: AIProvider,
+  operation: 'optimizeCV' | 'generateCoverLetter',
+  startTime: number,
+  success: boolean,
+  errorMessage?: string
+): Promise<void> {
+  const duration = Date.now() - startTime;
+  
+  // Save usage analytics
+  await StorageService.saveProviderUsage({
+    id: `${Date.now()}-${Math.random()}`,
+    provider,
+    operation,
+    timestamp: new Date().toISOString(),
+    success,
+    duration,
+    errorMessage,
+  });
+
+  // Save performance metrics
+  await StorageService.savePerformanceMetrics({
+    id: `${Date.now()}-${Math.random()}`,
+    provider,
+    operation,
+    timestamp: new Date().toISOString(),
+    duration,
+    success,
+    errorMessage,
+  });
+}
 
 /**
  * Retry helper for API calls with exponential backoff
@@ -217,12 +253,19 @@ Please analyze this CV against the job description and provide specific optimiza
           })
         );
 
+        // Track successful usage
+        await trackProviderUsage('openai', 'optimizeCV', startTime, true);
+
         return {
           optimizedCV: cvData,
           optimizations,
         };
       } catch (error: any) {
         logger.error('OpenAI optimization error:', error);
+        
+        // Track failed usage
+        await trackProviderUsage('openai', 'optimizeCV', startTime, false, error.message);
+        
         // Re-throw with more context if it's a generic error
         if (error.message?.includes('fetch') || error.message?.includes('network')) {
           throw new Error(
@@ -320,9 +363,16 @@ Return only the cover letter text, no additional formatting or explanations.`;
           throw new Error('No response from OpenAI. Please try again.');
         }
 
+        // Track successful usage
+        await trackProviderUsage('openai', 'generateCoverLetter', startTime, true);
+
         return content.trim();
       } catch (error: any) {
         logger.error('OpenAI cover letter generation error:', error);
+        
+        // Track failed usage
+        await trackProviderUsage('openai', 'generateCoverLetter', startTime, false, error.message);
+        
         // Re-throw with more context if it's a generic error
         if (error.message?.includes('fetch') || error.message?.includes('network')) {
           throw new Error(
@@ -353,6 +403,7 @@ export class GeminiProvider implements AIProviderAdapter {
     cvData: CVData,
     jobDescription: string
   ): Promise<{ optimizedCV: CVData; optimizations: ATSOptimization[] }> {
+    const startTime = Date.now();
     return retryWithBackoff(async () => {
       try {
         const prompt = `You are an expert ATS optimizer. Analyze this CV against the job description and provide specific optimizations.
@@ -468,12 +519,19 @@ Provide your response as a JSON object with an "optimizations" array. Each optim
           })
         );
 
+        // Track successful usage
+        await trackProviderUsage('gemini', 'optimizeCV', startTime, true);
+
         return {
           optimizedCV: cvData,
           optimizations,
         };
       } catch (error: any) {
         logger.error('Gemini optimization error:', error);
+        
+        // Track failed usage
+        await trackProviderUsage('gemini', 'optimizeCV', startTime, false, error.message);
+        
         // Re-throw with more context if it's a generic error
         if (error.message?.includes('fetch') || error.message?.includes('network')) {
           throw new Error(
@@ -490,6 +548,7 @@ Provide your response as a JSON object with an "optimizations" array. Each optim
     jobDescription: string,
     extraPrompt?: string
   ): Promise<string> {
+    const startTime = Date.now();
     return retryWithBackoff(async () => {
       try {
         const prompt = `You are an expert cover letter writer. Create a professional, compelling cover letter.
@@ -575,9 +634,16 @@ Return only the cover letter text.`;
           throw new Error('No response from Gemini. Please check your input and try again.');
         }
 
+        // Track successful usage
+        await trackProviderUsage('gemini', 'generateCoverLetter', startTime, true);
+
         return content.trim();
       } catch (error: any) {
         logger.error('Gemini cover letter generation error:', error);
+        
+        // Track failed usage
+        await trackProviderUsage('gemini', 'generateCoverLetter', startTime, false, error.message);
+        
         // Re-throw with more context if it's a generic error
         if (error.message?.includes('fetch') || error.message?.includes('network')) {
           throw new Error(
@@ -608,6 +674,7 @@ export class ClaudeProvider implements AIProviderAdapter {
     cvData: CVData,
     jobDescription: string
   ): Promise<{ optimizedCV: CVData; optimizations: ATSOptimization[] }> {
+    const startTime = Date.now();
     return retryWithBackoff(async () => {
       try {
         const systemPrompt = `You are an expert ATS optimizer and career consultant. Analyze CVs and provide specific, actionable optimization suggestions in JSON format.`;
@@ -717,12 +784,19 @@ Respond with a JSON object containing an "optimizations" array. Each item should
           })
         );
 
+        // Track successful usage
+        await trackProviderUsage('claude', 'optimizeCV', startTime, true);
+
         return {
           optimizedCV: cvData,
           optimizations,
         };
       } catch (error: any) {
         logger.error('Claude optimization error:', error);
+        
+        // Track failed usage
+        await trackProviderUsage('claude', 'optimizeCV', startTime, false, error.message);
+        
         // Re-throw with more context if it's a generic error
         if (error.message?.includes('fetch') || error.message?.includes('network')) {
           throw new Error(
@@ -739,6 +813,7 @@ Respond with a JSON object containing an "optimizations" array. Each item should
     jobDescription: string,
     extraPrompt?: string
   ): Promise<string> {
+    const startTime = Date.now();
     return retryWithBackoff(async () => {
       try {
         const systemPrompt = `You are an expert cover letter writer specializing in creating compelling, personalized cover letters.`;
@@ -815,9 +890,16 @@ Return only the cover letter text, no additional commentary.`;
           throw new Error('No response from Claude. Please try again.');
         }
 
+        // Track successful usage
+        await trackProviderUsage('claude', 'generateCoverLetter', startTime, true);
+
         return content.trim();
       } catch (error: any) {
         logger.error('Claude cover letter generation error:', error);
+        
+        // Track failed usage
+        await trackProviderUsage('claude', 'generateCoverLetter', startTime, false, error.message);
+        
         // Re-throw with more context if it's a generic error
         if (error.message?.includes('fetch') || error.message?.includes('network')) {
           throw new Error(
@@ -844,4 +926,144 @@ export function createAIProvider(config: AIConfig): AIProviderAdapter {
     default:
       throw new Error(`Unsupported AI provider: ${config.provider}`);
   }
+}
+
+/**
+ * Auto-fallback wrapper that tries alternative providers if the primary one fails
+ */
+export class AutoFallbackProvider implements AIProviderAdapter {
+  private primaryProvider: AIProviderAdapter;
+  private fallbackProviders: AIProviderAdapter[];
+  private primaryConfig: AIConfig;
+
+  constructor(
+    primaryConfig: AIConfig,
+    fallbackConfigs: AIConfig[]
+  ) {
+    this.primaryConfig = primaryConfig;
+    this.primaryProvider = createAIProvider(primaryConfig);
+    this.fallbackProviders = fallbackConfigs.map(config => createAIProvider(config));
+  }
+
+  async optimizeCV(
+    cvData: CVData,
+    jobDescription: string
+  ): Promise<{ optimizedCV: CVData; optimizations: ATSOptimization[] }> {
+    // Try primary provider first
+    try {
+      logger.info(`Attempting CV optimization with primary provider: ${this.primaryConfig.provider}`);
+      return await this.primaryProvider.optimizeCV(cvData, jobDescription);
+    } catch (primaryError: any) {
+      logger.warn(`Primary provider (${this.primaryConfig.provider}) failed:`, primaryError.message);
+
+      // Try fallback providers
+      for (let i = 0; i < this.fallbackProviders.length; i++) {
+        const fallbackProvider = this.fallbackProviders[i];
+        const providerName = this.getProviderName(i);
+        
+        try {
+          logger.info(`Attempting CV optimization with fallback provider: ${providerName}`);
+          const result = await fallbackProvider.optimizeCV(cvData, jobDescription);
+          
+          // Add a notification that fallback was used
+          logger.info(`Successfully used fallback provider: ${providerName}`);
+          
+          return result;
+        } catch (fallbackError: any) {
+          logger.warn(`Fallback provider (${providerName}) failed:`, fallbackError.message);
+          
+          // If this was the last fallback, throw the original error
+          if (i === this.fallbackProviders.length - 1) {
+            throw new Error(
+              `All providers failed. Primary error: ${primaryError.message}. Please check your API keys and try again.`
+            );
+          }
+        }
+      }
+
+      // If no fallbacks configured, throw the primary error
+      throw primaryError;
+    }
+  }
+
+  async generateCoverLetter(
+    cvData: CVData,
+    jobDescription: string,
+    extraPrompt?: string
+  ): Promise<string> {
+    // Try primary provider first
+    try {
+      logger.info(`Attempting cover letter generation with primary provider: ${this.primaryConfig.provider}`);
+      return await this.primaryProvider.generateCoverLetter(cvData, jobDescription, extraPrompt);
+    } catch (primaryError: any) {
+      logger.warn(`Primary provider (${this.primaryConfig.provider}) failed:`, primaryError.message);
+
+      // Try fallback providers
+      for (let i = 0; i < this.fallbackProviders.length; i++) {
+        const fallbackProvider = this.fallbackProviders[i];
+        const providerName = this.getProviderName(i);
+        
+        try {
+          logger.info(`Attempting cover letter generation with fallback provider: ${providerName}`);
+          const result = await fallbackProvider.generateCoverLetter(cvData, jobDescription, extraPrompt);
+          
+          // Add a notification that fallback was used
+          logger.info(`Successfully used fallback provider: ${providerName}`);
+          
+          return result;
+        } catch (fallbackError: any) {
+          logger.warn(`Fallback provider (${providerName}) failed:`, fallbackError.message);
+          
+          // If this was the last fallback, throw the original error
+          if (i === this.fallbackProviders.length - 1) {
+            throw new Error(
+              `All providers failed. Primary error: ${primaryError.message}. Please check your API keys and try again.`
+            );
+          }
+        }
+      }
+
+      // If no fallbacks configured, throw the primary error
+      throw primaryError;
+    }
+  }
+
+  private getProviderName(index: number): string {
+    // This is a helper to get provider name from fallback index
+    // In a real implementation, you'd track this more explicitly
+    return `Fallback #${index + 1}`;
+  }
+}
+
+/**
+ * Helper to create an auto-fallback provider with all available API keys
+ */
+export async function createAutoFallbackProvider(
+  primaryProvider: AIProvider,
+  allApiKeys: { openai?: string; gemini?: string; claude?: string },
+  model?: string,
+  temperature?: number
+): Promise<AutoFallbackProvider> {
+  const primaryConfig: AIConfig = {
+    provider: primaryProvider,
+    apiKey: allApiKeys[primaryProvider] || '',
+    model,
+    temperature,
+  };
+
+  // Create fallback configs for providers with API keys
+  const fallbackConfigs: AIConfig[] = [];
+  const providers: AIProvider[] = ['openai', 'gemini', 'claude'];
+  
+  for (const provider of providers) {
+    if (provider !== primaryProvider && allApiKeys[provider]) {
+      fallbackConfigs.push({
+        provider,
+        apiKey: allApiKeys[provider]!,
+        temperature,
+      });
+    }
+  }
+
+  return new AutoFallbackProvider(primaryConfig, fallbackConfigs);
 }

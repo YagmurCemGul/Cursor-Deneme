@@ -10,6 +10,24 @@ interface AISettingsProps {
 
 type AIProvider = 'openai' | 'gemini' | 'claude';
 
+// Animation styles
+const providerCardStyles = {
+  transition: 'all 0.3s ease-in-out',
+  transform: 'scale(1)',
+  opacity: 1,
+};
+
+const providerCardHoverStyles = {
+  transform: 'scale(1.02)',
+  boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+};
+
+const providerCardSelectedStyles = {
+  border: '2px solid #0066cc',
+  backgroundColor: '#f0f7ff',
+  transform: 'scale(1.02)',
+};
+
 interface ModelOption {
   value: string;
   label: string;
@@ -54,6 +72,8 @@ export const AISettings: React.FC<AISettingsProps> = ({ language, onConfigChange
   const [isTesting, setIsTesting] = useState(false);
   const [testResult, setTestResult] = useState<{ success: boolean; message: string } | null>(null);
   const [saveMessage, setSaveMessage] = useState<string>('');
+  const [isTransitioning, setIsTransitioning] = useState(false);
+  const [hoveredProvider, setHoveredProvider] = useState<AIProvider | null>(null);
 
   useEffect(() => {
     loadSettings();
@@ -78,11 +98,24 @@ export const AISettings: React.FC<AISettingsProps> = ({ language, onConfigChange
   };
 
   const handleProviderChange = (newProvider: AIProvider) => {
-    setProvider(newProvider);
-    // Set default model for the new provider
-    const defaultModel = MODEL_OPTIONS[newProvider][0]?.value || '';
-    setModel(defaultModel);
-    setTestResult(null);
+    if (newProvider === provider) return;
+    
+    // Trigger transition animation
+    setIsTransitioning(true);
+    
+    // Fade out current provider
+    setTimeout(() => {
+      setProvider(newProvider);
+      // Set default model for the new provider
+      const defaultModel = MODEL_OPTIONS[newProvider][0]?.value || '';
+      setModel(defaultModel);
+      setTestResult(null);
+      
+      // Fade in new provider
+      setTimeout(() => {
+        setIsTransitioning(false);
+      }, 150);
+    }, 150);
   };
 
   const handleApiKeyChange = (provider: AIProvider, value: string) => {
@@ -211,7 +244,15 @@ export const AISettings: React.FC<AISettingsProps> = ({ language, onConfigChange
           <div 
             className={`card ${provider === 'openai' ? 'selected' : ''}`}
             onClick={() => handleProviderChange('openai')}
-            style={{ cursor: 'pointer', padding: '16px' }}
+            onMouseEnter={() => setHoveredProvider('openai')}
+            onMouseLeave={() => setHoveredProvider(null)}
+            style={{
+              cursor: 'pointer',
+              padding: '16px',
+              ...providerCardStyles,
+              ...(provider === 'openai' ? providerCardSelectedStyles : {}),
+              ...(hoveredProvider === 'openai' && provider !== 'openai' ? providerCardHoverStyles : {}),
+            }}
           >
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
               <input 
@@ -220,7 +261,7 @@ export const AISettings: React.FC<AISettingsProps> = ({ language, onConfigChange
                 onChange={() => handleProviderChange('openai')}
               />
               <div>
-                <div style={{ fontWeight: 'bold', marginBottom: '4px' }}>OpenAI (ChatGPT)</div>
+                <div style={{ fontWeight: 'bold', marginBottom: '4px' }}>🤖 OpenAI (ChatGPT)</div>
                 <div style={{ fontSize: '13px', color: '#666' }}>
                   {t(language, 'settings.openaiInfo')}
                 </div>
@@ -232,7 +273,15 @@ export const AISettings: React.FC<AISettingsProps> = ({ language, onConfigChange
           <div 
             className={`card ${provider === 'gemini' ? 'selected' : ''}`}
             onClick={() => handleProviderChange('gemini')}
-            style={{ cursor: 'pointer', padding: '16px' }}
+            onMouseEnter={() => setHoveredProvider('gemini')}
+            onMouseLeave={() => setHoveredProvider(null)}
+            style={{
+              cursor: 'pointer',
+              padding: '16px',
+              ...providerCardStyles,
+              ...(provider === 'gemini' ? providerCardSelectedStyles : {}),
+              ...(hoveredProvider === 'gemini' && provider !== 'gemini' ? providerCardHoverStyles : {}),
+            }}
           >
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
               <input 
@@ -241,7 +290,7 @@ export const AISettings: React.FC<AISettingsProps> = ({ language, onConfigChange
                 onChange={() => handleProviderChange('gemini')}
               />
               <div>
-                <div style={{ fontWeight: 'bold', marginBottom: '4px' }}>Google Gemini</div>
+                <div style={{ fontWeight: 'bold', marginBottom: '4px' }}>✨ Google Gemini</div>
                 <div style={{ fontSize: '13px', color: '#666' }}>
                   {t(language, 'settings.geminiInfo')}
                 </div>
@@ -253,7 +302,15 @@ export const AISettings: React.FC<AISettingsProps> = ({ language, onConfigChange
           <div 
             className={`card ${provider === 'claude' ? 'selected' : ''}`}
             onClick={() => handleProviderChange('claude')}
-            style={{ cursor: 'pointer', padding: '16px' }}
+            onMouseEnter={() => setHoveredProvider('claude')}
+            onMouseLeave={() => setHoveredProvider(null)}
+            style={{
+              cursor: 'pointer',
+              padding: '16px',
+              ...providerCardStyles,
+              ...(provider === 'claude' ? providerCardSelectedStyles : {}),
+              ...(hoveredProvider === 'claude' && provider !== 'claude' ? providerCardHoverStyles : {}),
+            }}
           >
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
               <input 
@@ -262,7 +319,7 @@ export const AISettings: React.FC<AISettingsProps> = ({ language, onConfigChange
                 onChange={() => handleProviderChange('claude')}
               />
               <div>
-                <div style={{ fontWeight: 'bold', marginBottom: '4px' }}>Anthropic Claude</div>
+                <div style={{ fontWeight: 'bold', marginBottom: '4px' }}>🧠 Anthropic Claude</div>
                 <div style={{ fontSize: '13px', color: '#666' }}>
                   {t(language, 'settings.claudeInfo')}
                 </div>
@@ -273,7 +330,11 @@ export const AISettings: React.FC<AISettingsProps> = ({ language, onConfigChange
       </div>
 
       {/* API Key Input */}
-      <div style={{ marginBottom: '24px' }}>
+      <div style={{ 
+        marginBottom: '24px',
+        opacity: isTransitioning ? 0.5 : 1,
+        transition: 'opacity 0.3s ease-in-out',
+      }}>
         <label className="form-label">{t(language, 'settings.apiKey')} *</label>
         <div style={{ display: 'flex', gap: '8px', marginBottom: '8px' }}>
           <input
@@ -283,6 +344,7 @@ export const AISettings: React.FC<AISettingsProps> = ({ language, onConfigChange
             onChange={(e) => handleApiKeyChange(provider, e.target.value)}
             placeholder={t(language, 'settings.apiKeyPlaceholder')}
             style={{ flex: 1 }}
+            disabled={isTransitioning}
           />
           <button
             className="btn btn-secondary"
