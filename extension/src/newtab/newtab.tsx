@@ -7,6 +7,7 @@ import { validateEmail, validatePhone, validateURL, validateLinkedIn, validateGi
 import { CVPreview } from '../components/CVPreview';
 import { TemplateGallery } from '../components/TemplateGallery';
 import { TemplateType, TemplateColors, TemplateFonts } from '../lib/templates';
+import { exportToPDF, exportToImage, printCV, generatePDFFilename } from '../lib/pdfExport';
 import '../styles/global.css';
 
 export function NewTab() {
@@ -35,6 +36,7 @@ export function NewTab() {
   const [showTemplateGallery, setShowTemplateGallery] = useState(false);
   const [customColors, setCustomColors] = useState<Partial<TemplateColors>>({});
   const [customFonts, setCustomFonts] = useState<Partial<TemplateFonts>>({});
+  const [isExporting, setIsExporting] = useState(false);
 
   useEffect(() => {
     (async () => {
@@ -107,6 +109,60 @@ export function NewTab() {
       customColors: colors || customColors,
       customFonts: fonts || customFonts,
     });
+  }
+
+  // PDF Export handlers
+  async function handleExportToPDF() {
+    if (!profile) return;
+    
+    setIsExporting(true);
+    try {
+      const filename = generatePDFFilename(
+        profile.personal.firstName,
+        profile.personal.lastName,
+        job.title
+      );
+      
+      await exportToPDF('cv-preview-content', {
+        filename,
+        format: 'a4',
+        orientation: 'portrait',
+        quality: 0.95,
+      });
+      
+      alert('✅ PDF exported successfully!');
+    } catch (error) {
+      console.error('Export error:', error);
+      alert('❌ Failed to export PDF. Please try again.');
+    } finally {
+      setIsExporting(false);
+    }
+  }
+
+  async function handleExportToImage(format: 'png' | 'jpeg') {
+    if (!profile) return;
+    
+    setIsExporting(true);
+    try {
+      const filename = generatePDFFilename(
+        profile.personal.firstName,
+        profile.personal.lastName,
+        job.title
+      ).replace('.pdf', `.${format}`);
+      
+      await exportToImage('cv-preview-content', filename, format);
+      
+      alert(`✅ Image exported successfully!`);
+    } catch (error) {
+      console.error('Export error:', error);
+      alert('❌ Failed to export image. Please try again.');
+    } finally {
+      setIsExporting(false);
+    }
+  }
+
+  function handlePrint() {
+    printCV('cv-preview-content');
   }
 
   const linkedInUrl = useMemo(() => profile?.personal.linkedin ? `https://www.linkedin.com/in/${profile.personal.linkedin}` : '', [profile]);
@@ -1186,15 +1242,55 @@ Make it compelling, highlight key strengths, and use action-oriented language.`;
               {showPreview && profile && (
                 <div style={{ 
                   flex: '0 0 50%', 
-                  overflowY: 'auto',
+                  display: 'flex',
+                  flexDirection: 'column',
                   background: '#f8fafc'
                 }}>
-                  <CVPreview 
-                    profile={profile} 
-                    template={cvTemplate}
-                    customColors={customColors}
-                    customFonts={customFonts}
-                  />
+                  {/* Export Toolbar */}
+                  <div style={{
+                    padding: '16px',
+                    background: 'white',
+                    borderBottom: '1px solid #e5e7eb',
+                    display: 'flex',
+                    gap: 8,
+                    flexWrap: 'wrap',
+                    justifyContent: 'center',
+                  }}>
+                    <Button 
+                      variant="primary" 
+                      onClick={handleExportToPDF}
+                      disabled={isExporting}
+                      style={{ fontSize: 13 }}
+                    >
+                      {isExporting ? '⏳ Exporting...' : '📄 Export as PDF'}
+                    </Button>
+                    <Button 
+                      variant="secondary" 
+                      onClick={() => handleExportToImage('png')}
+                      disabled={isExporting}
+                      style={{ fontSize: 13 }}
+                    >
+                      🖼️ Export as PNG
+                    </Button>
+                    <Button 
+                      variant="secondary" 
+                      onClick={handlePrint}
+                      disabled={isExporting}
+                      style={{ fontSize: 13 }}
+                    >
+                      🖨️ Print
+                    </Button>
+                  </div>
+
+                  {/* Preview */}
+                  <div style={{ flex: 1, overflowY: 'auto' }}>
+                    <CVPreview 
+                      profile={profile} 
+                      template={cvTemplate}
+                      customColors={customColors}
+                      customFonts={customFonts}
+                    />
+                  </div>
                 </div>
               )}
             </div>
@@ -1314,8 +1410,51 @@ Make it compelling, highlight key strengths, and use action-oriented language.`;
             {active === 'downloads' && (
               <div className="col" style={{ gap: 20 }}>
                 <SectionHeader title="Download Your Documents" />
+                
+                {/* Professional CV Export */}
+                <div className="card" style={{ background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', color: 'white', border: 'none' }}>
+                  <h4 style={{ margin: '0 0 8px', color: 'white' }}>🎨 Professional CV (Formatted)</h4>
+                  <p style={{ margin: '0 0 16px', fontSize: 13, opacity: 0.9 }}>
+                    Export your beautifully formatted CV in PDF or image format
+                  </p>
+                  <div className="row" style={{ gap: 12, flexWrap: 'wrap' }}>
+                    <Button 
+                      variant="primary" 
+                      onClick={handleExportToPDF}
+                      disabled={isExporting || !profile}
+                      style={{ background: 'white', color: '#667eea', border: 'none' }}
+                    >
+                      {isExporting ? '⏳ Exporting...' : '📄 Export as PDF'}
+                    </Button>
+                    <Button 
+                      variant="secondary" 
+                      onClick={() => handleExportToImage('png')}
+                      disabled={isExporting || !profile}
+                      style={{ background: 'rgba(255,255,255,0.2)', color: 'white', border: '1px solid rgba(255,255,255,0.3)' }}
+                    >
+                      🖼️ Export as PNG
+                    </Button>
+                    <Button 
+                      variant="secondary" 
+                      onClick={handlePrint}
+                      disabled={isExporting || !profile}
+                      style={{ background: 'rgba(255,255,255,0.2)', color: 'white', border: '1px solid rgba(255,255,255,0.3)' }}
+                    >
+                      🖨️ Print
+                    </Button>
+                  </div>
+                  {!profile?.personal.firstName && (
+                    <div style={{ marginTop: 12, fontSize: 12, opacity: 0.8 }}>
+                      ℹ️ Complete your profile first to export formatted CV
+                    </div>
+                  )}
+                </div>
+
                 <div className="card">
-                  <h4 style={{ margin: '0 0 12px', color: '#1e293b' }}>📄 Resume</h4>
+                  <h4 style={{ margin: '0 0 12px', color: '#1e293b' }}>📄 ATS-Optimized Resume (Text)</h4>
+                  <p style={{ margin: '0 0 12px', fontSize: 13, color: '#64748b' }}>
+                    Plain text format optimized for Applicant Tracking Systems
+                  </p>
                   <div className="row" style={{ gap: 12, flexWrap: 'wrap' }}>
                     <Button variant="primary" onClick={() => downloadText(`${sanitizeFileBase()}.md`, 'text/markdown', resumeMd)} disabled={!resumeMd}>
                       📄 Download as Markdown
@@ -1327,10 +1466,18 @@ Make it compelling, highlight key strengths, and use action-oriented language.`;
                       📋 Copy Text
                     </Button>
                   </div>
+                  {!resumeMd && (
+                    <div style={{ marginTop: 12, fontSize: 12, color: '#64748b' }}>
+                      ℹ️ Generate ATS resume first from the Job tab
+                    </div>
+                  )}
                 </div>
 
                 <div className="card">
                   <h4 style={{ margin: '0 0 12px', color: '#1e293b' }}>✉️ Cover Letter</h4>
+                  <p style={{ margin: '0 0 12px', fontSize: 13, color: '#64748b' }}>
+                    Your personalized cover letter
+                  </p>
                   <div className="row" style={{ gap: 12, flexWrap: 'wrap' }}>
                     <Button variant="primary" onClick={() => downloadText(`${sanitizeFileBase()}_cover.md`, 'text/markdown', coverMd)} disabled={!coverMd}>
                       📄 Download as Markdown
@@ -1342,6 +1489,11 @@ Make it compelling, highlight key strengths, and use action-oriented language.`;
                       📋 Copy Text
                     </Button>
                   </div>
+                  {!coverMd && (
+                    <div style={{ marginTop: 12, fontSize: 12, color: '#64748b' }}>
+                      ℹ️ Generate cover letter first from the Job tab
+                    </div>
+                  )}
                 </div>
 
                 <div style={{ background: '#eef2ff', padding: 24, borderRadius: 12, border: '1px solid #c7d2fe' }}>

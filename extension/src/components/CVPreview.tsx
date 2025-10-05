@@ -17,7 +17,7 @@ export function CVPreview({ profile, template = 'professional', customColors, cu
 
   return (
     <div style={styles.container}>
-      <div style={styles.page}>
+      <div id="cv-preview-content" style={styles.page}>
         {/* Header */}
         <div style={styles.header}>
           <h1 style={styles.name}>
