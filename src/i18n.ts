@@ -353,7 +353,80 @@ const dict: Record<string, Record<Lang, string>> = {
   'buttons.backToMain': { en: 'Back to Main Menu', tr: 'Ana Menüye Dön' },
   'buttons.showWizard': { en: 'Show Setup Wizard', tr: 'Kurulum Sihirbazını Göster' },
   'buttons.openGuide': { en: 'Open Guide', tr: 'Rehberi Aç' },
-  'buttons.viewAnalytics': { en: 'View Analytics', tr: 'Analitikleri Görüntüle' }
+  'buttons.viewAnalytics': { en: 'View Analytics', tr: 'Analitikleri Görüntüle' },
+  
+  // Common UI States
+  'common.loading': { en: 'Loading...', tr: 'Yükleniyor...' },
+  'common.processing': { en: 'Processing...', tr: 'İşleniyor...' },
+  'common.pleaseWait': { en: 'Please wait...', tr: 'Lütfen bekleyin...' },
+  'common.validating': { en: 'Validating', tr: 'Doğrulanıyor' },
+  'common.complete': { en: 'Complete', tr: 'Tamam' },
+  'common.next': { en: 'Next', tr: 'İleri' },
+  'common.back': { en: 'Back', tr: 'Geri' },
+  'common.skip': { en: 'Skip', tr: 'Atla' },
+  
+  // Error Display
+  'error.title': { en: 'Error', tr: 'Hata' },
+  'error.warning': { en: 'Warning', tr: 'Uyarı' },
+  'error.info': { en: 'Information', tr: 'Bilgi' },
+  'error.suggestion': { en: 'Suggestion', tr: 'Öneri' },
+  'error.configureAI': { en: 'You need to configure an AI provider to use this feature. Go to Settings > AI Settings to add your API key.', tr: 'Bu özelliği kullanmak için bir YZ sağlayıcısı yapılandırmanız gerekir. API anahtarınızı eklemek için Ayarlar > YZ Ayarları\'na gidin.' },
+  'error.goToSettings': { en: 'Go to Settings', tr: 'Ayarlara Git' },
+  'error.technicalDetails': { en: 'Technical Details', tr: 'Teknik Detaylar' },
+  'error.tryAgain': { en: 'Try Again', tr: 'Tekrar Dene' },
+  
+  // AI Provider Status
+  'aiStatus.checking': { en: 'Checking...', tr: 'Kontrol ediliyor...' },
+  'aiStatus.configured': { en: 'AI Configured', tr: 'YZ Yapılandırıldı' },
+  'aiStatus.notConfigured': { en: 'AI Not Configured', tr: 'YZ Yapılandırılmadı' },
+  'aiStatus.notConfiguredTitle': { en: 'AI Provider Not Configured', tr: 'YZ Sağlayıcısı Yapılandırılmadı' },
+  'aiStatus.notConfiguredDesc': { en: 'To use AI-powered features like CV optimization and cover letter generation, you need to configure an AI provider.', tr: 'CV optimizasyonu ve niyet mektubu oluşturma gibi YZ destekli özellikleri kullanmak için bir YZ sağlayıcısı yapılandırmanız gerekir.' },
+  'aiStatus.configure': { en: 'Configure Now', tr: 'Şimdi Yapılandır' },
+  
+  // AI Onboarding
+  'aiOnboarding.welcome.title': { en: 'Welcome!', tr: 'Hoş Geldiniz!' },
+  'aiOnboarding.welcome.desc': { en: 'Let\'s set up your AI provider to unlock powerful features', tr: 'Güçlü özelliklerin kilidini açmak için YZ sağlayıcınızı kuralım' },
+  'aiOnboarding.welcome.heading': { en: 'Get Started with AI-Powered Features', tr: 'YZ Destekli Özelliklerle Başlayın' },
+  'aiOnboarding.welcome.lead': { en: 'Configure your AI provider to automatically optimize your CV, generate tailored cover letters, and match your skills to job requirements.', tr: 'CV\'nizi otomatik olarak optimize etmek, özel niyet mektupları oluşturmak ve yeteneklerinizi iş gereksinimlerine uyarlamak için YZ sağlayıcınızı yapılandırın.' },
+  
+  'aiOnboarding.feature.optimize': { en: 'CV Optimization', tr: 'CV Optimizasyonu' },
+  'aiOnboarding.feature.optimizeDesc': { en: 'Get ATS-friendly suggestions to improve your CV', tr: 'CV\'nizi iyileştirmek için ATS uyumlu öneriler alın' },
+  'aiOnboarding.feature.coverLetter': { en: 'Cover Letter Generation', tr: 'Niyet Mektubu Oluşturma' },
+  'aiOnboarding.feature.coverLetterDesc': { en: 'Create personalized cover letters in seconds', tr: 'Saniyeler içinde kişiselleştirilmiş niyet mektupları oluşturun' },
+  'aiOnboarding.feature.match': { en: 'Job Matching', tr: 'İş Eşleştirme' },
+  'aiOnboarding.feature.matchDesc': { en: 'Analyze how well you match job requirements', tr: 'İş gereksinimlerine ne kadar uyduğunuzu analiz edin' },
+  
+  'aiOnboarding.feature.gpt4': { en: 'GPT-4 powered', tr: 'GPT-4 destekli' },
+  'aiOnboarding.feature.reliable': { en: 'Most reliable', tr: 'En güvenilir' },
+  'aiOnboarding.feature.popular': { en: 'Most popular', tr: 'En popüler' },
+  'aiOnboarding.feature.free': { en: 'Generous free tier', tr: 'Cömert ücretsiz katman' },
+  'aiOnboarding.feature.fast': { en: 'Fast responses', tr: 'Hızlı yanıtlar' },
+  'aiOnboarding.feature.google': { en: 'Google quality', tr: 'Google kalitesi' },
+  'aiOnboarding.feature.detailed': { en: 'Detailed analysis', tr: 'Detaylı analiz' },
+  'aiOnboarding.feature.safe': { en: 'Safety-focused', tr: 'Güvenlik odaklı' },
+  'aiOnboarding.feature.context': { en: 'Long context', tr: 'Uzun bağlam' },
+  
+  'aiOnboarding.openaiDesc': { en: 'The most popular and reliable AI, powering ChatGPT', tr: 'ChatGPT\'yi çalıştıran en popüler ve güvenilir YZ' },
+  'aiOnboarding.geminiDesc': { en: 'Google\'s fast and cost-effective AI model', tr: 'Google\'ın hızlı ve uygun maliyetli YZ modeli' },
+  'aiOnboarding.claudeDesc': { en: 'Anthropic\'s AI known for detailed and thoughtful responses', tr: 'Detaylı ve düşünceli yanıtlarıyla bilinen Anthropic\'in YZ\'si' },
+  
+  'aiOnboarding.provider.title': { en: 'Choose Your AI Provider', tr: 'YZ Sağlayıcınızı Seçin' },
+  'aiOnboarding.provider.desc': { en: 'Select the AI service you want to use', tr: 'Kullanmak istediğiniz YZ hizmetini seçin' },
+  
+  'aiOnboarding.apiKey.title': { en: 'Add Your API Key', tr: 'API Anahtarınızı Ekleyin' },
+  'aiOnboarding.apiKey.desc': { en: 'Enter your API key to start using AI features', tr: 'YZ özelliklerini kullanmaya başlamak için API anahtarınızı girin' },
+  'aiOnboarding.apiKey.selected': { en: 'Selected provider', tr: 'Seçili sağlayıcı' },
+  'aiOnboarding.apiKey.howTo': { en: 'How to get your API key', tr: 'API anahtarınızı nasıl alırsınız' },
+  'aiOnboarding.apiKey.step1': { en: 'Visit the', tr: 'Şurayı ziyaret edin:' },
+  'aiOnboarding.apiKey.dashboard': { en: 'Dashboard', tr: 'Kontrol Paneli' },
+  'aiOnboarding.apiKey.step2': { en: 'Create a new API key or copy an existing one', tr: 'Yeni bir API anahtarı oluşturun veya mevcut olanı kopyalayın' },
+  'aiOnboarding.apiKey.step3': { en: 'Paste it below and click "Complete"', tr: 'Aşağıya yapıştırın ve "Tamam"a tıklayın' },
+  'aiOnboarding.apiKey.label': { en: 'API Key', tr: 'API Anahtarı' },
+  'aiOnboarding.apiKey.placeholder': { en: 'Paste your API key here...', tr: 'API anahtarınızı buraya yapıştırın...' },
+  'aiOnboarding.apiKey.security': { en: 'Your API key is encrypted and stored securely in your browser', tr: 'API anahtarınız şifrelenir ve tarayıcınızda güvenli bir şekilde saklanır' },
+  
+  'aiOnboarding.error.emptyKey': { en: 'Please enter an API key', tr: 'Lütfen bir API anahtarı girin' },
+  'aiOnboarding.error.invalid': { en: 'Invalid API key. Please check and try again.', tr: 'Geçersiz API anahtarı. Lütfen kontrol edin ve tekrar deneyin.' }
 };
 
 export function t(lang: Lang, key: string): string {
