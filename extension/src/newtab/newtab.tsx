@@ -11,6 +11,7 @@ import { LinkedInImport } from '../components/LinkedInImport';
 import { JobTracker } from '../components/JobTracker';
 import { ProfileManager } from '../components/ProfileManager';
 import { DescriptionEnhancer } from '../components/DescriptionEnhancer';
+import { CoverLetterBuilder } from '../components/CoverLetterBuilder';
 import { TemplateType, TemplateColors, TemplateFonts } from '../lib/templates';
 import { exportToPDF, exportToImage, printCV, generatePDFFilename } from '../lib/pdfExport';
 import { calculateATSScore, ATSScore } from '../lib/atsScoring';
@@ -55,6 +56,7 @@ export function NewTab() {
     context: any;
     onApply: (enhanced: string) => void;
   } | null>(null);
+  const [showCoverLetterBuilder, setShowCoverLetterBuilder] = useState(false);
 
   useEffect(() => {
     (async () => {
@@ -1598,26 +1600,87 @@ Make it compelling, highlight key strengths, and use action-oriented language.`;
 
             {active === 'cover' && (
               <div className="col">
-                <SectionHeader title="Cover Letter Preview" />
+                <SectionHeader 
+                  title="Cover Letter" 
+                  actions={
+                    <div style={{ display: 'flex', gap: 8 }}>
+                      {profile && job.pastedText && (
+                        <Button 
+                          variant="primary" 
+                          onClick={() => setShowCoverLetterBuilder(true)}
+                          style={{ fontSize: 13 }}
+                        >
+                          ✨ Use Template
+                        </Button>
+                      )}
+                    </div>
+                  }
+                />
+
+                {/* Template Builder Banner */}
+                {profile && job.pastedText && !coverMd && (
+                  <div style={{
+                    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                    padding: '24px 28px',
+                    borderRadius: 12,
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    marginBottom: 16,
+                  }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+                      <span style={{ fontSize: 48 }}>✉️</span>
+                      <div>
+                        <div style={{ color: 'white', fontWeight: 600, fontSize: 18, marginBottom: 4 }}>
+                          Create Your Perfect Cover Letter
+                        </div>
+                        <div style={{ color: 'rgba(255,255,255,0.9)', fontSize: 14 }}>
+                          Choose from 8 professional templates tailored to your role
+                        </div>
+                      </div>
+                    </div>
+                    <Button 
+                      variant="secondary"
+                      onClick={() => setShowCoverLetterBuilder(true)}
+                      style={{ background: 'white', color: '#667eea', border: 'none', fontWeight: 600, fontSize: 14, padding: '12px 24px' }}
+                    >
+                      Get Started →
+                    </Button>
+                  </div>
+                )}
+
                 {coverMd ? (
                   <>
                     <div className="preview" id="cover-preview" style={{ maxWidth: '100%', minHeight: 400 }}>
-                      <pre style={{ whiteSpace: 'pre-wrap', fontFamily: 'inherit', margin: 0 }}>{coverMd}</pre>
+                      <pre style={{ whiteSpace: 'pre-wrap', fontFamily: 'Georgia, serif', margin: 0, lineHeight: 1.8 }}>{coverMd}</pre>
                     </div>
-                    <div className="row" style={{ justifyContent: 'flex-end', marginTop: 16, gap: 12 }}>
-                      <Button variant="secondary" onClick={() => navigator.clipboard.writeText(coverMd).then(() => alert('Copied to clipboard!'))}>
-                        📋 Copy to Clipboard
+                    <div className="row" style={{ justifyContent: 'space-between', marginTop: 16, gap: 12 }}>
+                      <Button 
+                        variant="ghost" 
+                        onClick={() => setShowCoverLetterBuilder(true)}
+                        style={{ fontSize: 13 }}
+                      >
+                        🔄 Change Template
                       </Button>
-                      <Button variant="primary" onClick={() => setActive('downloads')}>
-                        ⬇️ Go to Downloads
-                      </Button>
+                      <div style={{ display: 'flex', gap: 12 }}>
+                        <Button variant="secondary" onClick={() => navigator.clipboard.writeText(coverMd).then(() => alert('Copied to clipboard!'))}>
+                          📋 Copy to Clipboard
+                        </Button>
+                        <Button variant="primary" onClick={() => setActive('downloads')}>
+                          ⬇️ Go to Downloads
+                        </Button>
+                      </div>
                     </div>
                   </>
                 ) : (
                   <div className="empty-state">
                     <div className="empty-state-icon">✉️</div>
                     <p className="empty-state-title">No cover letter generated yet</p>
-                    <p className="empty-state-text">Go to the Job tab and click "Generate Cover Letter"</p>
+                    <p className="empty-state-text">
+                      {!profile || !job.pastedText 
+                        ? 'Complete your CV profile and add a job description first'
+                        : 'Click "Use Template" to create your cover letter'}
+                    </p>
                   </div>
                 )}
               </div>
@@ -1831,6 +1894,19 @@ Make it compelling, highlight key strengths, and use action-oriented language.`;
               setEnhancerState(null);
             }}
             onClose={() => setEnhancerState(null)}
+          />
+        )}
+
+        {/* Cover Letter Builder Modal */}
+        {showCoverLetterBuilder && profile && (
+          <CoverLetterBuilder
+            profile={profile}
+            job={job}
+            onGenerate={(coverLetter) => {
+              setCoverMd(coverLetter);
+              saveGeneratedCoverLetter(coverLetter);
+            }}
+            onClose={() => setShowCoverLetterBuilder(false)}
           />
         )}
 
