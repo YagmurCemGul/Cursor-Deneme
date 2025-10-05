@@ -227,107 +227,147 @@ export class StorageService {
     }
   }
 
-  // Cloud Sync for Job Descriptions
-  static async syncJobDescriptionsToCloud(): Promise<boolean> {
-    try {
-      const descriptions = await this.getJobDescriptions();
-      const syncData = {
-        descriptions,
-        lastSyncAt: new Date().toISOString(),
-        version: '1.0.0'
-      };
-      
-      await chrome.storage.sync.set({ 
-        jobDescriptionsSync: syncData 
-      });
-      
-      return true;
-    } catch (error) {
-      console.error('Failed to sync to cloud:', error);
-      return false;
+  // Error Analytics
+  static async saveError(error: import('../types').ErrorLog): Promise<void> {
+    const { errorLogs = [] } = await chrome.storage.local.get('errorLogs');
+    errorLogs.push(error);
+    // Keep only last 500 error logs
+    const trimmed = errorLogs.slice(-500);
+    await chrome.storage.local.set({ errorLogs: trimmed });
+  }
+
+  static async getErrorLogs(): Promise<import('../types').ErrorLog[]> {
+    const { errorLogs = [] } = await chrome.storage.local.get('errorLogs');
+    return errorLogs.sort((a: import('../types').ErrorLog, b: import('../types').ErrorLog) => 
+      new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+    );
+  }
+
+  static async clearErrorLogs(): Promise<void> {
+    await chrome.storage.local.set({ errorLogs: [] });
+  }
+
+  static async markErrorResolved(errorId: string): Promise<void> {
+    const { errorLogs = [] } = await chrome.storage.local.get('errorLogs');
+    const error = errorLogs.find((e: import('../types').ErrorLog) => e.id === errorId);
+    
+    if (error) {
+      error.resolved = true;
+      await chrome.storage.local.set({ errorLogs });
     }
   }
 
-  static async syncJobDescriptionsFromCloud(): Promise<boolean> {
-    try {
-      const { jobDescriptionsSync } = await chrome.storage.sync.get('jobDescriptionsSync');
+  static async getErrorAnalytics(): Promise<import('../types').ErrorAnalytics> {
+    const errorLogs = await this.getErrorLogs();
+    
+    const totalErrors = errorLogs.length;
+    const errorsByType: Record<string, number> = {};
+    const errorsBySeverity: Record<string, number> = {};
+    const errorsByComponent: Record<string, number> = {};
+    const errorTrendsMap: Record<string, number> = {};
+    const errorGroups: Map<string, import('../types').ErrorGroup> = new Map();
+
+    // Calculate time windows
+    const now = new Date();
+    const oneHourAgo = new Date(now.getTime() - 60 * 60 * 1000);
+    const oneDayAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+    const oneWeekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+
+    let errorsLastHour = 0;
+    let errorsLastDay = 0;
+    let errorsLastWeek = 0;
+
+    let totalMemoryImpact = 0;
+    let totalLoadTimeImpact = 0;
+    let impactedOperations = 0;
+
+    errorLogs.forEach((error) => {
+      const errorTime = new Date(error.timestamp);
+
+      // Count by type
+      errorsByType[error.errorType] = (errorsByType[error.errorType] || 0) + 1;
       
-      if (jobDescriptionsSync && jobDescriptionsSync.descriptions) {
-        // Merge with local descriptions (cloud takes precedence for conflicts)
-        const localDescriptions = await this.getJobDescriptions();
-        const cloudDescriptions = jobDescriptionsSync.descriptions;
-        
-        const mergedDescriptions = this.mergeJobDescriptions(localDescriptions, cloudDescriptions);
-        await chrome.storage.local.set({ jobDescriptions: mergedDescriptions });
-        
-        return true;
+      // Count by severity
+      errorsBySeverity[error.severity] = (errorsBySeverity[error.severity] || 0) + 1;
+      
+      // Count by component
+      if (error.component) {
+        errorsByComponent[error.component] = (errorsByComponent[error.component] || 0) + 1;
       }
       
-      return false;
-    } catch (error) {
-      console.error('Failed to sync from cloud:', error);
-      return false;
-    }
-  }
+      // Count by date for trends
+      const date = new Date(error.timestamp).toISOString().split('T')[0];
+      errorTrendsMap[date] = (errorTrendsMap[date] || 0) + 1;
 
-  static async getLastSyncTime(): Promise<string | null> {
-    try {
-      const { jobDescriptionsSync } = await chrome.storage.sync.get('jobDescriptionsSync');
-      return jobDescriptionsSync?.lastSyncAt || null;
-    } catch (error) {
-      console.error('Failed to get last sync time:', error);
-      return null;
-    }
-  }
+      // Error rate calculations
+      if (errorTime >= oneHourAgo) errorsLastHour++;
+      if (errorTime >= oneDayAgo) errorsLastDay++;
+      if (errorTime >= oneWeekAgo) errorsLastWeek++;
 
-  private static mergeJobDescriptions(
-    local: import('../types').SavedJobDescription[],
-    cloud: import('../types').SavedJobDescription[]
-  ): import('../types').SavedJobDescription[] {
-    const merged = new Map<string, import('../types').SavedJobDescription>();
-    
-    // Add local descriptions
-    local.forEach(desc => merged.set(desc.id, desc));
-    
-    // Merge cloud descriptions (take cloud if newer)
-    cloud.forEach(cloudDesc => {
-      const localDesc = merged.get(cloudDesc.id);
-      if (!localDesc || new Date(cloudDesc.updatedAt) > new Date(localDesc.updatedAt)) {
-        merged.set(cloudDesc.id, cloudDesc);
+      // Performance impact
+      if (error.performanceImpact) {
+        if (error.performanceImpact.memoryUsage) {
+          totalMemoryImpact += error.performanceImpact.memoryUsage;
+        }
+        if (error.performanceImpact.loadTime) {
+          totalLoadTimeImpact += error.performanceImpact.loadTime;
+        }
+        impactedOperations++;
+      }
+
+      // Group errors
+      if (error.groupId) {
+        if (!errorGroups.has(error.groupId)) {
+          errorGroups.set(error.groupId, {
+            id: error.groupId,
+            message: error.message,
+            count: 0,
+            firstSeen: error.timestamp,
+            lastSeen: error.timestamp,
+            errorType: error.errorType,
+            severity: error.severity,
+            errors: [],
+          });
+        }
+
+        const group = errorGroups.get(error.groupId)!;
+        group.count++;
+        group.lastSeen = error.timestamp;
+        if (new Date(error.timestamp) < new Date(group.firstSeen)) {
+          group.firstSeen = error.timestamp;
+        }
+        // Only keep last 5 errors per group to save space
+        if (group.errors.length < 5) {
+          group.errors.push(error);
+        }
       }
     });
-    
-    return Array.from(merged.values());
-  }
 
-  // Bulk operations
-  static async bulkDeleteJobDescriptions(ids: string[]): Promise<void> {
-    const { jobDescriptions = [] } = await chrome.storage.local.get('jobDescriptions');
-    const filtered = jobDescriptions.filter((j: import('../types').SavedJobDescription) => !ids.includes(j.id));
-    await chrome.storage.local.set({ jobDescriptions: filtered });
-  }
+    const errorTrends = Object.entries(errorTrendsMap)
+      .map(([date, count]) => ({ date, count }))
+      .sort((a, b) => a.date.localeCompare(b.date));
 
-  static async bulkDuplicateJobDescriptions(ids: string[]): Promise<import('../types').SavedJobDescription[]> {
-    const { jobDescriptions = [] } = await chrome.storage.local.get('jobDescriptions');
-    const duplicates: import('../types').SavedJobDescription[] = [];
-    
-    ids.forEach(id => {
-      const original = jobDescriptions.find((j: import('../types').SavedJobDescription) => j.id === id);
-      if (original) {
-        const duplicate = {
-          ...original,
-          id: crypto.randomUUID(),
-          name: `${original.name} (Copy)`,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-          usageCount: 0
-        };
-        duplicates.push(duplicate);
-        jobDescriptions.push(duplicate);
-      }
-    });
-    
-    await chrome.storage.local.set({ jobDescriptions });
-    return duplicates;
+    const groupedErrors = Array.from(errorGroups.values())
+      .sort((a, b) => b.count - a.count);
+
+    return {
+      totalErrors,
+      errorsByType,
+      errorsBySeverity,
+      errorsByComponent,
+      recentErrors: errorLogs.slice(0, 20),
+      errorTrends,
+      groupedErrors,
+      errorRate: {
+        lastHour: errorsLastHour,
+        lastDay: errorsLastDay,
+        lastWeek: errorsLastWeek,
+      },
+      performanceImpact: impactedOperations > 0 ? {
+        avgMemoryIncrease: totalMemoryImpact / impactedOperations,
+        avgLoadTimeIncrease: totalLoadTimeImpact / impactedOperations,
+        totalImpactedOperations: impactedOperations,
+      } : undefined,
+    };
   }
 }

@@ -19,20 +19,21 @@ import { GoogleDriveSettings } from './components/GoogleDriveSettings';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { ATSScoreCard } from './components/ATSScoreCard';
 import { AnalyticsDashboard } from './components/AnalyticsDashboard';
-import InterviewQuestionsGenerator from './components/InterviewQuestionsGenerator';
-import TalentGapAnalysis from './components/TalentGapAnalysis';
+import { ErrorAnalyticsDashboardEnhanced } from './components/ErrorAnalyticsDashboardEnhanced';
 import { aiService } from './utils/aiService';
 import { AIConfig } from './utils/aiProviders';
 import { StorageService } from './utils/storage';
 import { applyCVOptimizations } from './utils/cvOptimizer';
 import { logger } from './utils/logger';
+import { errorTracker } from './utils/errorTracking';
+import { breadcrumbTracker } from './utils/breadcrumbTracker';
 import { performanceMonitor } from './utils/performance';
 import { t } from './i18n';
 import './styles.css';
 
-type TabType = 'cv-info' | 'optimize' | 'cover-letter' | 'profiles' | 'settings' | 'analytics' | 'interview-questions' | 'talent-gap';
+type TabType = 'cv-info' | 'optimize' | 'cover-letter' | 'profiles' | 'settings' | 'analytics';
 type Theme = 'light' | 'dark' | 'system';
-type Language = 'en' | 'tr' | 'de' | 'es' | 'fr' | 'zh' | 'ar' | 'pt' | 'ja' | 'ko' | 'it' | 'nl';
+type Language = 'en' | 'tr';
 
 const App: React.FC = () => {
   const [activeTab, setActiveTab] = useState<TabType>('cv-info');
@@ -83,6 +84,8 @@ const App: React.FC = () => {
 
   useEffect(() => {
     loadInitial();
+    // Initialize breadcrumb tracking
+    breadcrumbTracker.initializeAutoTracking();
   }, []);
 
   // Keyboard shortcuts for undo/redo
@@ -242,7 +245,6 @@ const App: React.FC = () => {
     
     // Pop from undo stack
     const previousState = undoStack[undoStack.length - 1];
-    if (!previousState) return;
     setUndoStack(prev => prev.slice(0, -1));
     
     setCVData(previousState.cvData);
@@ -266,7 +268,6 @@ const App: React.FC = () => {
     
     // Pop from redo stack
     const nextState = redoStack[redoStack.length - 1];
-    if (!nextState) return;
     setRedoStack(prev => prev.slice(0, -1));
     
     setCVData(nextState.cvData);
@@ -311,7 +312,7 @@ const App: React.FC = () => {
       const analytics: OptimizationAnalytics = {
         id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
         timestamp: new Date().toISOString(),
-        profileId: currentProfileId.current || '',
+        profileId: currentProfileId.current || undefined,
         optimizationsApplied: result.optimizations.length,
         categoriesOptimized: [...new Set(result.optimizations.map(o => o.category))],
         jobDescriptionLength: jobDescription.length,
@@ -491,16 +492,6 @@ const App: React.FC = () => {
           >
             <option value="en">🌐 English</option>
             <option value="tr">🌐 Türkçe</option>
-            <option value="de">🌐 Deutsch</option>
-            <option value="es">🌐 Español</option>
-            <option value="fr">🌐 Français</option>
-            <option value="zh">🌐 中文</option>
-            <option value="ar">🌐 العربية</option>
-            <option value="pt">🌐 Português</option>
-            <option value="ja">🌐 日本語</option>
-            <option value="ko">🌐 한국어</option>
-            <option value="it">🌐 Italiano</option>
-            <option value="nl">🌐 Nederlands</option>
           </select>
           <select
             className="form-select"
@@ -641,24 +632,6 @@ const App: React.FC = () => {
         >
           📊 {t(language, 'analytics.title')}
         </button>
-        <button
-          className={`tab ${activeTab === 'interview-questions' ? 'active' : ''}`}
-          onClick={() => setActiveTab('interview-questions')}
-          role="tab"
-          aria-selected={activeTab === 'interview-questions'}
-          aria-label="Interview Questions"
-        >
-          ❓ Interview Questions
-        </button>
-        <button
-          className={`tab ${activeTab === 'talent-gap' ? 'active' : ''}`}
-          onClick={() => setActiveTab('talent-gap')}
-          role="tab"
-          aria-selected={activeTab === 'talent-gap'}
-          aria-label="Talent Gap Analysis"
-        >
-          🎯 Talent Gap
-        </button>
       </div>
 
       <div className="content">
@@ -670,12 +643,6 @@ const App: React.FC = () => {
               value={jobDescription}
               onChange={setJobDescription}
               language={language}
-              aiConfig={{
-                provider: aiProvider,
-                apiKey: apiKeys[aiProvider] || '',
-                model: aiModel,
-                temperature: 0.7,
-              }}
             />
 
             <PersonalInfoForm
@@ -800,21 +767,10 @@ const App: React.FC = () => {
         )}
 
         {activeTab === 'analytics' && (
-          <AnalyticsDashboard language={language} />
-        )}
-
-        {activeTab === 'interview-questions' && (
-          <InterviewQuestionsGenerator 
-            cvData={cvData}
-            jobDescription={jobDescription}
-          />
-        )}
-
-        {activeTab === 'talent-gap' && (
-          <TalentGapAnalysis 
-            cvData={cvData}
-            jobDescription={jobDescription}
-          />
+          <>
+            <AnalyticsDashboard language={language} />
+            <ErrorAnalyticsDashboardEnhanced language={language} />
+          </>
         )}
       </div>
     </div>

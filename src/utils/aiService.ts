@@ -4,6 +4,7 @@ import { logger } from './logger';
 import { usageAnalytics } from './usageAnalytics';
 import { StorageService } from './storage';
 import { healthMonitor } from './healthMonitor';
+import { errorTracker } from './errorTracking';
 
 /**
  * AIService - Handles AI-powered CV optimization and cover letter generation
@@ -42,6 +43,12 @@ export class AIService {
         this.initializeFallbackProviders(config.provider);
       } catch (error) {
         logger.error('Failed to initialize AI provider, falling back to mock mode:', error);
+        errorTracker.trackError(error as Error, {
+          errorType: 'api',
+          severity: 'medium',
+          component: 'AIService',
+          action: 'Initialize provider',
+        });
         this.useMockMode = true;
       }
     } else {
@@ -79,6 +86,12 @@ export class AIService {
       }
     } catch (error) {
       logger.error('Failed to update AI provider:', error);
+      errorTracker.trackError(error as Error, {
+        errorType: 'api',
+        severity: 'high',
+        component: 'AIService',
+        action: 'Update config',
+      });
       throw error;
     }
   }
@@ -232,6 +245,12 @@ export class AIService {
         const duration = Date.now() - startTime;
         logger.error('AI provider error:', error);
         
+        // Track error in analytics
+        errorTracker.trackAPIError(error as Error, {
+          provider: this.currentProvider || 'unknown',
+          component: 'AIService',
+        });
+        
         // Track failed attempt and record health failure
         if (this.currentProvider) {
           await usageAnalytics.trackCVOptimization(
@@ -340,6 +359,12 @@ export class AIService {
       } catch (error: any) {
         const duration = Date.now() - startTime;
         logger.error('AI provider error:', error);
+        
+        // Track error in analytics
+        errorTracker.trackAPIError(error as Error, {
+          provider: this.currentProvider || 'unknown',
+          component: 'AIService',
+        });
         
         // Track failed attempt and record health failure
         if (this.currentProvider) {
