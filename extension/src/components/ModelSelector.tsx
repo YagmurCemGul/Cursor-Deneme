@@ -37,6 +37,20 @@ export function ModelSelector({ onClose }: ModelSelectorProps) {
     loadUsageStats();
   }, []);
 
+  // Auto-select a model when provider changes
+  useEffect(() => {
+    const currentModelProvider = AI_MODELS[selectedModel]?.provider;
+    if (currentModelProvider !== selectedProvider) {
+      // Current model doesn't match provider, select a default one
+      const defaultModels: Record<AIProvider, AIModel> = {
+        'openai': 'gpt-4-turbo',
+        'anthropic': 'claude-3-sonnet',
+        'google': 'gemini-1.5-pro'
+      };
+      setSelectedModel(defaultModels[selectedProvider]);
+    }
+  }, [selectedProvider]);
+
   const loadSettings = async () => {
     try {
       const stored = await chrome.storage.local.get([
@@ -190,30 +204,39 @@ export function ModelSelector({ onClose }: ModelSelectorProps) {
           {/* API Key Configuration */}
           <div style={{ marginBottom: 32 }}>
             <h3 style={{ margin: '0 0 16px', fontSize: 16, color: '#1e293b' }}>
-              2. Configure API Keys
+              2. Configure API Key
             </h3>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-              <APIKeyInput
-                label="OpenAI API Key"
-                value={openaiKey}
-                onChange={setOpenaiKey}
-                placeholder="sk-..."
-                isActive={selectedProvider === 'openai'}
-              />
-              <APIKeyInput
-                label="Anthropic API Key"
-                value={anthropicKey}
-                onChange={setAnthropicKey}
-                placeholder="sk-ant-..."
-                isActive={selectedProvider === 'anthropic'}
-              />
-              <APIKeyInput
-                label="Google API Key"
-                value={googleKey}
-                onChange={setGoogleKey}
-                placeholder="AI..."
-                isActive={selectedProvider === 'google'}
-              />
+              {selectedProvider === 'openai' && (
+                <APIKeyInput
+                  label="OpenAI API Key"
+                  value={openaiKey}
+                  onChange={setOpenaiKey}
+                  placeholder="sk-..."
+                  isActive={true}
+                  helpText="Get your API key from: https://platform.openai.com/api-keys"
+                />
+              )}
+              {selectedProvider === 'anthropic' && (
+                <APIKeyInput
+                  label="Anthropic API Key"
+                  value={anthropicKey}
+                  onChange={setAnthropicKey}
+                  placeholder="sk-ant-..."
+                  isActive={true}
+                  helpText="Get your API key from: https://console.anthropic.com/settings/keys"
+                />
+              )}
+              {selectedProvider === 'google' && (
+                <APIKeyInput
+                  label="Google API Key"
+                  value={googleKey}
+                  onChange={setGoogleKey}
+                  placeholder="AIza..."
+                  isActive={true}
+                  helpText="Get your API key from: https://makersuite.google.com/app/apikey"
+                />
+              )}
             </div>
           </div>
 
@@ -344,7 +367,7 @@ function ProviderCard({ provider, name, icon, description, isSelected, onClick }
   );
 }
 
-function APIKeyInput({ label, value, onChange, placeholder, isActive }: any) {
+function APIKeyInput({ label, value, onChange, placeholder, isActive, helpText }: any) {
   return (
     <div>
       <label style={{
@@ -367,9 +390,19 @@ function APIKeyInput({ label, value, onChange, placeholder, isActive }: any) {
           border: `2px solid ${isActive ? '#667eea' : '#e2e8f0'}`,
           borderRadius: 8,
           fontSize: 13,
-          fontFamily: 'monospace'
+          fontFamily: 'monospace',
+          marginBottom: helpText ? 8 : 0
         }}
       />
+      {helpText && (
+        <div style={{
+          fontSize: 11,
+          color: '#64748b',
+          marginTop: 6
+        }}>
+          {helpText}
+        </div>
+      )}
     </div>
   );
 }
