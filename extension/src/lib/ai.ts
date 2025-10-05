@@ -105,6 +105,10 @@ async function callOpenAI(system: string, user: string): Promise<string> {
       });
 
       if (!res.ok) {
+        // Special handling for rate limit errors
+        if (res.status === 429) {
+          return `OpenAI rate limit exceeded (429). Please wait a moment and try again, or consider upgrading your API plan. ${res.statusText}`;
+        }
         return `OpenAI error: ${res.status} ${res.statusText}`;
       }
       const data = await res.json();
@@ -130,6 +134,10 @@ async function callOpenAI(system: string, user: string): Promise<string> {
       });
 
       if (!res.ok) {
+        // Special handling for rate limit errors
+        if (res.status === 429) {
+          return `Gemini rate limit exceeded (429). Please wait a moment and try again, or consider upgrading your API plan. ${res.statusText}`;
+        }
         return `Gemini error: ${res.status} ${res.statusText}`;
       }
       const data = await res.json();
@@ -155,6 +163,10 @@ async function callOpenAI(system: string, user: string): Promise<string> {
       });
 
       if (!res.ok) {
+        // Special handling for rate limit errors
+        if (res.status === 429) {
+          return `Claude rate limit exceeded (429). Please wait a moment and try again, or consider upgrading your API plan. ${res.statusText}`;
+        }
         return `Claude error: ${res.status} ${res.statusText}`;
       }
       const data = await res.json();

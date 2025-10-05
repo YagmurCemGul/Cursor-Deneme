@@ -84,6 +84,12 @@ Please analyze this CV against the job description and provide specific optimiza
 
       if (!response.ok) {
         const error = await response.text();
+        
+        // Special handling for rate limit errors
+        if (response.status === 429) {
+          throw new Error(`OpenAI rate limit exceeded (429). Please wait and try again.`);
+        }
+        
         throw new Error(`OpenAI API error: ${response.status} - ${error}`);
       }
 
@@ -164,6 +170,12 @@ Return only the cover letter text, no additional formatting or explanations.`;
 
       if (!response.ok) {
         const error = await response.text();
+        
+        // Special handling for rate limit errors
+        if (response.status === 429) {
+          throw new Error(`OpenAI rate limit exceeded (429). Please wait and try again.`);
+        }
+        
         throw new Error(`OpenAI API error: ${response.status} - ${error}`);
       }
 
@@ -232,6 +244,12 @@ Provide your response as a JSON object with an "optimizations" array. Each optim
 
       if (!response.ok) {
         const error = await response.text();
+        
+        // Special handling for rate limit errors
+        if (response.status === 429) {
+          throw new Error(`Gemini rate limit exceeded (429). Please wait and try again.`);
+        }
+        
         throw new Error(`Gemini API error: ${response.status} - ${error}`);
       }
 
@@ -314,6 +332,12 @@ Return only the cover letter text.`;
 
       if (!response.ok) {
         const error = await response.text();
+        
+        // Special handling for rate limit errors
+        if (response.status === 429) {
+          throw new Error(`Gemini rate limit exceeded (429). Please wait and try again.`);
+        }
+        
         throw new Error(`Gemini API error: ${response.status} - ${error}`);
       }
 
@@ -387,6 +411,12 @@ Respond with a JSON object containing an "optimizations" array. Each item should
 
       if (!response.ok) {
         const error = await response.text();
+        
+        // Special handling for rate limit errors
+        if (response.status === 429) {
+          throw new Error(`Claude rate limit exceeded (429). Please wait and try again.`);
+        }
+        
         throw new Error(`Claude API error: ${response.status} - ${error}`);
       }
 
@@ -471,6 +501,12 @@ Return only the cover letter text, no additional commentary.`;
 
       if (!response.ok) {
         const error = await response.text();
+        
+        // Special handling for rate limit errors
+        if (response.status === 429) {
+          throw new Error(`Claude rate limit exceeded (429). Please wait and try again.`);
+        }
+        
         throw new Error(`Claude API error: ${response.status} - ${error}`);
       }
 

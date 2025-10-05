@@ -263,27 +263,49 @@ export class APIManager {
           throw error;
         }
 
-        // Only retry on network errors or server errors
+        // Check if this is a rate limit error (429)
+        const isRateLimitError = error.message?.includes('429') || 
+                                  error.message?.includes('rate limit') ||
+                                  error.message?.includes('Rate limit');
+
+        // Only retry on network errors, server errors, or rate limit errors
         const shouldRetry =
           error.message?.includes('timeout') ||
           error.message?.includes('network') ||
           error.message?.includes('temporarily unavailable') ||
           error.message?.includes('503') ||
           error.message?.includes('502') ||
-          error.message?.includes('504');
+          error.message?.includes('504') ||
+          isRateLimitError;
 
         if (!shouldRetry || attempt === maxRetries) {
           logger.error(`Request ${key} failed after ${attempt + 1} attempts`);
+          
+          // Add helpful message for rate limit errors
+          if (isRateLimitError && attempt === maxRetries) {
+            const rateLimitMessage = 'Rate limit exceeded. Please wait a moment and try again, or consider upgrading your API plan.';
+            throw new Error(rateLimitMessage);
+          }
+          
           throw error;
         }
 
-        // Exponential backoff
-        const delay = retryDelay * Math.pow(2, attempt);
-        logger.info(`Retrying request ${key} after ${delay}ms (attempt ${attempt + 1}/${maxRetries})`);
+        // Exponential backoff with longer delays for rate limit errors
+        let delay = retryDelay * Math.pow(2, attempt);
+        
+        // For rate limit errors, use longer delays (minimum 5 seconds, increasing exponentially)
+        if (isRateLimitError) {
+          delay = Math.max(5000, retryDelay * Math.pow(3, attempt)); // More aggressive backoff for rate limits
+          logger.warn(`Rate limit hit for request ${key} - waiting ${delay}ms before retry ${attempt + 1}/${maxRetries}`);
+        } else {
+          logger.info(`Retrying request ${key} after ${delay}ms (attempt ${attempt + 1}/${maxRetries})`);
+        }
 
         this.reportProgress(onProgress, {
           status: 'in_progress',
-          message: `Retrying in ${delay}ms...`,
+          message: isRateLimitError 
+            ? `Rate limit reached. Waiting ${Math.round(delay / 1000)}s before retry...`
+            : `Retrying in ${delay}ms...`,
           progress: 10 + (attempt * 30),
           timestamp: Date.now(),
         });
