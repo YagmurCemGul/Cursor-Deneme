@@ -7,9 +7,9 @@ module.exports = (env, argv) => {
 
   return {
     entry: {
-      popup: './src/popup/main.tsx',
+      popup: './extension/src/popup/main.tsx',
       newtab: './extension/src/newtab/main.tsx',
-      options: './src/options/main.tsx',
+      options: './extension/src/options/main.tsx',
       background: './extension/src/background/index.ts',
       content: './extension/src/content/content.ts'
     },
@@ -48,7 +48,7 @@ module.exports = (env, argv) => {
     },
     plugins: [
       new HtmlWebpackPlugin({
-        template: './src/popup/index.html',
+        template: './extension/src/popup/index.html',
         filename: 'popup.html',
         chunks: ['popup'],
         minify: isProduction ? {
@@ -84,7 +84,7 @@ module.exports = (env, argv) => {
         inject: true
       }),
       new HtmlWebpackPlugin({
-        template: './src/options/index.html',
+        template: './extension/src/options/index.html',
         filename: 'options.html',
         chunks: ['options'],
         minify: isProduction ? {
@@ -104,11 +104,11 @@ module.exports = (env, argv) => {
       new CopyWebpackPlugin({
         patterns: [
           {
-            from: 'manifest.json',
+            from: 'extension/manifest.json',
             to: 'manifest.json'
           },
           {
-            from: 'icons',
+            from: 'extension/icons',
             to: 'icons'
           }
         ]
