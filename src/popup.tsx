@@ -308,10 +308,11 @@ const App: React.FC = () => {
       setOptimizations(result.optimizations);
       
       // Save analytics data
+      const currentProfId = currentProfileId.current;
       const analytics: OptimizationAnalytics = {
         id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
         timestamp: new Date().toISOString(),
-        profileId: currentProfileId.current || '',
+        ...(currentProfId ? { profileId: currentProfId } : {}),
         optimizationsApplied: result.optimizations.length,
         categoriesOptimized: [...new Set(result.optimizations.map(o => o.category))],
         jobDescriptionLength: jobDescription.length,
@@ -660,12 +661,11 @@ const App: React.FC = () => {
               value={jobDescription}
               onChange={setJobDescription}
               language={language}
-              aiConfig={{
-                provider: aiProvider,
-                apiKey: apiKeys[aiProvider] || '',
-                model: aiModel,
+              aiConfig={currentAIProvider && apiKeys[currentAIProvider] ? {
+                provider: currentAIProvider,
+                apiKey: apiKeys[currentAIProvider],
                 temperature: 0.7,
-              }}
+              } : undefined}
             />
 
             <PersonalInfoForm

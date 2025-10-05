@@ -1,5 +1,5 @@
 import React, { useRef, useState } from 'react';
-import { PersonalInfo } from '../types';
+import { PersonalInfo, PhotoFilters, PhotoHistoryItem, AIPhotoEnhancement } from '../types';
 import { logger } from '../utils/logger';
 import { t, Lang } from '../i18n';
 import { PhotoCropper } from './PhotoCropper';
@@ -31,6 +31,10 @@ export const PersonalInfoForm: React.FC<PersonalInfoFormProps> = ({ data, onChan
   const [photoLoading, setPhotoLoading] = useState(false);
   const [showCropper, setShowCropper] = useState(false);
   const [tempPhotoUrl, setTempPhotoUrl] = useState<string>('');
+  const [showHistory, setShowHistory] = useState(false);
+  const [showBatchUpload, setShowBatchUpload] = useState(false);
+  const [batchPhotos, setBatchPhotos] = useState<string[]>([]);
+  const [removingBg, setRemovingBg] = useState(false);
 
   // URL validation states
   const [linkedInValidation, setLinkedInValidation] = useState<ValidationResult>({
@@ -229,8 +233,8 @@ export const PersonalInfoForm: React.FC<PersonalInfoFormProps> = ({ data, onChan
     setPhotoError('');
     setPhotoLoading(true);
 
-    // Validate file type
-    const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+    // Validate file type (including AVIF)
+    const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/avif'];
     if (!validTypes.includes(file.type)) {
       setPhotoError(t(language, 'personal.photoInvalidType'));
       setPhotoLoading(false);
@@ -266,7 +270,102 @@ export const PersonalInfoForm: React.FC<PersonalInfoFormProps> = ({ data, onChan
     }
   };
 
-  const handleCropComplete = async (croppedDataUrl: string) => {
+  const handleBatchPhotoSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+
+    setPhotoLoading(true);
+    const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/avif'];
+    const photos: string[] = [];
+
+    for (let i = 0; i < Math.min(files.length, 10); i++) {
+      const file = files[i];
+      if (!file) continue;
+
+      if (!validTypes.includes(file.type) || file.size > 10 * 1024 * 1024) {
+        continue;
+      }
+
+      try {
+        const dataUrl = await new Promise<string>((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => resolve(reader.result as string);
+          reader.onerror = reject;
+          reader.readAsDataURL(file);
+        });
+        photos.push(dataUrl);
+      } catch (error) {
+        logger.error('Error loading batch photo:', error);
+      }
+    }
+
+    setBatchPhotos(photos);
+    setShowBatchUpload(true);
+    setPhotoLoading(false);
+  };
+
+  const selectBatchPhoto = (photoUrl: string) => {
+    setTempPhotoUrl(photoUrl);
+    setShowCropper(true);
+    setShowBatchUpload(false);
+  };
+
+  const addToHistory = (dataUrl: string, filters?: PhotoFilters) => {
+    const history = data.photoHistory || [];
+    const newItem: PhotoHistoryItem = {
+      id: Date.now().toString(),
+      dataUrl,
+      timestamp: Date.now(),
+      ...(filters ? { filters } : {}),
+    };
+    // Keep last 10 items
+    const updatedHistory = [newItem, ...history].slice(0, 10);
+    onChange({ ...data, photoHistory: updatedHistory });
+  };
+
+  const restoreFromHistory = (item: PhotoHistoryItem) => {
+    const updates: Partial<PersonalInfo> = {
+      photoDataUrl: item.dataUrl,
+    };
+    if (item.filters) {
+      updates.photoFilters = item.filters;
+    }
+    onChange({ 
+      ...data,
+      ...updates,
+    });
+    setShowHistory(false);
+  };
+
+  const removeBackground = async () => {
+    if (!data.photoDataUrl) return;
+
+    setRemovingBg(true);
+    try {
+      // This is a placeholder for AI background removal
+      // In a real implementation, this would call an API like remove.bg or use a local model
+      // For now, we'll simulate the process
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      
+      // Here you would integrate with remove.bg API or similar:
+      // const response = await fetch('https://api.remove.bg/v1.0/removebg', {
+      //   method: 'POST',
+      //   headers: {
+      //     'X-Api-Key': 'YOUR_API_KEY',
+      //   },
+      //   body: formData,
+      // });
+      
+      setPhotoError('AI background removal requires API integration. This is a placeholder.');
+    } catch (error) {
+      setPhotoError(t(language, 'personal.photoProcessError'));
+      logger.error('Background removal error:', error);
+    } finally {
+      setRemovingBg(false);
+    }
+  };
+
+  const handleCropComplete = async (croppedDataUrl: string, filters?: PhotoFilters, aiEnhancements?: AIPhotoEnhancement) => {
     setShowCropper(false);
     setPhotoLoading(true);
 
@@ -278,7 +377,25 @@ export const PersonalInfoForm: React.FC<PersonalInfoFormProps> = ({ data, onChan
 
       // Compress the cropped image
       const compressedDataUrl = await compressImage(file, 0.3);
-      onChange({ ...data, photoDataUrl: compressedDataUrl });
+      
+      // Add to history if we had a previous photo
+      if (data.photoDataUrl) {
+        addToHistory(data.photoDataUrl, data.photoFilters);
+      }
+      
+      const updates: Partial<PersonalInfo> = {
+        photoDataUrl: compressedDataUrl,
+      };
+      if (filters) {
+        updates.photoFilters = filters;
+      }
+      if (aiEnhancements) {
+        updates.aiEnhancements = aiEnhancements;
+      }
+      onChange({ 
+        ...data,
+        ...updates,
+      });
     } catch (error) {
       setPhotoError(t(language, 'personal.photoProcessError'));
       logger.error('Crop processing error:', error);
@@ -460,13 +577,52 @@ export const PersonalInfoForm: React.FC<PersonalInfoFormProps> = ({ data, onChan
                 >
                   {t(language, 'personal.remove')}
                 </button>
+                <button
+                  className="btn btn-secondary"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    removeBackground();
+                  }}
+                  disabled={photoLoading || removingBg}
+                >
+                  {removingBg ? t(language, 'personal.photoRemovingBg') : '✨ ' + t(language, 'personal.photoRemoveBg')}
+                </button>
               </>
+            )}
+            <button
+              className="btn btn-secondary"
+              onClick={(e) => {
+                e.preventDefault();
+                document.getElementById('batch-photo-input')?.click();
+              }}
+              disabled={photoLoading}
+            >
+              📁 {t(language, 'personal.photoBatchUpload')}
+            </button>
+            {data.photoHistory && data.photoHistory.length > 0 && (
+              <button
+                className="btn btn-secondary"
+                onClick={(e) => {
+                  e.preventDefault();
+                  setShowHistory(!showHistory);
+                }}
+              >
+                🕐 {t(language, 'personal.photoHistory')}
+              </button>
             )}
             <input
               ref={fileInputRef}
               type="file"
-              accept="image/jpeg,image/jpg,image/png,image/webp"
+              accept="image/jpeg,image/jpg,image/png,image/webp,image/avif"
               onChange={handlePhotoSelect}
+              style={{ display: 'none' }}
+            />
+            <input
+              id="batch-photo-input"
+              type="file"
+              accept="image/jpeg,image/jpg,image/png,image/webp,image/avif"
+              onChange={handleBatchPhotoSelect}
+              multiple
               style={{ display: 'none' }}
             />
           </div>
@@ -487,7 +643,64 @@ export const PersonalInfoForm: React.FC<PersonalInfoFormProps> = ({ data, onChan
             onCrop={handleCropComplete}
             onCancel={handleCropCancel}
             language={language}
+            {...(data.photoFilters ? { initialFilters: data.photoFilters } : {})}
+            {...(data.aiEnhancements ? { initialAIEnhancements: data.aiEnhancements } : {})}
           />
+        )}
+        {showHistory && (
+          <div className="photo-history-overlay" onClick={() => setShowHistory(false)}>
+            <div className="photo-history-modal" onClick={(e) => e.stopPropagation()}>
+              <div className="photo-history-header">
+                <h3>🕐 {t(language, 'personal.photoHistoryTitle')}</h3>
+                <button className="btn btn-secondary btn-icon" onClick={() => setShowHistory(false)}>
+                  ×
+                </button>
+              </div>
+              <div className="photo-history-content">
+                {data.photoHistory && data.photoHistory.length > 0 ? (
+                  <div className="photo-history-grid">
+                    {data.photoHistory.map((item) => (
+                      <div key={item.id} className="photo-history-item">
+                        <img src={item.dataUrl} alt="History" />
+                        <div className="photo-history-item-date">
+                          {new Date(item.timestamp).toLocaleDateString()}
+                        </div>
+                        <button
+                          className="btn btn-primary btn-sm"
+                          onClick={() => restoreFromHistory(item)}
+                        >
+                          {t(language, 'personal.photoRestore')}
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p>{t(language, 'personal.photoHistoryEmpty')}</p>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+        {showBatchUpload && (
+          <div className="photo-batch-overlay" onClick={() => setShowBatchUpload(false)}>
+            <div className="photo-batch-modal" onClick={(e) => e.stopPropagation()}>
+              <div className="photo-batch-header">
+                <h3>📁 {t(language, 'personal.photoBatchUpload')}</h3>
+                <button className="btn btn-secondary btn-icon" onClick={() => setShowBatchUpload(false)}>
+                  ×
+                </button>
+              </div>
+              <div className="photo-batch-content">
+                <div className="photo-batch-grid">
+                  {batchPhotos.map((photo, index) => (
+                    <div key={index} className="photo-batch-item" onClick={() => selectBatchPhoto(photo)}>
+                      <img src={photo} alt={`Photo ${index + 1}`} />
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
         )}
       </div>
 

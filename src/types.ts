@@ -1,3 +1,42 @@
+export interface PhotoFilters {
+  brightness: number; // 0-200, default 100
+  contrast: number; // 0-200, default 100
+  saturation: number; // 0-200, default 100
+  grayscale: number; // 0-100, default 0 (0 = color, 100 = full grayscale)
+  // Advanced filters
+  blur: number; // 0-20, default 0 (pixels)
+  sharpen: number; // 0-100, default 0
+  vignette: number; // 0-100, default 0
+  temperature: number; // -100 to 100, default 0 (warm/cool)
+  exposure: number; // -100 to 100, default 0
+}
+
+export interface AIPhotoEnhancement {
+  autoEnhance: boolean;
+  faceDetection: boolean;
+  backgroundBlur: number; // 0-100, default 0
+  styleTransfer?: 'none' | 'artistic' | 'vintage' | 'modern' | 'dramatic';
+}
+
+export interface CloudPhotoData {
+  id: string;
+  userId: string;
+  photoDataUrl: string;
+  filters?: PhotoFilters;
+  aiEnhancements?: AIPhotoEnhancement;
+  uploadedAt: number;
+  synced: boolean;
+  shared: boolean;
+  sharedWith?: string[];
+}
+
+export interface PhotoHistoryItem {
+  id: string;
+  dataUrl: string;
+  timestamp: number;
+  filters?: PhotoFilters;
+}
+
 export interface PersonalInfo {
   firstName: string;
   middleName: string;
@@ -11,6 +50,10 @@ export interface PersonalInfo {
   countryCode: string;
   summary: string;
   photoDataUrl?: string; // base64 data URL for profile photo
+  photoFilters?: PhotoFilters; // Applied filters
+  photoHistory?: PhotoHistoryItem[]; // History of uploaded photos
+  aiEnhancements?: AIPhotoEnhancement; // AI-based enhancements
+  cloudPhotoId?: string; // Reference to cloud-stored photo
 }
 
 export interface Experience {
