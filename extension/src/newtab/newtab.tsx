@@ -16,6 +16,7 @@ import { TemplateType, TemplateColors, TemplateFonts } from '../lib/templates';
 import { exportToPDF, exportToImage, printCV, generatePDFFilename } from '../lib/pdfExport';
 import { calculateATSScore, ATSScore } from '../lib/atsScoring';
 import { convertLinkedInToProfile, LinkedInProfile } from '../lib/linkedinImport';
+import { initLanguage, setLanguage, getCurrentLanguage, t, Language } from '../lib/i18n';
 import '../styles/global.css';
 
 export function NewTab() {
@@ -57,9 +58,14 @@ export function NewTab() {
     onApply: (enhanced: string) => void;
   } | null>(null);
   const [showCoverLetterBuilder, setShowCoverLetterBuilder] = useState(false);
+  const [currentLang, setCurrentLang] = useState<Language>('en');
 
   useEffect(() => {
     (async () => {
+      // Initialize language
+      const lang = await initLanguage();
+      setCurrentLang(lang);
+      
       // Load all profiles
       const profiles = await storage.get<ResumeProfile[]>(storage.keys.PROFILES) || [];
       setAllProfiles(profiles);
@@ -574,8 +580,12 @@ Make it compelling, highlight key strengths, and use action-oriented language.`;
         <div style={{ background: 'white', borderRadius: 16, padding: '24px 32px', marginBottom: 24, boxShadow: '0 10px 40px rgba(0,0,0,0.1)' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 16 }}>
             <div>
-              <h1 style={{ margin: 0, fontSize: 28, color: '#1e293b', marginBottom: 8 }}>🚀 AI CV & Cover Letter Optimizer</h1>
-              <p style={{ margin: 0, color: '#64748b', fontSize: 14 }}>Create ATS-optimized resumes and cover letters powered by AI</p>
+              <h1 style={{ margin: 0, fontSize: 28, color: '#1e293b', marginBottom: 8 }}>
+                🚀 {t('header.title', currentLang)}
+              </h1>
+              <p style={{ margin: 0, color: '#64748b', fontSize: 14 }}>
+                {t('header.subtitle', currentLang)}
+              </p>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
               {/* Profile Switcher */}
@@ -612,19 +622,39 @@ Make it compelling, highlight key strengths, and use action-oriented language.`;
                 </button>
               </div>
               
-              {/* Auto-save indicator */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 16px', background: isSaving ? '#fef3c7' : '#f0fdf4', borderRadius: 8, border: '1px solid ' + (isSaving ? '#fbbf24' : '#86efac') }}>
-                {isSaving ? (
-                  <>
-                    <div style={{ width: 12, height: 12, border: '2px solid #f59e0b', borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 0.6s linear infinite' }} />
-                    <span style={{ fontSize: 13, color: '#92400e', fontWeight: 500 }}>Saving...</span>
-                  </>
-                ) : lastSaved ? (
-                  <>
-                    <span style={{ fontSize: 16 }}>✓</span>
-                    <span style={{ fontSize: 13, color: '#166534', fontWeight: 500 }}>Saved</span>
-                  </>
-                ) : null}
+              {/* Language & Auto-save indicators */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                {/* Language indicator */}
+                <div style={{
+                  padding: '6px 12px',
+                  background: '#f8fafc',
+                  border: '1px solid #cbd5e1',
+                  borderRadius: 8,
+                  fontSize: 12,
+                  fontWeight: 600,
+                  color: '#475569',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 6,
+                }}>
+                  <span>{currentLang === 'tr' ? '🇹🇷' : '🇬🇧'}</span>
+                  <span>{currentLang.toUpperCase()}</span>
+                </div>
+                
+                {/* Auto-save indicator */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 16px', background: isSaving ? '#fef3c7' : '#f0fdf4', borderRadius: 8, border: '1px solid ' + (isSaving ? '#fbbf24' : '#86efac') }}>
+                  {isSaving ? (
+                    <>
+                      <div style={{ width: 12, height: 12, border: '2px solid #f59e0b', borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 0.6s linear infinite' }} />
+                      <span style={{ fontSize: 13, color: '#92400e', fontWeight: 500 }}>{t('header.saving', currentLang)}</span>
+                    </>
+                  ) : lastSaved ? (
+                    <>
+                      <span style={{ fontSize: 16 }}>✓</span>
+                      <span style={{ fontSize: 13, color: '#166534', fontWeight: 500 }}>{t('header.saved', currentLang)}</span>
+                    </>
+                  ) : null}
+                </div>
               </div>
             </div>
           </div>
@@ -1792,44 +1822,117 @@ Make it compelling, highlight key strengths, and use action-oriented language.`;
 
             {active === 'settings' && (
               <div className="col" style={{ gap: 20 }}>
-                <SectionHeader title="API Settings" />
-                <p style={{ margin: 0, color: '#64748b', fontSize: 14 }}>
-                  Configure your AI provider and API key to enable resume and cover letter generation.
-                </p>
+                {/* Language Settings */}
+                <div>
+                  <SectionHeader title={t('settings.language', currentLang) + ' / Language'} />
+                  <p style={{ margin: '0 0 16px', color: '#64748b', fontSize: 14 }}>
+                    {t('settings.languageDescription', currentLang)}
+                  </p>
+                  
+                  <div className="card" style={{ background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', border: 'none', padding: 24 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 16 }}>
+                      <span style={{ fontSize: 40 }}>🌍</span>
+                      <div>
+                        <div style={{ color: 'white', fontSize: 18, fontWeight: 600, marginBottom: 4 }}>
+                          Interface Language / Arayüz Dili
+                        </div>
+                        <div style={{ color: 'rgba(255,255,255,0.9)', fontSize: 13 }}>
+                          Choose your preferred language / Tercih ettiğiniz dili seçin
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                      <button
+                        onClick={async () => {
+                          await setLanguage('en');
+                          setCurrentLang('en');
+                          window.location.reload();
+                        }}
+                        style={{
+                          padding: 20,
+                          background: currentLang === 'en' ? 'white' : 'rgba(255,255,255,0.2)',
+                          color: currentLang === 'en' ? '#667eea' : 'white',
+                          border: '2px solid ' + (currentLang === 'en' ? 'white' : 'rgba(255,255,255,0.3)'),
+                          borderRadius: 12,
+                          cursor: 'pointer',
+                          fontSize: 16,
+                          fontWeight: 600,
+                          transition: 'all 0.2s',
+                        }}
+                      >
+                        <div style={{ fontSize: 32, marginBottom: 8 }}>🇬🇧</div>
+                        <div>English</div>
+                        {currentLang === 'en' && <div style={{ fontSize: 12, marginTop: 4 }}>✓ Active</div>}
+                      </button>
+                      
+                      <button
+                        onClick={async () => {
+                          await setLanguage('tr');
+                          setCurrentLang('tr');
+                          window.location.reload();
+                        }}
+                        style={{
+                          padding: 20,
+                          background: currentLang === 'tr' ? 'white' : 'rgba(255,255,255,0.2)',
+                          color: currentLang === 'tr' ? '#667eea' : 'white',
+                          border: '2px solid ' + (currentLang === 'tr' ? 'white' : 'rgba(255,255,255,0.3)'),
+                          borderRadius: 12,
+                          cursor: 'pointer',
+                          fontSize: 16,
+                          fontWeight: 600,
+                          transition: 'all 0.2s',
+                        }}
+                      >
+                        <div style={{ fontSize: 32, marginBottom: 8 }}>🇹🇷</div>
+                        <div>Türkçe</div>
+                        {currentLang === 'tr' && <div style={{ fontSize: 12, marginTop: 4 }}>✓ Aktif</div>}
+                      </button>
+                    </div>
+                  </div>
+                </div>
 
-                <div className="card">
-                  <label className="col">
-                    <span className="label">AI Provider</span>
-                    <select value={apiProvider} onChange={(e) => setApiProvider(e.target.value as any)}>
-                      <option value="openai">OpenAI (GPT-4)</option>
-                      <option value="gemini">Google Gemini</option>
-                      <option value="claude">Anthropic Claude</option>
-                      <option value="azure">Azure OpenAI</option>
-                    </select>
-                  </label>
+                {/* API Settings */}
+                <div style={{ marginTop: 32 }}>
+                  <SectionHeader title={t('settings.apiSettings', currentLang)} />
+                  <p style={{ margin: '0 0 16px', color: '#64748b', fontSize: 14 }}>
+                    Configure your AI provider and API key to enable resume and cover letter generation.
+                  </p>
 
-                  <label className="col" style={{ marginTop: 16 }}>
-                    <span className="label">API Key</span>
-                    <input 
-                      type="password" 
-                      className="text-input" 
-                      value={apiKey} 
-                      onChange={(e) => setApiKey(e.target.value)} 
-                      placeholder="Enter your API key..."
-                    />
-                  </label>
+                  <div className="card">
+                    <label className="col">
+                      <span className="label">{t('settings.aiProvider', currentLang)}</span>
+                      <select value={apiProvider} onChange={(e) => setApiProvider(e.target.value as any)}>
+                        <option value="openai">OpenAI (GPT-4)</option>
+                        <option value="gemini">Google Gemini</option>
+                        <option value="claude">Anthropic Claude</option>
+                        <option value="azure">Azure OpenAI</option>
+                      </select>
+                    </label>
 
-                  <label className="col" style={{ marginTop: 16 }}>
-                    <span className="label">Default Language</span>
-                    <select value={language} onChange={(e) => setLanguage(e.target.value as 'tr' | 'en')}>
-                      <option value="en">English</option>
-                      <option value="tr">Türkçe</option>
-                    </select>
-                  </label>
+                    <label className="col" style={{ marginTop: 16 }}>
+                      <span className="label">{t('settings.apiKey', currentLang)}</span>
+                      <input 
+                        type="password" 
+                        className="text-input" 
+                        value={apiKey} 
+                        onChange={(e) => setApiKey(e.target.value)} 
+                        placeholder="Enter your API key..."
+                      />
+                    </label>
 
-                  <Button variant="primary" onClick={saveSettings} style={{ marginTop: 16 }}>
-                    💾 Save Settings
-                  </Button>
+                    <label className="col" style={{ marginTop: 16 }}>
+                      <span className="label">Default Language (for AI generation)</span>
+                      <select value={language} onChange={(e) => setLanguage(e.target.value as 'tr' | 'en')}>
+                        <option value="en">English</option>
+                        <option value="tr">Türkçe</option>
+                      </select>
+                    </label>
+
+                    <Button variant="primary" onClick={saveSettings} style={{ marginTop: 16 }}>
+                      💾 {t('settings.saveSettings', currentLang)}
+                    </Button>
+                  </div>
                 </div>
 
                 <div style={{ background: '#fef3c7', padding: 20, borderRadius: 12, border: '1px solid #fbbf24' }}>
