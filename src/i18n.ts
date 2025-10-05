@@ -1,6 +1,6 @@
-export type Lang = 'en' | 'tr' | 'de' | 'es' | 'fr' | 'zh' | 'ar' | 'pt' | 'ja' | 'ko' | 'it' | 'nl';
+export type Lang = 'en' | 'tr';
 
-const dict: Record<string, Partial<Record<Lang, string>>> = {
+const dict: Record<string, Record<Lang, string>> = {
   'app.title': { en: 'AI CV & Cover Letter Optimizer', tr: 'YZ CV ve Niyet Mektubu Optimizasyonu' },
   'app.subtitle': {
     en: 'ATS-Optimized Resumes & Cover Letters Powered by AI',
@@ -166,184 +166,6 @@ const dict: Record<string, Partial<Record<Lang, string>>> = {
     en: 'Solution: Add your email as a test user in OAuth consent screen',
     tr: 'Çözüm: OAuth izin ekranında e-postanızı test kullanıcısı olarak ekleyin',
   },
-
-  // Setup Wizard
-  'wizard.title': { en: 'Google Drive Setup Wizard', tr: 'Google Drive Kurulum Sihirbazı' },
-  'wizard.subtitle': {
-    en: 'Follow these steps to configure Google Drive integration',
-    tr: 'Google Drive entegrasyonunu yapılandırmak için bu adımları izleyin',
-  },
-  'wizard.launchWizard': { en: 'Launch Setup Wizard', tr: 'Kurulum Sihirbazını Başlat' },
-  'wizard.setupComplete': {
-    en: 'Setup complete! Please reload the extension to apply changes.',
-    tr: 'Kurulum tamamlandı! Değişiklikleri uygulamak için uzantıyı yeniden yükleyin.',
-  },
-
-  // Wizard Steps
-  'wizard.step1Title': { en: 'Create Google Cloud Project', tr: 'Google Cloud Projesi Oluştur' },
-  'wizard.step1Desc': {
-    en: 'First, create a new project in Google Cloud Console',
-    tr: 'İlk olarak, Google Cloud Console\'da yeni bir proje oluşturun',
-  },
-  'wizard.step1Sub1': {
-    en: 'Go to Google Cloud Console (console.cloud.google.com)',
-    tr: 'Google Cloud Console\'a gidin (console.cloud.google.com)',
-  },
-  'wizard.step1Sub2': {
-    en: 'Click "Select a project" dropdown at the top',
-    tr: 'Üstteki "Proje seç" açılır menüsüne tıklayın',
-  },
-  'wizard.step1Sub3': {
-    en: 'Click "NEW PROJECT" and give it a name (e.g., "CV Optimizer")',
-    tr: 'YENİ PROJE\'ye tıklayın ve bir isim verin (örn. "CV Optimizer")',
-  },
-
-  'wizard.step2Title': { en: 'Enable Required APIs', tr: 'Gerekli API\'leri Etkinleştir' },
-  'wizard.step2Desc': {
-    en: 'Enable Google Drive and related APIs for your project',
-    tr: 'Projeniz için Google Drive ve ilgili API\'leri etkinleştirin',
-  },
-  'wizard.step2Sub1': {
-    en: 'Go to "APIs & Services" > "Library" in the left menu',
-    tr: 'Sol menüden "API\'ler ve Hizmetler" > "Kütüphane"ye gidin',
-  },
-  'wizard.step2Sub2': {
-    en: 'Search for and enable: "Google Drive API"',
-    tr: 'Arayın ve etkinleştirin: "Google Drive API"',
-  },
-  'wizard.step2Sub3': {
-    en: 'Search for and enable: "Google Docs API"',
-    tr: 'Arayın ve etkinleştirin: "Google Docs API"',
-  },
-  'wizard.step2Sub4': {
-    en: 'Search for and enable: "Google Sheets API" and "Google Slides API"',
-    tr: 'Arayın ve etkinleştirin: "Google Sheets API" ve "Google Slides API"',
-  },
-
-  'wizard.step3Title': { en: 'Create OAuth Credentials', tr: 'OAuth Kimlik Bilgileri Oluştur' },
-  'wizard.step3Desc': {
-    en: 'Create OAuth 2.0 Client ID for Chrome extension',
-    tr: 'Chrome uzantısı için OAuth 2.0 İstemci Kimliği oluşturun',
-  },
-  'wizard.step3Sub1': {
-    en: 'Go to "APIs & Services" > "Credentials"',
-    tr: '"API\'ler ve Hizmetler" > "Kimlik Bilgileri"ne gidin',
-  },
-  'wizard.step3Sub2': {
-    en: 'Click "CREATE CREDENTIALS" > "OAuth client ID"',
-    tr: '"KİMLİK BİLGİSİ OLUŞTUR" > "OAuth istemci kimliği"ne tıklayın',
-  },
-  'wizard.step3Sub3': {
-    en: 'Select "Chrome Extension" as application type',
-    tr: 'Uygulama türü olarak "Chrome Uzantısı" seçin',
-  },
-  'wizard.step3Sub4': {
-    en: 'Add your Chrome Extension ID (find it at chrome://extensions)',
-    tr: 'Chrome Uzantı Kimliğinizi ekleyin (chrome://extensions\'da bulabilirsiniz)',
-  },
-
-  'wizard.step4Title': { en: 'Configure & Validate', tr: 'Yapılandır ve Doğrula' },
-  'wizard.step4Desc': {
-    en: 'Copy your Client ID and validate the configuration',
-    tr: 'İstemci Kimliğinizi kopyalayın ve yapılandırmayı doğrulayın',
-  },
-  'wizard.step4Sub1': {
-    en: 'Copy the Client ID from Google Cloud Console',
-    tr: 'Google Cloud Console\'dan İstemci Kimliğini kopyalayın',
-  },
-  'wizard.step4Sub2': {
-    en: 'Paste it below and click "Validate Client ID"',
-    tr: 'Aşağıya yapıştırın ve "İstemci Kimliğini Doğrula"ya tıklayın',
-  },
-  'wizard.step4Sub3': {
-    en: 'Update manifest.json with your Client ID and reload the extension',
-    tr: 'manifest.json dosyasını İstemci Kimliğinizle güncelleyin ve uzantıyı yeniden yükleyin',
-  },
-
-  // Wizard Actions
-  'wizard.openConsole': { en: 'Open Google Console', tr: 'Google Console\'u Aç' },
-  'wizard.next': { en: 'Next', tr: 'İleri' },
-  'wizard.previous': { en: 'Previous', tr: 'Geri' },
-  'wizard.complete': { en: 'Complete Setup', tr: 'Kurulumu Tamamla' },
-  'wizard.validateButton': { en: 'Validate Client ID', tr: 'İstemci Kimliğini Doğrula' },
-  'wizard.autoValidate': { en: 'Auto-validate as I type', tr: 'Yazarken otomatik doğrula' },
-  'wizard.copy': { en: 'Copy', tr: 'Kopyala' },
-  'wizard.copiedToClipboard': { en: 'Copied to clipboard!', tr: 'Panoya kopyalandı!' },
-
-  // Wizard Status
-  'wizard.statusCompleted': { en: 'Step completed', tr: 'Adım tamamlandı' },
-  'wizard.statusInProgress': { en: 'In progress', tr: 'Devam ediyor' },
-  'wizard.statusPending': { en: 'Not started', tr: 'Başlanmadı' },
-  'wizard.statusError': { en: 'Error occurred', tr: 'Hata oluştu' },
-
-  // Wizard Validation
-  'wizard.validating': { en: 'Validating...', tr: 'Doğrulanıyor...' },
-  'wizard.validationEmpty': {
-    en: 'Please enter a Client ID',
-    tr: 'Lütfen bir İstemci Kimliği girin',
-  },
-  'wizard.validationPlaceholder': {
-    en: 'This looks like a placeholder. Please use your actual Client ID from Google Cloud Console',
-    tr: 'Bu bir yer tutucu gibi görünüyor. Lütfen Google Cloud Console\'dan gerçek İstemci Kimliğinizi kullanın',
-  },
-  'wizard.validationFormat': {
-    en: 'Client ID must end with .apps.googleusercontent.com',
-    tr: 'İstemci Kimliği .apps.googleusercontent.com ile bitmelidir',
-  },
-  'wizard.validationNoNumbers': {
-    en: 'Client ID should contain numbers. Please check your Client ID',
-    tr: 'İstemci Kimliği sayı içermelidir. Lütfen İstemci Kimliğinizi kontrol edin',
-  },
-  'wizard.validationTooShort': {
-    en: 'Client ID seems too short. Please verify it\'s correct',
-    tr: 'İstemci Kimliği çok kısa görünüyor. Lütfen doğru olduğunu kontrol edin',
-  },
-  'wizard.validationSuccess': {
-    en: '✅ Valid Client ID format! Remember to update manifest.json',
-    tr: '✅ Geçerli İstemci Kimliği formatı! manifest.json dosyasını güncellemeyi unutmayın',
-  },
-  'wizard.validationError': {
-    en: 'Error during validation. Please try again',
-    tr: 'Doğrulama sırasında hata oluştu. Lütfen tekrar deneyin',
-  },
-
-  // Wizard Instructions
-  'wizard.clientIdLabel': { en: 'Your Google Client ID', tr: 'Google İstemci Kimliğiniz' },
-  'wizard.clientIdInstructions': {
-    en: 'Paste Your Client ID Here',
-    tr: 'İstemci Kimliğinizi Buraya Yapıştırın',
-  },
-  'wizard.clientIdInstructionsDesc': {
-    en: 'Copy the Client ID from Google Cloud Console credentials page and paste it here for validation',
-    tr: 'Google Cloud Console kimlik bilgileri sayfasından İstemci Kimliğini kopyalayın ve doğrulama için buraya yapıştırın',
-  },
-  'wizard.howToCopy': {
-    en: 'How to Update manifest.json',
-    tr: 'manifest.json Nasıl Güncellenir',
-  },
-  'wizard.updateManifestDesc': {
-    en: 'After validation, update this field in your manifest.json file:',
-    tr: 'Doğrulamadan sonra, manifest.json dosyanızdaki bu alanı güncelleyin:',
-  },
-  'wizard.extensionIdTitle': {
-    en: 'Find Your Extension ID',
-    tr: 'Uzantı Kimliğinizi Bulun',
-  },
-  'wizard.extensionIdDesc': {
-    en: 'Open chrome://extensions, enable Developer Mode, and copy your extension ID',
-    tr: 'chrome://extensions açın, Geliştirici Modunu etkinleştirin ve uzantı kimliğinizi kopyalayın',
-  },
-
-  // Wizard Help
-  'wizard.needHelp': { en: 'Need Help?', tr: 'Yardıma İhtiyacınız Var mı?' },
-  'wizard.helpText': {
-    en: 'Check out our documentation for detailed setup instructions:',
-    tr: 'Detaylı kurulum talimatları için dokümantasyonumuza göz atın:',
-  },
-  'wizard.quickStartGuide': { en: 'Quick Start Guide', tr: 'Hızlı Başlangıç Kılavuzu' },
-  'wizard.fullDocumentation': { en: 'Full Documentation', tr: 'Tam Dokümantasyon' },
-  'wizard.troubleshooting': { en: 'Troubleshooting Guide', tr: 'Sorun Giderme Kılavuzu' },
-
   'common.errorOptimizing': {
     en: 'Error optimizing CV. Please try again.',
     tr: 'CV optimize edilirken hata oluştu. Lütfen tekrar deneyin.',
@@ -862,18 +684,6 @@ const dict: Record<string, Partial<Record<Lang, string>>> = {
     tr: 'Kullanıcıların seçebileceği seçenekler ekleyin',
   },
   'questions.multilineInput': { en: 'Multi-line text area', tr: 'Çok satırlı metin alanı' },
-  'questions.fileUpload': { en: 'File Upload', tr: 'Dosya Yükleme' },
-  'questions.required': { en: 'Required', tr: 'Zorunlu' },
-  'questions.makeRequired': { en: 'Make this question required', tr: 'Bu soruyu zorunlu yap' },
-  'questions.maxLength': { en: 'Character Limit', tr: 'Karakter Sınırı' },
-  'questions.charactersRemaining': { en: '{remaining} characters remaining', tr: '{remaining} karakter kaldı' },
-  'questions.charactersOver': { en: '{over} characters over limit', tr: 'Sınırın {over} karakter üzerinde' },
-  'questions.uploadFile': { en: 'Upload File', tr: 'Dosya Yükle' },
-  'questions.fileUploaded': { en: 'File uploaded: {name}', tr: 'Dosya yüklendi: {name}' },
-  'questions.removeFile': { en: 'Remove file', tr: 'Dosyayı kaldır' },
-  'questions.changeFile': { en: 'Change file', tr: 'Dosyayı değiştir' },
-  'questions.validationRequired': { en: 'This field is required', tr: 'Bu alan zorunludur' },
-  'questions.autoSaved': { en: 'Auto-saved', tr: 'Otomatik kaydedildi' },
 
   // Rich Text Editor
   'editor.bold': { en: 'Bold', tr: 'Kalın' },
@@ -895,85 +705,8 @@ const dict: Record<string, Partial<Record<Lang, string>>> = {
     en: 'Use **text** for bold, _text_ for italic',
     tr: '**metin** kalın, _metin_ italik için',
   },
-  'editor.underline': { en: 'Underline', tr: 'Altı Çizili' },
-  'editor.strikethrough': { en: 'Strikethrough', tr: 'Üstü Çizili' },
-  'editor.link': { en: 'Insert Link', tr: 'Bağlantı Ekle' },
-  'editor.inlineCode': { en: 'Inline Code', tr: 'Satır İçi Kod' },
-  'editor.codeBlock': { en: 'Code Block', tr: 'Kod Bloğu' },
-  'editor.linkUrlPrompt': { en: 'Enter URL:', tr: 'URL Girin:' },
-  'editor.undo': { en: 'Undo', tr: 'Geri Al' },
-  'editor.redo': { en: 'Redo', tr: 'Yinele' },
   'editor.template': { en: 'Use Template', tr: 'Şablon Kullan' },
   'editor.templates': { en: 'Templates', tr: 'Şablonlar' },
-
-  // Job Editor
-  'jobEditor.title': { en: 'Job Description Editor', tr: 'İş Açıklaması Düzenleyici' },
-  'jobEditor.analyze': { en: 'AI Analyze', tr: 'YZ ile Analiz Et' },
-  'jobEditor.analyzing': { en: 'Analyzing...', tr: 'Analiz Ediliyor...' },
-  'jobEditor.preview': { en: 'Preview', tr: 'Önizleme' },
-  'jobEditor.edit': { en: 'Edit', tr: 'Düzenle' },
-  'jobEditor.readability': { en: 'Readability', tr: 'Okunabilirlik' },
-  'jobEditor.analysisResults': { en: 'Analysis Results', tr: 'Analiz Sonuçları' },
-  'jobEditor.toneAnalysis': { en: 'Tone Analysis', tr: 'Ton Analizi' },
-  'jobEditor.tone.professional': { en: 'Professional', tr: 'Profesyonel' },
-  'jobEditor.tone.casual': { en: 'Casual', tr: 'Günlük' },
-  'jobEditor.tone.formal': { en: 'Formal', tr: 'Resmi' },
-  'jobEditor.tone.technical': { en: 'Technical', tr: 'Teknik' },
-  'jobEditor.score': { en: 'Score', tr: 'Puan' },
-  'jobEditor.grammarIssues': { en: 'Grammar & Spelling', tr: 'Dil Bilgisi ve Yazım' },
-  'jobEditor.fix': { en: 'Fix', tr: 'Düzelt' },
-  'jobEditor.suggestions': { en: 'Suggestions', tr: 'Öneriler' },
-  'jobEditor.keywords': { en: 'Detected Keywords', tr: 'Tespit Edilen Anahtar Kelimeler' },
-
-  // Job Templates
-  'jobTemplates.title': { en: 'Job Description Templates', tr: 'İş Açıklaması Şablonları' },
-  'jobTemplates.create': { en: 'Create Template', tr: 'Şablon Oluştur' },
-  'jobTemplates.import': { en: 'Import Template', tr: 'Şablon İçe Aktar' },
-  'jobTemplates.search': { en: 'Search templates...', tr: 'Şablonları ara...' },
-  'jobTemplates.allCategories': { en: 'All Categories', tr: 'Tüm Kategoriler' },
-  'jobTemplates.noTemplates': { en: 'No templates found', tr: 'Şablon bulunamadı' },
-  'jobTemplates.used': { en: 'Used', tr: 'Kullanıldı' },
-  'jobTemplates.use': { en: 'Use Template', tr: 'Şablonu Kullan' },
-  'jobTemplates.confirmDelete': { en: 'Are you sure you want to delete this template?', tr: 'Bu şablonu silmek istediğinizden emin misiniz?' },
-  'jobTemplates.importError': { en: 'Failed to import template', tr: 'Şablon içe aktarılamadı' },
-  'jobTemplates.editTemplate': { en: 'Edit Template', tr: 'Şablonu Düzenle' },
-  'jobTemplates.createTemplate': { en: 'Create New Template', tr: 'Yeni Şablon Oluştur' },
-  'jobTemplates.name': { en: 'Template Name', tr: 'Şablon Adı' },
-  'jobTemplates.namePlaceholder': { en: 'e.g., Software Engineer', tr: 'örn., Yazılım Mühendisi' },
-  'jobTemplates.description': { en: 'Description', tr: 'Açıklama' },
-  'jobTemplates.descriptionPlaceholder': { en: 'Brief description of the template', tr: 'Şablonun kısa açıklaması' },
-  'jobTemplates.category': { en: 'Category', tr: 'Kategori' },
-  'jobTemplates.categoryPlaceholder': { en: 'e.g., Engineering, Marketing', tr: 'örn., Mühendislik, Pazarlama' },
-  'jobTemplates.tags': { en: 'Tags', tr: 'Etiketler' },
-  'jobTemplates.tagsPlaceholder': { en: 'Comma separated tags', tr: 'Virgülle ayrılmış etiketler' },
-  'jobTemplates.content': { en: 'Template Content', tr: 'Şablon İçeriği' },
-  'jobTemplates.contentPlaceholder': { en: 'Enter the job description template...', tr: 'İş açıklaması şablonunu girin...' },
-
-  // LinkedIn Import
-  'linkedinImport.title': { en: 'Import from LinkedIn', tr: "LinkedIn'den İçe Aktar" },
-  'linkedinImport.howTo': { en: 'How to import:', tr: 'İçe aktarma:' },
-  'linkedinImport.step1': { en: 'Copy the LinkedIn job URL', tr: 'LinkedIn iş URL\'sini kopyalayın' },
-  'linkedinImport.step2': { en: 'Or copy the job description directly', tr: 'Veya iş açıklamasını doğrudan kopyalayın' },
-  'linkedinImport.step3': { en: 'Paste it here to import', tr: 'İçe aktarmak için buraya yapıştırın' },
-  'linkedinImport.method1': { en: 'Method 1: From URL', tr: 'Yöntem 1: URL\'den' },
-  'linkedinImport.urlLabel': { en: 'LinkedIn Job URL', tr: 'LinkedIn İş URL\'si' },
-  'linkedinImport.urlRequired': { en: 'Please enter a URL', tr: 'Lütfen bir URL girin' },
-  'linkedinImport.invalidUrl': { en: 'Invalid LinkedIn URL', tr: 'Geçersiz LinkedIn URL\'si' },
-  'linkedinImport.useManualCopy': { en: 'Please manually copy the job description from the opened page', tr: 'Lütfen açılan sayfadan iş açıklamasını manuel olarak kopyalayın' },
-  'linkedinImport.importError': { en: 'Failed to import from LinkedIn', tr: "LinkedIn'den içe aktarılamadı" },
-  'linkedinImport.opening': { en: 'Opening...', tr: 'Açılıyor...' },
-  'linkedinImport.openJob': { en: 'Open Job Posting', tr: 'İş İlanını Aç' },
-  'linkedinImport.method2': { en: 'Method 2: Paste Content', tr: 'Yöntem 2: İçeriği Yapıştır' },
-  'linkedinImport.pasteLabel': { en: 'Job Description Content', tr: 'İş Açıklaması İçeriği' },
-  'linkedinImport.pasteFromClipboard': { en: 'Paste from Clipboard', tr: 'Panodan Yapıştır' },
-  'linkedinImport.pastePlaceholder': { en: 'Paste the job description here...', tr: 'İş açıklamasını buraya yapıştırın...' },
-  'linkedinImport.contentRequired': { en: 'Please paste content', tr: 'Lütfen içerik yapıştırın' },
-  'linkedinImport.import': { en: 'Import', tr: 'İçe Aktar' },
-  'linkedinImport.clipboardError': { en: 'Could not access clipboard', tr: 'Panoya erişilemedi' },
-  'linkedinImport.tips': { en: 'Tips', tr: 'İpuçları' },
-  'linkedinImport.tip1': { en: 'You can import from any LinkedIn job posting', tr: 'Herhangi bir LinkedIn iş ilanından içe aktarabilirsiniz' },
-  'linkedinImport.tip2': { en: 'The importer will clean up formatting automatically', tr: 'İçe aktarıcı biçimlendirmeyi otomatik olarak temizler' },
-  'linkedinImport.tip3': { en: 'Review and edit the imported content as needed', tr: 'İçe aktarılan içeriği gerektiği gibi gözden geçirin ve düzenleyin' },
 
   // Description Templates - Experience
   'templates.experience.improved': {
@@ -1206,42 +939,71 @@ const dict: Record<string, Partial<Record<Lang, string>>> = {
   'jobLibrary.saveSuccess': { en: 'Job description saved successfully!', tr: 'İş tanımı başarıyla kaydedildi!' },
   'jobLibrary.saveError': { en: 'Please provide a name and description', tr: 'Lütfen bir isim ve açıklama girin' },
   'jobLibrary.usedTimes': { en: 'Used {count} times', tr: '{count} kez kullanıldı' },
-  'common.loading': { en: 'Loading...', tr: 'Yükleniyor...', de: 'Laden...', es: 'Cargando...', fr: 'Chargement...' },
-  'common.edit': { en: 'Edit', tr: 'Düzenle', de: 'Bearbeiten', es: 'Editar', fr: 'Modifier' },
-  'common.delete': { en: 'Delete', tr: 'Sil', de: 'Löschen', es: 'Eliminar', fr: 'Supprimer' },
   
-  // Degree Selector
-  'degree.countryRegion': { en: 'Country/Region', tr: 'Ülke/Bölge', de: 'Land/Region', es: 'País/Región', fr: 'Pays/Région' },
-  'degree.allCountries': { en: 'All', tr: 'Tümü', de: 'Alle', es: 'Todos', fr: 'Tous' },
-  'degree.selectOrType': { en: 'Select or type degree...', tr: 'Derece seçin veya yazın...', de: 'Abschluss wählen oder eingeben...', es: 'Seleccionar o escribir título...', fr: 'Sélectionner ou saisir diplôme...' },
-  'degree.verificationService': { en: 'Verification Service', tr: 'Doğrulama Servisi', de: 'Überprüfungsdienst', es: 'Servicio de Verificación', fr: 'Service de Vérification' },
-  'degree.suggestedDegrees': { en: 'Suggested Degrees', tr: 'Önerilen Dereceler', de: 'Empfohlene Abschlüsse', es: 'Títulos Sugeridos', fr: 'Diplômes Suggérés' },
-  'degree.customDegreeNote': { en: 'will be added as custom degree', tr: 'özel derece olarak eklenecek', de: 'wird als benutzerdefinierter Abschluss hinzugefügt', es: 'se agregará como título personalizado', fr: 'sera ajouté comme diplôme personnalisé' },
-  'degree.noDegreesFound': { en: 'No degrees found', tr: 'Derece bulunamadı', de: 'Keine Abschlüsse gefunden', es: 'No se encontraron títulos', fr: 'Aucun diplôme trouvé' },
-  'degree.customInputHelp': { en: 'Type custom degree name if not in list', tr: 'Listede yoksa özel derece adı yazabilirsiniz', de: 'Geben Sie einen benutzerdefinierten Abschlussnamen ein, falls nicht in der Liste', es: 'Escriba el nombre del título personalizado si no está en la lista', fr: 'Saisissez le nom du diplôme personnalisé s\'il n\'est pas dans la liste' },
+  // Enhanced Job Library Features
+  'jobLibrary.exportJSON': { en: 'Export JSON', tr: 'JSON Dışa Aktar' },
+  'jobLibrary.exportCSV': { en: 'Export CSV', tr: 'CSV Dışa Aktar' },
+  'jobLibrary.import': { en: 'Import', tr: 'İçe Aktar' },
+  'jobLibrary.syncUp': { en: 'Sync to Cloud', tr: 'Buluta Senkronize Et' },
+  'jobLibrary.syncDown': { en: 'Sync from Cloud', tr: 'Buluttan Senkronize Et' },
+  'jobLibrary.lastSync': { en: 'Last sync', tr: 'Son senkronizasyon' },
+  'jobLibrary.bulkDelete': { en: 'Delete Selected', tr: 'Seçilenleri Sil' },
+  'jobLibrary.bulkDuplicate': { en: 'Duplicate Selected', tr: 'Seçilenleri Çoğalt' },
+  'jobLibrary.selectAll': { en: 'Select All', tr: 'Tümünü Seç' },
+  'jobLibrary.selected': { en: 'selected', tr: 'seçili' },
+  'jobLibrary.showing': { en: 'Showing', tr: 'Gösteriliyor' },
+  'jobLibrary.of': { en: 'of', tr: '-' },
+  'jobLibrary.descriptions': { en: 'descriptions', tr: 'tanım' },
+  'jobLibrary.sortByName': { en: 'Name', tr: 'İsim' },
+  'jobLibrary.sortByDate': { en: 'Date Modified', tr: 'Değiştirilme Tarihi' },
+  'jobLibrary.sortByUsage': { en: 'Usage Count', tr: 'Kullanım Sayısı' },
+  'jobLibrary.sortByCategory': { en: 'Category', tr: 'Kategori' },
+  'jobLibrary.ascending': { en: 'Ascending', tr: 'Artan' },
+  'jobLibrary.descending': { en: 'Descending', tr: 'Azalan' },
+  'jobLibrary.startDate': { en: 'Start Date', tr: 'Başlangıç Tarihi' },
+  'jobLibrary.endDate': { en: 'End Date', tr: 'Bitiş Tarihi' },
+  'jobLibrary.minUsage': { en: 'Minimum Usage', tr: 'Minimum Kullanım' },
+  'jobLibrary.clearFilters': { en: 'Clear Filters', tr: 'Filtreleri Temizle' },
+  'jobLibrary.gridView': { en: 'Grid View', tr: 'Izgara Görünümü' },
+  'jobLibrary.listView': { en: 'List View', tr: 'Liste Görünümü' },
+  'jobLibrary.duplicate': { en: 'Duplicate', tr: 'Çoğalt' },
+  'jobLibrary.share': { en: 'Share', tr: 'Paylaş' },
+  'jobLibrary.aiSuggestions': { en: 'AI Suggestions', tr: 'YZ Önerileri' },
+  'jobLibrary.optimizeWithAI': { en: 'Optimize with AI', tr: 'YZ ile Optimize Et' },
+  'jobLibrary.generating': { en: 'Generating...', tr: 'Oluşturuluyor...' },
+  'jobLibrary.optimizing': { en: 'Optimizing...', tr: 'Optimize ediliyor...' },
+  'jobLibrary.templateVariables': { en: 'Template Variables', tr: 'Şablon Değişkenleri' },
+  'jobLibrary.useVariableSyntax': { en: 'Use {{variable}} syntax for dynamic content', tr: 'Dinamik içerik için {{değişken}} sözdizimini kullanın' },
+  'jobLibrary.defineVariables': { en: 'Define variables found in your description', tr: 'Açıklamanızda bulunan değişkenleri tanımlayın' },
+  'jobLibrary.containsVariables': { en: 'Contains {count} variable(s)', tr: '{count} değişken içeriyor' },
+  'jobLibrary.shareLink': { en: 'Share Link', tr: 'Paylaşım Bağlantısı' },
+  'jobLibrary.copyLink': { en: 'Copy Link', tr: 'Bağlantıyı Kopyala' },
+  'jobLibrary.linkCopied': { en: 'Link copied to clipboard!', tr: 'Bağlantı panoya kopyalandı!' },
+  'jobLibrary.importSuccess': { en: 'Successfully imported {count} descriptions!', tr: '{count} tanım başarıyla içe aktarıldı!' },
+  'jobLibrary.importError': { en: 'Failed to import', tr: 'İçe aktarılamadı' },
+  'jobLibrary.syncSuccess': { en: 'Successfully synced!', tr: 'Başarıyla senkronize edildi!' },
+  'jobLibrary.syncError': { en: 'Failed to sync', tr: 'Senkronize edilemedi' },
+  'jobLibrary.noCloudData': { en: 'No cloud data found', tr: 'Bulut verisi bulunamadı' },
+  'jobLibrary.aiConfigRequired': { en: 'Please configure your AI API key in settings', tr: 'Lütfen ayarlardan YZ API anahtarınızı yapılandırın' },
+  'jobLibrary.noSuggestions': { en: 'No suggestions available', tr: 'Öneri mevcut değil' },
+  'jobLibrary.useThisSuggestion': { en: 'Use This', tr: 'Bunu Kullan' },
+  'jobLibrary.newDescription': { en: 'New Description', tr: 'Yeni Tanım' },
+  'jobLibrary.editDescription': { en: 'Edit Description', tr: 'Tanımı Düzenle' },
+  'jobLibrary.enterValue': { en: 'Enter value for', tr: 'Şunun için değer girin' },
   
-  // Language Names
-  'lang.english': { en: 'English', tr: 'İngilizce', de: 'Englisch', es: 'Inglés', fr: 'Anglais', zh: '英语', ar: 'الإنجليزية', pt: 'Inglês', ja: '英語', ko: '영어', it: 'Inglese', nl: 'Engels' },
-  'lang.turkish': { en: 'Turkish', tr: 'Türkçe', de: 'Türkisch', es: 'Turco', fr: 'Turc', zh: '土耳其语', ar: 'التركية', pt: 'Turco', ja: 'トルコ語', ko: '터키어', it: 'Turco', nl: 'Turks' },
-  'lang.german': { en: 'German', tr: 'Almanca', de: 'Deutsch', es: 'Alemán', fr: 'Allemand', zh: '德语', ar: 'الألمانية', pt: 'Alemão', ja: 'ドイツ語', ko: '독일어', it: 'Tedesco', nl: 'Duits' },
-  'lang.spanish': { en: 'Spanish', tr: 'İspanyolca', de: 'Spanisch', es: 'Español', fr: 'Espagnol', zh: '西班牙语', ar: 'الإسبانية', pt: 'Espanhol', ja: 'スペイン語', ko: '스페인어', it: 'Spagnolo', nl: 'Spaans' },
-  'lang.french': { en: 'French', tr: 'Fransızca', de: 'Französisch', es: 'Francés', fr: 'Français', zh: '法语', ar: 'الفرنسية', pt: 'Francês', ja: 'フランス語', ko: '프랑스어', it: 'Francese', nl: 'Frans' },
-  'lang.chinese': { en: 'Chinese', tr: 'Çince', de: 'Chinesisch', es: 'Chino', fr: 'Chinois', zh: '中文', ar: 'الصينية', pt: 'Chinês', ja: '中国語', ko: '중국어', it: 'Cinese', nl: 'Chinees' },
-  'lang.arabic': { en: 'Arabic', tr: 'Arapça', de: 'Arabisch', es: 'Árabe', fr: 'Arabe', zh: '阿拉伯语', ar: 'العربية', pt: 'Árabe', ja: 'アラビア語', ko: '아랍어', it: 'Arabo', nl: 'Arabisch' },
-  'lang.portuguese': { en: 'Portuguese', tr: 'Portekizce', de: 'Portugiesisch', es: 'Portugués', fr: 'Portugais', zh: '葡萄牙语', ar: 'البرتغالية', pt: 'Português', ja: 'ポルトガル語', ko: '포르투갈어', it: 'Portoghese', nl: 'Portugees' },
-  'lang.japanese': { en: 'Japanese', tr: 'Japonca', de: 'Japanisch', es: 'Japonés', fr: 'Japonais', zh: '日语', ar: 'اليابانية', pt: 'Japonês', ja: '日本語', ko: '일본어', it: 'Giapponese', nl: 'Japans' },
-  'lang.korean': { en: 'Korean', tr: 'Korece', de: 'Koreanisch', es: 'Coreano', fr: 'Coréen', zh: '韩语', ar: 'الكورية', pt: 'Coreano', ja: '韓国語', ko: '한국어', it: 'Coreano', nl: 'Koreaans' },
-  'lang.italian': { en: 'Italian', tr: 'İtalyanca', de: 'Italienisch', es: 'Italiano', fr: 'Italien', zh: '意大利语', ar: 'الإيطالية', pt: 'Italiano', ja: 'イタリア語', ko: '이탈리아어', it: 'Italiano', nl: 'Italiaans' },
-  'lang.dutch': { en: 'Dutch', tr: 'Hollandaca', de: 'Niederländisch', es: 'Holandés', fr: 'Néerlandais', zh: '荷兰语', ar: 'الهولندية', pt: 'Holandês', ja: 'オランダ語', ko: '네덜란드어', it: 'Olandese', nl: 'Nederlands' },
-
-  // Degree Equivalency
-  'degree.equivalency': { en: 'Equivalent Degrees', tr: 'Eşdeğer Dereceler', de: 'Äquivalente Abschlüsse', es: 'Títulos Equivalentes', fr: 'Diplômes Équivalents', zh: '同等学位', ar: 'الدرجات المكافئة', pt: 'Diplomas Equivalentes' },
-  'degree.accreditation': { en: 'Accreditation', tr: 'Akreditasyon', de: 'Akkreditierung', es: 'Acreditación', fr: 'Accréditation', zh: '认证', ar: 'الاعتماد', pt: 'Acreditação' },
-  'degree.institutions': { en: 'Institutions', tr: 'Kurumlar', de: 'Institutionen', es: 'Instituciones', fr: 'Institutions', zh: '机构', ar: 'المؤسسات', pt: 'Instituições' },
-  'degree.historicalName': { en: 'Historical Name', tr: 'Eski Ad', de: 'Historischer Name', es: 'Nombre Histórico', fr: 'Nom Historique', zh: '历史名称', ar: 'الاسم التاريخي', pt: 'Nome Histórico' },
-  'degree.similarity': { en: 'Similarity', tr: 'Benzerlik', de: 'Ähnlichkeit', es: 'Similitud', fr: 'Similarité', zh: '相似度', ar: 'التشابه', pt: 'Similaridade' },
-  'degree.aiWarning': { en: 'Field Mismatch Warning', tr: 'Alan Uyumsuzluğu Uyarısı', de: 'Feldkonflikt-Warnung', es: 'Advertencia de Incompatibilidad', fr: 'Avertissement de Discordance', zh: '字段不匹配警告', ar: 'تحذير عدم تطابق المجال', pt: 'Aviso de Incompatibilidade' },
-  'degree.viewEquivalent': { en: 'View Equivalent', tr: 'Eşdeğeri Görüntüle', de: 'Äquivalent Anzeigen', es: 'Ver Equivalente', fr: 'Voir Équivalent', zh: '查看同等学位', ar: 'عرض المكافئ', pt: 'Ver Equivalente' },
+  // Job Posting Integration
+  'jobPosting.detected': { en: 'Job posting detected', tr: 'İş ilanı tespit edildi' },
+  'jobPosting.extract': { en: 'Extract Job Data', tr: 'İş Verisini Çıkar' },
+  'jobPosting.extractSuccess': { en: 'Job data extracted successfully!', tr: 'İş verisi başarıyla çıkarıldı!' },
+  'jobPosting.extractError': { en: 'Failed to extract job data', tr: 'İş verisi çıkarılamadı' },
+  'jobPosting.autoFill': { en: 'Auto-fill from job posting', tr: 'İş ilanından otomatik doldur' },
+  'jobPosting.linkedin': { en: 'LinkedIn', tr: 'LinkedIn' },
+  'jobPosting.indeed': { en: 'Indeed', tr: 'Indeed' },
+  'jobPosting.glassdoor': { en: 'Glassdoor', tr: 'Glassdoor' },
+  
+  'common.loading': { en: 'Loading...', tr: 'Yükleniyor...' },
+  'common.edit': { en: 'Edit', tr: 'Düzenle' },
+  'common.delete': { en: 'Delete', tr: 'Sil' },
 };
 
 export function t(lang: Lang, key: string, params?: Record<string, any>): string {
@@ -1256,18 +1018,3 @@ export function t(lang: Lang, key: string, params?: Record<string, any>): string
   
   return text;
 }
-
-export const languageNames: Record<Lang, string> = {
-  en: 'English',
-  tr: 'Türkçe',
-  de: 'Deutsch',
-  es: 'Español',
-  fr: 'Français',
-  zh: '中文',
-  ar: 'العربية',
-  pt: 'Português',
-  ja: '日本語',
-  ko: '한국어',
-  it: 'Italiano',
-  nl: 'Nederlands',
-};
