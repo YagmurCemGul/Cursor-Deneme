@@ -1,10 +1,105 @@
 <!doctype html>
-<html>
+<html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Configure your AI CV Optimizer settings - API keys, models, and preferences" />
     <title>AI CV Optimizer - Settings</title>
     <link rel="stylesheet" href="/src/styles/global.css" />
+    <style>
+      body {
+        margin: 0;
+        padding: 0;
+        font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+      }
+      
+      /* Custom scrollbar */
+      ::-webkit-scrollbar {
+        width: 10px;
+      }
+      
+      ::-webkit-scrollbar-track {
+        background: #f1f1f1;
+      }
+      
+      ::-webkit-scrollbar-thumb {
+        background: #888;
+        border-radius: 5px;
+      }
+      
+      ::-webkit-scrollbar-thumb:hover {
+        background: #555;
+      }
+
+      /* Range input styling */
+      input[type="range"] {
+        -webkit-appearance: none;
+        appearance: none;
+        cursor: pointer;
+      }
+      
+      input[type="range"]::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        appearance: none;
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        cursor: pointer;
+        box-shadow: 0 2px 8px rgba(102, 126, 234, 0.5);
+        transition: all 0.2s;
+      }
+      
+      input[type="range"]::-webkit-slider-thumb:hover {
+        transform: scale(1.1);
+        box-shadow: 0 3px 12px rgba(102, 126, 234, 0.7);
+      }
+      
+      input[type="range"]::-moz-range-thumb {
+        width: 20px;
+        height: 20px;
+        border: none;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        cursor: pointer;
+        box-shadow: 0 2px 8px rgba(102, 126, 234, 0.5);
+        transition: all 0.2s;
+      }
+      
+      input[type="range"]::-moz-range-thumb:hover {
+        transform: scale(1.1);
+        box-shadow: 0 3px 12px rgba(102, 126, 234, 0.7);
+      }
+
+      /* Button hover effects */
+      button:not(:disabled):hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      }
+      
+      button:not(:disabled):active {
+        transform: translateY(0);
+      }
+      
+      button:disabled {
+        cursor: not-allowed;
+      }
+
+      /* Input focus effects */
+      input:focus,
+      select:focus {
+        outline: none;
+        border-color: #667eea !important;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+      }
+
+      /* Smooth transitions */
+      * {
+        transition: border-color 0.2s, box-shadow 0.2s;
+      }
+    </style>
   </head>
   <body>
     <div id="root"></div>
