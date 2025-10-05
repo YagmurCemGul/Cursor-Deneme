@@ -283,8 +283,14 @@ export class APIManager {
           
           // Add helpful message for rate limit errors
           if (isRateLimitError && attempt === maxRetries) {
-            const rateLimitMessage = 'Rate limit exceeded. Please wait a moment and try again, or consider upgrading your API plan.';
-            throw new Error(rateLimitMessage);
+            // Check if this is a quota issue vs rate limit issue
+            if (error.message?.includes('quota') || error.message?.includes('insufficient_quota')) {
+              const quotaMessage = 'Quota exceeded: Your account has insufficient credits or quota. Please check your API provider dashboard to add credits or upgrade your plan.';
+              throw new Error(quotaMessage);
+            } else {
+              const rateLimitMessage = 'Rate limit exceeded: Too many requests in a short time. Please wait 1-2 minutes before trying again, or consider upgrading your API plan for higher rate limits.';
+              throw new Error(rateLimitMessage);
+            }
           }
           
           throw error;

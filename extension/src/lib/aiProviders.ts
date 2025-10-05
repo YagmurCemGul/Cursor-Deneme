@@ -235,17 +235,37 @@ async function callOpenAI(
 
   if (!response.ok) {
     const error = await response.json().catch(() => ({}));
+    const errorMessage = error.error?.message || 'Unknown error';
+    const errorType = error.error?.type || 'unknown';
     
     // Handle specific error types
     if (response.status === 401) {
       throw new Error('Invalid API key (401). Please check your OpenAI API key in settings.');
     } else if (response.status === 429) {
-      throw new Error('OpenAI rate limit exceeded (429). Please wait and try again.');
+      // Distinguish between rate limit and insufficient quota
+      if (errorMessage.includes('quota') || errorMessage.includes('insufficient_quota') || errorType === 'insufficient_quota') {
+        throw new Error(
+          `OpenAI quota exceeded: ${errorMessage}\n\n` +
+          `Your account has insufficient quota/credits. Please:\n` +
+          `1. Check your usage at https://platform.openai.com/usage\n` +
+          `2. Add credits or upgrade your plan at https://platform.openai.com/account/billing\n` +
+          `3. Wait for your monthly quota to reset if on free tier`
+        );
+      } else {
+        // Rate limit (too many requests)
+        throw new Error(
+          `OpenAI rate limit exceeded (429): ${errorMessage}\n\n` +
+          `You're sending requests too quickly. Please:\n` +
+          `1. Wait 20-60 seconds before trying again\n` +
+          `2. Reduce the frequency of your requests\n` +
+          `3. Consider upgrading to a higher tier for increased rate limits at https://platform.openai.com/account/limits`
+        );
+      }
     } else if (response.status === 503) {
       throw new Error('OpenAI service unavailable (503). Please try again later.');
     }
     
-    throw new Error(`OpenAI API error (${response.status}): ${error.error?.message || 'Unknown error'}`);
+    throw new Error(`OpenAI API error (${response.status}): ${errorMessage}`);
   }
 
   const data = await response.json();

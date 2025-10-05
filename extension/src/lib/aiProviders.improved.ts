@@ -245,6 +245,8 @@ async function callOpenAI(
 
       if (!response.ok) {
         const error = await response.json().catch(() => ({}));
+        const errorMessage = error.error?.message || 'Unknown error';
+        const errorType = error.error?.type || 'unknown';
         
         // Throw specific errors for retry logic
         if (response.status === 401) {
@@ -252,12 +254,26 @@ async function callOpenAI(
           (err as any).retryable = false;
           throw err;
         } else if (response.status === 429) {
-          throw new Error('OpenAI rate limit exceeded (429). Please wait and try again.');
+          // Distinguish between rate limit and insufficient quota
+          if (errorMessage.includes('quota') || errorMessage.includes('insufficient_quota') || errorType === 'insufficient_quota') {
+            const err = new Error(
+              `OpenAI quota exceeded: ${errorMessage}\n\n` +
+              `Insufficient quota/credits. Please check usage and billing.`
+            );
+            (err as any).retryable = false; // Don't retry quota errors
+            throw err;
+          } else {
+            // Rate limit - this is retryable
+            throw new Error(
+              `OpenAI rate limit (429): ${errorMessage}\n` +
+              `Sending requests too quickly. Will retry with backoff.`
+            );
+          }
         } else if (response.status === 503) {
           throw new Error('OpenAI service unavailable (503). Please try again later.');
         }
         
-        throw new Error(`OpenAI API error (${response.status}): ${error.error?.message || 'Unknown error'}`);
+        throw new Error(`OpenAI API error (${response.status}): ${errorMessage}`);
       }
 
       return response.json();
@@ -348,16 +364,25 @@ async function callClaude(
 
       if (!response.ok) {
         const error = await response.json();
+        const errorMessage = error.error?.message || 'Unknown error';
+        const errorType = error.error?.type || 'unknown';
         
         if (response.status === 401) {
           const err = new Error('Invalid Anthropic API key (401)');
           (err as any).retryable = false;
           throw err;
         } else if (response.status === 429) {
-          throw new Error('Claude rate limit exceeded (429)');
+          // Distinguish between rate limit and insufficient quota
+          if (errorMessage.includes('quota') || errorMessage.includes('insufficient_quota') || errorType === 'insufficient_quota') {
+            const err = new Error(`Claude quota exceeded: ${errorMessage}`);
+            (err as any).retryable = false;
+            throw err;
+          } else {
+            throw new Error(`Claude rate limit (429): ${errorMessage}`);
+          }
         }
         
-        throw new Error(`Claude API error: ${error.error?.message || 'Unknown error'}`);
+        throw new Error(`Claude API error: ${errorMessage}`);
       }
       
       return response.json();
@@ -445,16 +470,25 @@ async function callGemini(
 
       if (!response.ok) {
         const error = await response.json();
+        const errorMessage = error.error?.message || 'Unknown error';
+        const errorType = error.error?.type || 'unknown';
         
         if (response.status === 401 || response.status === 403) {
           const err = new Error('Invalid Google API key (401/403)');
           (err as any).retryable = false;
           throw err;
         } else if (response.status === 429) {
-          throw new Error('Gemini rate limit exceeded (429)');
+          // Distinguish between rate limit and insufficient quota
+          if (errorMessage.includes('quota') || errorMessage.includes('insufficient_quota') || errorType === 'insufficient_quota') {
+            const err = new Error(`Gemini quota exceeded: ${errorMessage}`);
+            (err as any).retryable = false;
+            throw err;
+          } else {
+            throw new Error(`Gemini rate limit (429): ${errorMessage}`);
+          }
         }
         
-        throw new Error(`Gemini API error: ${error.error?.message || 'Unknown error'}`);
+        throw new Error(`Gemini API error: ${errorMessage}`);
       }
       
       return response.json();

@@ -83,14 +83,42 @@ Please analyze this CV against the job description and provide specific optimiza
       });
 
       if (!response.ok) {
-        const error = await response.text();
+        const errorText = await response.text();
+        let errorMessage = errorText;
+        let errorType = 'unknown';
         
-        // Special handling for rate limit errors
-        if (response.status === 429) {
-          throw new Error(`OpenAI rate limit exceeded (429). Please wait and try again.`);
+        try {
+          const errorJson = JSON.parse(errorText);
+          errorMessage = errorJson.error?.message || errorText;
+          errorType = errorJson.error?.type || 'unknown';
+        } catch (e) {
+          // If not JSON, use text as-is
         }
         
-        throw new Error(`OpenAI API error: ${response.status} - ${error}`);
+        // Special handling for rate limit errors (429)
+        if (response.status === 429) {
+          // Distinguish between rate limit and insufficient quota
+          if (errorMessage.includes('quota') || errorMessage.includes('insufficient_quota') || errorType === 'insufficient_quota') {
+            throw new Error(
+              `OpenAI quota exceeded: ${errorMessage}\n\n` +
+              `Your account has insufficient quota/credits. Please:\n` +
+              `1. Check your usage at https://platform.openai.com/usage\n` +
+              `2. Add credits or upgrade your plan at https://platform.openai.com/account/billing\n` +
+              `3. Wait for your monthly quota to reset if on free tier`
+            );
+          } else {
+            // Rate limit (too many requests)
+            throw new Error(
+              `OpenAI rate limit exceeded (429): ${errorMessage}\n\n` +
+              `You're sending requests too quickly. Please:\n` +
+              `1. Wait 20-60 seconds before trying again\n` +
+              `2. Reduce the frequency of your requests\n` +
+              `3. Consider upgrading to a higher tier for increased rate limits at https://platform.openai.com/account/limits`
+            );
+          }
+        }
+        
+        throw new Error(`OpenAI API error: ${response.status} - ${errorMessage}`);
       }
 
       const data = await response.json();
@@ -169,14 +197,42 @@ Return only the cover letter text, no additional formatting or explanations.`;
       });
 
       if (!response.ok) {
-        const error = await response.text();
+        const errorText = await response.text();
+        let errorMessage = errorText;
+        let errorType = 'unknown';
         
-        // Special handling for rate limit errors
-        if (response.status === 429) {
-          throw new Error(`OpenAI rate limit exceeded (429). Please wait and try again.`);
+        try {
+          const errorJson = JSON.parse(errorText);
+          errorMessage = errorJson.error?.message || errorText;
+          errorType = errorJson.error?.type || 'unknown';
+        } catch (e) {
+          // If not JSON, use text as-is
         }
         
-        throw new Error(`OpenAI API error: ${response.status} - ${error}`);
+        // Special handling for rate limit errors (429)
+        if (response.status === 429) {
+          // Distinguish between rate limit and insufficient quota
+          if (errorMessage.includes('quota') || errorMessage.includes('insufficient_quota') || errorType === 'insufficient_quota') {
+            throw new Error(
+              `OpenAI quota exceeded: ${errorMessage}\n\n` +
+              `Your account has insufficient quota/credits. Please:\n` +
+              `1. Check your usage at https://platform.openai.com/usage\n` +
+              `2. Add credits or upgrade your plan at https://platform.openai.com/account/billing\n` +
+              `3. Wait for your monthly quota to reset if on free tier`
+            );
+          } else {
+            // Rate limit (too many requests)
+            throw new Error(
+              `OpenAI rate limit exceeded (429): ${errorMessage}\n\n` +
+              `You're sending requests too quickly. Please:\n` +
+              `1. Wait 20-60 seconds before trying again\n` +
+              `2. Reduce the frequency of your requests\n` +
+              `3. Consider upgrading to a higher tier for increased rate limits at https://platform.openai.com/account/limits`
+            );
+          }
+        }
+        
+        throw new Error(`OpenAI API error: ${response.status} - ${errorMessage}`);
       }
 
       const data = await response.json();
