@@ -1,0 +1,11 @@
+🎨 DEMO APPLICATIONS
+
+Quick Links:
+1. Main Demo:     file:///workspace/demo/index.html
+2. Advanced:      file:///workspace/demo/demo-advanced.html  
+3. Showcase:      file:///workspace/demo/showcase.html
+
+Or run local server:
+cd demo && python -m http.server 8000
+Then visit: http://localhost:8000
+

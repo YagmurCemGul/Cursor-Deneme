@@ -1,7 +1,7 @@
 {
   "name": "ai-cv-optimizer",
-  "version": "1.0.0",
-  "description": "AI-powered CV and Cover Letter Optimizer Chrome Extension",
+  "version": "2.0.0",
+  "description": "AI-powered CV and Cover Letter Optimizer Chrome Extension with ML, Streaming, and Advanced Features",
   "scripts": {
     "build": "webpack --mode production",
     "dev": "webpack --mode development --watch",
@@ -10,9 +10,13 @@
     "lint:fix": "eslint . --ext .ts,.tsx --fix",
     "format": "prettier --write \"src/**/*.{ts,tsx,json,css}\"",
     "format:check": "prettier --check \"src/**/*.{ts,tsx,json,css}\"",
-    "test": "jest",
-    "test:watch": "jest --watch",
-    "test:coverage": "jest --coverage"
+    "test": "vitest",
+    "test:watch": "vitest --watch",
+    "test:coverage": "vitest --coverage",
+    "test:ui": "vitest --ui",
+    "e2e": "playwright test",
+    "e2e:headed": "playwright test --headed",
+    "demo": "cd demo && python -m http.server 8000"
   },
   "dependencies": {
     "docx": "^9.5.1",
@@ -28,31 +32,47 @@
     "react-icons": "^4.12.0"
   },
   "devDependencies": {
+    "@playwright/test": "^1.40.0",
     "@testing-library/jest-dom": "^6.1.0",
     "@testing-library/react": "^14.0.0",
     "@testing-library/user-event": "^14.5.0",
     "@types/chrome": "^0.0.254",
     "@types/file-saver": "^2.0.7",
-    "@types/jest": "^29.5.0",
+    "@types/node": "^20.10.0",
     "@types/react": "^18.2.43",
     "@types/react-dom": "^18.2.17",
     "@typescript-eslint/eslint-plugin": "^6.0.0",
     "@typescript-eslint/parser": "^6.0.0",
+    "@vitest/ui": "^1.0.0",
+    "@vitest/coverage-v8": "^1.0.0",
     "copy-webpack-plugin": "^13.0.1",
     "css-loader": "^6.8.1",
     "eslint": "^8.45.0",
     "eslint-plugin-react": "^7.33.0",
     "eslint-plugin-react-hooks": "^4.6.0",
+    "happy-dom": "^12.10.0",
     "html-webpack-plugin": "^5.6.0",
     "identity-obj-proxy": "^3.0.0",
-    "jest": "^29.5.0",
-    "jest-environment-jsdom": "^29.5.0",
+    "jsdom": "^23.0.0",
     "prettier": "^3.0.0",
     "style-loader": "^3.3.3",
-    "ts-jest": "^29.1.0",
     "ts-loader": "^9.5.1",
     "typescript": "^5.3.3",
+    "vite": "^5.0.0",
+    "vitest": "^1.0.0",
     "webpack": "^5.89.0",
     "webpack-cli": "^5.1.4"
-  }
+  },
+  "keywords": [
+    "cv",
+    "resume",
+    "ats",
+    "optimization",
+    "ai",
+    "ml",
+    "streaming",
+    "chrome-extension"
+  ],
+  "author": "CV Optimizer Team",
+  "license": "MIT"
 }
