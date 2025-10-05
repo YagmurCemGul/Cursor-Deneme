@@ -8,6 +8,7 @@ import { CVPreview } from '../components/CVPreview';
 import { TemplateGallery } from '../components/TemplateGallery';
 import { ATSScoreCard } from '../components/ATSScoreCard';
 import { LinkedInImport } from '../components/LinkedInImport';
+import { JobTracker } from '../components/JobTracker';
 import { TemplateType, TemplateColors, TemplateFonts } from '../lib/templates';
 import { exportToPDF, exportToImage, printCV, generatePDFFilename } from '../lib/pdfExport';
 import { calculateATSScore, ATSScore } from '../lib/atsScoring';
@@ -15,7 +16,7 @@ import { convertLinkedInToProfile, LinkedInProfile } from '../lib/linkedinImport
 import '../styles/global.css';
 
 export function NewTab() {
-  const [active, setActive] = useState<'cv' | 'job' | 'preview' | 'downloads' | 'cover' | 'settings'>('cv');
+  const [active, setActive] = useState<'cv' | 'job' | 'preview' | 'downloads' | 'cover' | 'settings' | 'tracker'>('cv');
   const [profile, setProfile] = useState<ResumeProfile | undefined>();
   const [job, setJob] = useState<JobPost>({ id: crypto.randomUUID(), pastedText: '' });
   const [resumeMd, setResumeMd] = useState<string>('');
@@ -605,6 +606,7 @@ Make it compelling, highlight key strengths, and use action-oriented language.`;
             <TabButton id="job" active={active} setActive={id => setActive(id as any)}>💼 Job Description</TabButton>
             <TabButton id="preview" active={active} setActive={id => setActive(id as any)}>👁️ Resume Preview</TabButton>
             <TabButton id="cover" active={active} setActive={id => setActive(id as any)}>✉️ Cover Letter</TabButton>
+            <TabButton id="tracker" active={active} setActive={id => setActive(id as any)}>📚 Job Tracker</TabButton>
             <TabButton id="downloads" active={active} setActive={id => setActive(id as any)}>⬇️ Downloads</TabButton>
             <TabButton id="settings" active={active} setActive={id => setActive(id as any)}>⚙️ Settings</TabButton>
           </div>
@@ -1614,6 +1616,10 @@ Make it compelling, highlight key strengths, and use action-oriented language.`;
                   </ul>
                 </div>
               </div>
+            )}
+
+            {active === 'tracker' && (
+              <JobTracker />
             )}
 
             {active === 'settings' && (
