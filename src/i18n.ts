@@ -40,6 +40,10 @@ const dict: Record<string, Record<Lang, string>> = {
   'personal.invalidEmailFormat': { en: 'Invalid email format', tr: 'Geçersiz e-posta formatı' },
   'personal.didYouMean': { en: 'Did you mean', tr: 'Şunu mu demek istediniz' },
   'personal.validEmail': { en: 'Valid email address', tr: 'Geçerli e-posta adresi' },
+  'personal.photoUploadSuccess': { en: 'Photo uploaded successfully (optimized for ATS)', tr: 'Fotoğraf başarıyla yüklendi (ATS için optimize edildi)' },
+  'personal.photoTooLarge': { en: 'Image is too large. Please upload an image smaller than 10MB.', tr: 'Görsel çok büyük. Lütfen 10MB\'den küçük bir görsel yükleyin.' },
+  'personal.photoInvalidType': { en: 'Please upload a valid image file (JPEG, PNG, or WebP)', tr: 'Lütfen geçerli bir görsel dosyası yükleyin (JPEG, PNG veya WebP)' },
+  'personal.photoProcessError': { en: 'Error processing image. Please try another file.', tr: 'Görsel işlenirken hata oluştu. Lütfen başka bir dosya deneyin.' },
 
   'skills.section': { en: 'Skills', tr: 'Yetenekler' },
   'skills.placeholder': { en: 'Add a skill (e.g., JavaScript, SQL)', tr: 'Yetenek ekle (örn. JavaScript, SQL)' },
