@@ -41,7 +41,7 @@ module.exports = (env, argv) => {
     },
     plugins: [
       new HtmlWebpackPlugin({
-        template: './src/popup.html',
+        template: './src/popup/index.html',
         filename: 'popup.html',
         chunks: ['popup'],
         minify: isProduction ? {

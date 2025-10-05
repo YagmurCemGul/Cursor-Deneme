@@ -3,16 +3,7 @@
     "target": "ES2022",
     "lib": ["ES2022", "DOM"],
     "module": "ESNext",
-<<<<<<< HEAD
     "jsx": "react-jsx",
-    "moduleResolution": "Bundler",
-    "noEmit": true,
-    "strict": true,
-    "noImplicitAny": true,
-    "strictNullChecks": true,
-    "skipLibCheck": true,
-    "types": ["chrome"]
-=======
     "moduleResolution": "node",
     "resolveJsonModule": true,
     "allowJs": true,
@@ -46,8 +37,8 @@
     "outDir": "./dist",
     "sourceMap": true,
     "declaration": true,
-    "declarationMap": true
->>>>>>> main
+    "declarationMap": true,
+    "types": ["chrome"]
   },
   "include": ["src"],
   "exclude": ["node_modules", "dist", "vite.config.ts", "vitest.config.ts", "manifest.ts", "typedoc.json"]
