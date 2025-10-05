@@ -180,8 +180,8 @@ export const AdvancedAnalytics: React.FC<AdvancedAnalyticsProps> = ({ language }
     }
 
     setDateRange({
-      start: start.toISOString().split('T')[0],
-      end: end.toISOString().split('T')[0],
+      start: start.toISOString().split('T')[0] || '',
+      end: end.toISOString().split('T')[0] || '',
     });
   };
 

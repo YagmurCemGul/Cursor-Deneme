@@ -3,7 +3,6 @@ import { Lang } from '../i18n';
 import {
   degreeOptions,
   getDegrees,
-  getDegreeInfo,
   suggestDegreesByField,
   getVerificationLink,
   getEquivalentDegrees,
@@ -159,9 +158,6 @@ export const DegreeSelector: React.FC<DegreeSelectorProps> = ({
         <label style={{ fontSize: '0.875rem', color: '#64748b', marginBottom: '0.25rem', display: 'block' }}>
           {(() => {
             switch (language) {
-              case 'de': return 'Land/Region';
-              case 'es': return 'País/Región';
-              case 'fr': return 'Pays/Région';
               case 'tr': return 'Ülke/Bölge';
               default: return 'Country/Region';
             }
@@ -187,9 +183,6 @@ export const DegreeSelector: React.FC<DegreeSelectorProps> = ({
             >
               {c === 'GLOBAL' ? (() => {
                 switch (language) {
-                  case 'de': return 'Alle';
-                  case 'es': return 'Todos';
-                  case 'fr': return 'Tous';
                   case 'tr': return 'Tümü';
                   default: return 'All';
                 }
@@ -211,9 +204,6 @@ export const DegreeSelector: React.FC<DegreeSelectorProps> = ({
           onKeyDown={handleKeyDown}
           placeholder={placeholder || (() => {
             switch (language) {
-              case 'de': return 'Abschluss wählen oder eingeben...';
-              case 'es': return 'Seleccionar o escribir título...';
-              case 'fr': return 'Sélectionner ou saisir diplôme...';
               case 'tr': return 'Derece seçin veya yazın...';
               default: return 'Select or type degree...';
             }
@@ -337,9 +327,6 @@ export const DegreeSelector: React.FC<DegreeSelectorProps> = ({
                 >
                   🔗 {(() => {
                     switch (language) {
-                      case 'de': return 'Überprüfungsdienst';
-                      case 'es': return 'Servicio de Verificación';
-                      case 'fr': return 'Service de Vérification';
                       case 'tr': return 'Doğrulama Servisi';
                       default: return 'Verification Service';
                     }
@@ -382,9 +369,6 @@ export const DegreeSelector: React.FC<DegreeSelectorProps> = ({
                 >
                   💡 {(() => {
                     switch (language) {
-                      case 'de': return 'Empfohlene Abschlüsse';
-                      case 'es': return 'Títulos Sugeridos';
-                      case 'fr': return 'Diplômes Suggérés';
                       case 'tr': return 'Önerilen Dereceler';
                       default: return 'Suggested Degrees';
                     }
@@ -469,9 +453,6 @@ export const DegreeSelector: React.FC<DegreeSelectorProps> = ({
               >
                 {(() => {
                   switch (language) {
-                    case 'de': return `"${searchQuery}" wird als benutzerdefinierter Abschluss hinzugefügt`;
-                    case 'es': return `"${searchQuery}" se agregará como título personalizado`;
-                    case 'fr': return `"${searchQuery}" sera ajouté comme diplôme personnalisé`;
                     case 'tr': return `"${searchQuery}" özel derece olarak eklenecek`;
                     default: return `"${searchQuery}" will be added as custom degree`;
                   }
@@ -488,9 +469,6 @@ export const DegreeSelector: React.FC<DegreeSelectorProps> = ({
               >
                 {(() => {
                   switch (language) {
-                    case 'de': return 'Keine Abschlüsse gefunden';
-                    case 'es': return 'No se encontraron títulos';
-                    case 'fr': return 'Aucun diplôme trouvé';
                     case 'tr': return 'Derece bulunamadı';
                     default: return 'No degrees found';
                   }
@@ -510,9 +488,6 @@ export const DegreeSelector: React.FC<DegreeSelectorProps> = ({
             >
               💡 {(() => {
                 switch (language) {
-                  case 'de': return 'Geben Sie einen benutzerdefinierten Abschlussnamen ein, falls nicht in der Liste';
-                  case 'es': return 'Escriba el nombre del título personalizado si no está en la lista';
-                  case 'fr': return 'Saisissez le nom du diplôme personnalisé s\'il n\'est pas dans la liste';
                   case 'tr': return 'Listede yoksa özel derece adı yazabilirsiniz';
                   default: return 'Type custom degree name if not in list';
                 }

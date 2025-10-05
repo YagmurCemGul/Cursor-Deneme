@@ -51,9 +51,9 @@ export const LineChart: React.FC<LineChartProps> = ({
     const yValues = data.map((d) => d.y);
     const trendData = calculateMovingAverage(yValues, 5);
     trendPoints = data
-      .map((point, index) => {
+      .map((_, index) => {
         const x = padding + (index / (data.length - 1)) * chartWidth;
-        const y = padding + chartHeight - ((trendData[index] - minY) / yRange) * chartHeight;
+        const y = padding + chartHeight - (((trendData[index] || 0) - minY) / yRange) * chartHeight;
         return `${x},${y}`;
       })
       .join(' ');

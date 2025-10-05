@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { AIProvider } from '../utils/aiProviders';
-import { t, Lang } from '../i18n';
+import { Lang } from '../i18n';
 import { logger } from '../utils/logger';
 
 interface FallbackSettingsProps {
@@ -72,7 +72,9 @@ export const FallbackSettings: React.FC<FallbackSettingsProps> = ({ language, on
     const targetIndex = newOrder.indexOf(targetProvider);
 
     // Swap providers
-    [newOrder[draggedIndex], newOrder[targetIndex]] = [newOrder[targetIndex], newOrder[draggedIndex]];
+    if (draggedIndex !== -1 && targetIndex !== -1 && newOrder[draggedIndex] && newOrder[targetIndex]) {
+      [newOrder[draggedIndex], newOrder[targetIndex]] = [newOrder[targetIndex], newOrder[draggedIndex]];
+    }
     
     setConfig({ ...config, fallbackOrder: newOrder });
   };

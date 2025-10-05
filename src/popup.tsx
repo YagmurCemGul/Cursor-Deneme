@@ -74,6 +74,8 @@ const App: React.FC = () => {
   const [currentAIProvider, setCurrentAIProvider] = useState<'openai' | 'gemini' | 'claude'>(
     'openai'
   );
+  const [currentAIModel, setCurrentAIModel] = useState<string>('gpt-3.5-turbo');
+  const [apiKeys, setApiKeys] = useState<any>({});
   
   // Undo/Redo state
   const [undoStack, setUndoStack] = useState<HistoryState[]>([]);
@@ -308,11 +310,10 @@ const App: React.FC = () => {
       setOptimizations(result.optimizations);
       
       // Save analytics data
-      const currentProfId = currentProfileId.current;
       const analytics: OptimizationAnalytics = {
         id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
         timestamp: new Date().toISOString(),
-        ...(currentProfId ? { profileId: currentProfId } : {}),
+        profileId: currentProfileId.current || '',
         optimizationsApplied: result.optimizations.length,
         categoriesOptimized: [...new Set(result.optimizations.map(o => o.category))],
         jobDescriptionLength: jobDescription.length,
@@ -413,6 +414,8 @@ const App: React.FC = () => {
 
       // Update current provider state for UI display
       setCurrentAIProvider(provider);
+      setCurrentAIModel(model || 'gpt-3.5-turbo');
+      setApiKeys(apiKeys || {});
 
       const apiKey = apiKeys[provider];
       if (apiKey) {
@@ -661,11 +664,12 @@ const App: React.FC = () => {
               value={jobDescription}
               onChange={setJobDescription}
               language={language}
-              aiConfig={currentAIProvider && apiKeys[currentAIProvider] ? {
+              aiConfig={{
                 provider: currentAIProvider,
-                apiKey: apiKeys[currentAIProvider],
+                apiKey: apiKeys[currentAIProvider] || '',
+                model: currentAIModel,
                 temperature: 0.7,
-              } : undefined}
+              }}
             />
 
             <PersonalInfoForm

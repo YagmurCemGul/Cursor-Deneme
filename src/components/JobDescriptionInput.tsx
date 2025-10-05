@@ -113,7 +113,7 @@ export const JobDescriptionInput: React.FC<JobDescriptionInputProps> = ({
         value={value}
         onChange={onChange}
         language={language}
-        aiConfig={aiConfig}
+            aiConfig={aiConfig!}
       />
 
       <div className="alert alert-info">💡 {t(language, 'job.tipFull')}</div>

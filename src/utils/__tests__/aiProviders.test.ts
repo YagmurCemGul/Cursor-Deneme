@@ -156,7 +156,7 @@ describe('AI Providers', () => {
 
         expect(result).toBeDefined();
         expect(result.optimizations).toHaveLength(1);
-        expect(result.optimizations[0].category).toBe('Keywords');
+        expect(result.optimizations[0]?.category).toBe('Keywords');
         expect(mockFetch).toHaveBeenCalledWith(
           'https://api.openai.com/v1/chat/completions',
           expect.objectContaining({
@@ -319,7 +319,7 @@ describe('AI Providers', () => {
       const result = await provider.optimizeCV(mockCVData, jobDescription);
 
       expect(result.optimizations).toHaveLength(1);
-      expect(result.optimizations[0].category).toBe('Keywords');
+      expect(result.optimizations[0]?.category).toBe('Keywords');
     });
 
     it('should handle safety filter blocking', async () => {

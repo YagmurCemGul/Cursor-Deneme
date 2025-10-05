@@ -130,7 +130,7 @@ class HealthMonitorService {
       return scoreB - scoreA;
     });
 
-    return sorted[0].provider;
+    return sorted[0]?.provider || 'openai';
   }
 
   /**

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { healthMonitor, ProviderHealth, HealthAlert } from '../utils/healthMonitor';
 import { AIProvider } from '../utils/aiProviders';
-import { t, Lang } from '../i18n';
+import { Lang } from '../i18n';
 
 interface ProviderHealthDashboardProps {
   language: Lang;
@@ -10,7 +10,7 @@ interface ProviderHealthDashboardProps {
 export const ProviderHealthDashboard: React.FC<ProviderHealthDashboardProps> = ({ language }) => {
   const [health, setHealth] = useState<ProviderHealth[]>([]);
   const [alerts, setAlerts] = useState<HealthAlert[]>([]);
-  const [refreshInterval, setRefreshInterval] = useState<number | null>(null);
+  const [, setRefreshInterval] = useState<number | null>(null);
 
   useEffect(() => {
     loadHealth();

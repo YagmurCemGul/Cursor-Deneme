@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { AutoSyncService, SyncSettings } from '../utils/autoSyncService';
 import { GoogleDriveService, GoogleDriveFile } from '../utils/googleDriveService';
-import { t, Lang } from '../i18n';
+import { Lang } from '../i18n';
 
 interface AutoSyncSettingsProps {
   language: Lang;

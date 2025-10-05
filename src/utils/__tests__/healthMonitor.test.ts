@@ -2,7 +2,7 @@
  * Tests for Health Monitor Service
  */
 
-import { healthMonitor, ProviderHealth } from '../healthMonitor';
+import { healthMonitor } from '../healthMonitor';
 import { AIProvider } from '../aiProviders';
 
 describe('Health Monitor Service', () => {

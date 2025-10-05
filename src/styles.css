@@ -3859,6 +3859,10 @@ body:has(.app-container.dark) {
 }
 
 .app-container.dark .cloud-sync-modal {
+  background: #1f2937;
+  color: #f9fafb;
+}
+
 /* ===================================
    Enhanced Job Description Editor
    =================================== */
@@ -4160,6 +4164,10 @@ body:has(.app-container.dark) {
 }
 
 .cloud-badge.shared {
+  background: #10b981;
+  color: white;
+}
+
 .preview-content pre code {
   background: none;
   padding: 0;

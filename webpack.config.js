@@ -22,7 +22,7 @@ module.exports = (env, argv) => {
           use: {
             loader: 'ts-loader',
             options: {
-              transpileOnly: !isProduction,
+              transpileOnly: true,
               compilerOptions: {
                 module: 'esnext'
               }

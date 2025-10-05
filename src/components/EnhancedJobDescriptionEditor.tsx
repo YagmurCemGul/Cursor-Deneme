@@ -69,7 +69,7 @@ export const EnhancedJobDescriptionEditor: React.FC<EnhancedJobDescriptionEditor
       setIsUndoRedoAction(true);
       const newIndex = historyIndex - 1;
       setHistoryIndex(newIndex);
-      onChange(history[newIndex].value);
+      onChange(history[newIndex]?.value || '');
     }
   }, [historyIndex, history, onChange]);
 
@@ -79,7 +79,7 @@ export const EnhancedJobDescriptionEditor: React.FC<EnhancedJobDescriptionEditor
       setIsUndoRedoAction(true);
       const newIndex = historyIndex + 1;
       setHistoryIndex(newIndex);
-      onChange(history[newIndex].value);
+      onChange(history[newIndex]?.value || '');
     }
   }, [historyIndex, history, onChange]);
 
@@ -189,7 +189,7 @@ export const EnhancedJobDescriptionEditor: React.FC<EnhancedJobDescriptionEditor
     const currentLine = lines[lines.length - 1];
     const nextNumber = lastNumber + 1;
 
-    if (currentLine.trim() === '') {
+    if (currentLine?.trim() === '') {
       insertAtCursor(`${nextNumber}. `);
     } else {
       insertAtCursor(`\n${nextNumber}. `);

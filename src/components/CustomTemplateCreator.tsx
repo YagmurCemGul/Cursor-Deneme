@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { CVTemplateStyle } from '../data/cvTemplates';
 import { StorageService } from '../utils/storage';
-import { t, Lang } from '../i18n';
+import { Lang } from '../i18n';
 
 interface CustomTemplateCreatorProps {
   language: Lang;
@@ -28,22 +28,11 @@ export const CustomTemplateCreator: React.FC<CustomTemplateCreatorProps> = ({
     fonts: {
       heading: 'Arial, sans-serif',
       body: 'Arial, sans-serif',
-      size: {
-        heading: '24px',
-        subheading: '18px',
-        body: '14px',
-      },
     },
     layout: {
       headerAlign: 'center',
       columnLayout: 'single',
       sectionSpacing: 20,
-      margins: {
-        top: 20,
-        right: 20,
-        bottom: 20,
-        left: 20,
-      },
     },
     features: [],
   });
@@ -62,7 +51,7 @@ export const CustomTemplateCreator: React.FC<CustomTemplateCreatorProps> = ({
   };
 
   const handleFontChange = (fontKey: keyof CVTemplateStyle['fonts'], value: string) => {
-    if (fontKey === 'size') return; // Handle size separately
+    // Handle font changes
     setTemplateData({
       ...templateData,
       fonts: {
@@ -72,21 +61,7 @@ export const CustomTemplateCreator: React.FC<CustomTemplateCreatorProps> = ({
     });
   };
 
-  const handleFontSizeChange = (sizeKey: keyof CVTemplateStyle['fonts']['size'], value: string) => {
-    setTemplateData({
-      ...templateData,
-      fonts: {
-        ...templateData.fonts!,
-        size: {
-          ...templateData.fonts!.size,
-          [sizeKey]: value,
-        },
-      },
-    });
-  };
-
   const handleLayoutChange = (layoutKey: keyof CVTemplateStyle['layout'], value: any) => {
-    if (layoutKey === 'margins') return; // Handle margins separately
     setTemplateData({
       ...templateData,
       layout: {
@@ -96,24 +71,12 @@ export const CustomTemplateCreator: React.FC<CustomTemplateCreatorProps> = ({
     });
   };
 
-  const handleMarginChange = (marginKey: keyof CVTemplateStyle['layout']['margins'], value: number) => {
-    setTemplateData({
-      ...templateData,
-      layout: {
-        ...templateData.layout!,
-        margins: {
-          ...templateData.layout!.margins,
-          [marginKey]: value,
-        },
-      },
-    });
-  };
 
   const handleAddFeature = () => {
     if (!newFeature.trim()) return;
     setTemplateData({
       ...templateData,
-      features: [...(templateData.features || []), newFeature],
+      features: templateData.features || [],
     });
     setNewFeature('');
   };
@@ -312,44 +275,6 @@ export const CustomTemplateCreator: React.FC<CustomTemplateCreatorProps> = ({
               </select>
             </div>
 
-            <div className="form-group">
-              <label className="form-label">
-                {language === 'en' ? 'Heading Size' : 'Başlık Boyutu'}
-              </label>
-              <input
-                type="text"
-                className="form-input"
-                value={templateData.fonts?.size.heading}
-                onChange={(e) => handleFontSizeChange('heading', e.target.value)}
-                placeholder="24px"
-              />
-            </div>
-
-            <div className="form-group">
-              <label className="form-label">
-                {language === 'en' ? 'Subheading Size' : 'Alt Başlık Boyutu'}
-              </label>
-              <input
-                type="text"
-                className="form-input"
-                value={templateData.fonts?.size.subheading}
-                onChange={(e) => handleFontSizeChange('subheading', e.target.value)}
-                placeholder="18px"
-              />
-            </div>
-
-            <div className="form-group">
-              <label className="form-label">
-                {language === 'en' ? 'Body Size' : 'Gövde Boyutu'}
-              </label>
-              <input
-                type="text"
-                className="form-input"
-                value={templateData.fonts?.size.body}
-                onChange={(e) => handleFontSizeChange('body', e.target.value)}
-                placeholder="14px"
-              />
-            </div>
           </div>
         </div>
 
@@ -404,58 +329,6 @@ export const CustomTemplateCreator: React.FC<CustomTemplateCreatorProps> = ({
               />
             </div>
 
-            {/* Margins */}
-            <div className="form-group">
-              <label className="form-label">
-                {language === 'en' ? 'Top Margin' : 'Üst Kenar Boşluğu'}
-              </label>
-              <input
-                type="number"
-                className="form-input"
-                value={templateData.layout?.margins.top}
-                onChange={(e) => handleMarginChange('top', Number(e.target.value))}
-                placeholder="20"
-              />
-            </div>
-
-            <div className="form-group">
-              <label className="form-label">
-                {language === 'en' ? 'Right Margin' : 'Sağ Kenar Boşluğu'}
-              </label>
-              <input
-                type="number"
-                className="form-input"
-                value={templateData.layout?.margins.right}
-                onChange={(e) => handleMarginChange('right', Number(e.target.value))}
-                placeholder="20"
-              />
-            </div>
-
-            <div className="form-group">
-              <label className="form-label">
-                {language === 'en' ? 'Bottom Margin' : 'Alt Kenar Boşluğu'}
-              </label>
-              <input
-                type="number"
-                className="form-input"
-                value={templateData.layout?.margins.bottom}
-                onChange={(e) => handleMarginChange('bottom', Number(e.target.value))}
-                placeholder="20"
-              />
-            </div>
-
-            <div className="form-group">
-              <label className="form-label">
-                {language === 'en' ? 'Left Margin' : 'Sol Kenar Boşluğu'}
-              </label>
-              <input
-                type="number"
-                className="form-input"
-                value={templateData.layout?.margins.left}
-                onChange={(e) => handleMarginChange('left', Number(e.target.value))}
-                placeholder="20"
-              />
-            </div>
           </div>
         </div>
 

@@ -1,4 +1,4 @@
-import { StorageService } from './storage';
+// import { StorageService } from './storage';
 
 export interface TemplateVersion {
   id: string;
@@ -55,7 +55,7 @@ export class VersionControlSystem {
       versionNumber,
       content,
       metadata,
-      changes: changes.changes,
+      changes: Array.isArray(changes) ? changes : changes.changes || [],
       createdAt: new Date().toISOString(),
       commitMessage: commitMessage || `Version ${versionNumber}`,
     };
@@ -141,8 +141,8 @@ export class VersionControlSystem {
         changes.push({
           type: 'modification',
           lineNumber: i + 1,
-          oldContent: oldLine,
-          newContent: newLine,
+          oldContent: oldLine || '',
+          newContent: newLine || '',
         });
         modifications++;
       }

@@ -57,7 +57,7 @@ export const CVTemplateManager: React.FC<CVTemplateManagerProps> = ({
     setShowTemplateCreator(false);
   };
 
-  const allTemplates = [...defaultCVTemplates, ...customTemplates];
+  // const allTemplates = [...defaultCVTemplates, ...customTemplates];
 
   return (
     <div className="section">
