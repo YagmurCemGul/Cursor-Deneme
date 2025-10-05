@@ -17,6 +17,7 @@ import { exportToPDF, exportToImage, printCV, generatePDFFilename } from '../lib
 import { calculateATSScore, ATSScore } from '../lib/atsScoring';
 import { convertLinkedInToProfile, LinkedInProfile } from '../lib/linkedinImport';
 import { initLanguage, setLanguage, getCurrentLanguage, t, Language } from '../lib/i18n';
+import { exportToGoogleDocs, isGoogleDocsAvailable } from '../lib/googleDocsExport';
 import '../styles/global.css';
 
 export function NewTab() {
@@ -60,12 +61,18 @@ export function NewTab() {
   const [showCoverLetterBuilder, setShowCoverLetterBuilder] = useState(false);
   const [currentLang, setCurrentLang] = useState<Language>('en');
   const [cvLanguage, setCvLanguage] = useState<Language>('en');
+  const [isGoogleDocsConnected, setIsGoogleDocsConnected] = useState(false);
+  const [isExportingToDocs, setIsExportingToDocs] = useState(false);
 
   useEffect(() => {
     (async () => {
       // Initialize language
       const lang = await initLanguage();
       setCurrentLang(lang);
+      
+      // Check Google Docs availability
+      const googleAvailable = await isGoogleDocsAvailable();
+      setIsGoogleDocsConnected(googleAvailable);
       
       // Load all profiles
       const profiles = await storage.get<ResumeProfile[]>(storage.keys.PROFILES) || [];
@@ -189,6 +196,38 @@ export function NewTab() {
       alert('❌ Failed to export image. Please try again.');
     } finally {
       setIsExporting(false);
+    }
+  }
+
+  async function handleExportToGoogleDocs() {
+    if (!profile) return;
+    
+    if (!isGoogleDocsConnected) {
+      const shouldOpenSettings = confirm(
+        '📄 Google Docs is not connected.\n\nWould you like to open Settings to connect your Google account?'
+      );
+      if (shouldOpenSettings) {
+        chrome.runtime.openOptionsPage();
+      }
+      return;
+    }
+    
+    setIsExportingToDocs(true);
+    try {
+      const result = await exportToGoogleDocs(profile, cvLanguage);
+      
+      const shouldOpen = confirm(
+        `✅ CV exported to Google Docs successfully!\n\nWould you like to open it now?`
+      );
+      
+      if (shouldOpen) {
+        window.open(result.documentUrl, '_blank');
+      }
+    } catch (error: any) {
+      console.error('Google Docs export error:', error);
+      alert(`❌ Failed to export to Google Docs.\n\n${error.message || 'Please try again.'}`);
+    } finally {
+      setIsExportingToDocs(false);
     }
   }
 
@@ -1552,7 +1591,7 @@ Make it compelling, highlight key strengths, and use action-oriented language.`;
                     </div>
                     
                     {/* Export Buttons */}
-                    <div style={{ display: 'flex', gap: 8 }}>
+                    <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                       <Button 
                         variant="primary" 
                         onClick={handleExportToPDF}
@@ -1560,6 +1599,20 @@ Make it compelling, highlight key strengths, and use action-oriented language.`;
                         style={{ fontSize: 13 }}
                       >
                         {isExporting ? '⏳ Exporting...' : '📄 Export as PDF'}
+                      </Button>
+                      <Button 
+                        variant={isGoogleDocsConnected ? "primary" : "secondary"} 
+                        onClick={handleExportToGoogleDocs}
+                        disabled={isExportingToDocs}
+                        style={{ fontSize: 13, display: 'flex', alignItems: 'center', gap: 6 }}
+                      >
+                        {isExportingToDocs ? '⏳ Exporting...' : (
+                          <>
+                            <span>📄</span>
+                            <span>Export to Google Docs</span>
+                            {!isGoogleDocsConnected && <span style={{ fontSize: 10, opacity: 0.8 }}>🔒</span>}
+                          </>
+                        )}
                       </Button>
                     <Button 
                       variant="secondary" 
