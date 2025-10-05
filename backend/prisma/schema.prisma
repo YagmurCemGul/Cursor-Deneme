@@ -1,0 +1,109 @@
+// Prisma Schema for Resume Builder Backend
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// User model
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String
+  name      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  // Relations
+  resumes      Resume[]
+  jobs         Job[]
+  applications Application[]
+  apiUsage     ApiUsage[]
+  
+  @@index([email])
+}
+
+// Resume model
+model Resume {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  title     String
+  content   Json     // Full resume data (JSON)
+  atsScore  Int?     // ATS score (0-100)
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  @@index([userId])
+  @@index([createdAt])
+}
+
+// Job model
+model Job {
+  id          String   @id @default(uuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  title       String
+  company     String
+  description String   @db.Text
+  url         String?
+  location    String?
+  salary      String?
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  // Relations
+  applications Application[]
+  
+  @@index([userId])
+  @@index([createdAt])
+}
+
+// Job Application model
+model Application {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  jobId     String
+  job       Job      @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  
+  status    String   @default("applied") // applied, interviewing, rejected, accepted
+  notes     String?  @db.Text
+  appliedAt DateTime @default(now())
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  @@index([userId])
+  @@index([jobId])
+  @@index([status])
+}
+
+// API Usage tracking model
+model ApiUsage {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  provider  String   // openai, anthropic, google
+  model     String   // gpt-4, claude-3, gemini-pro
+  
+  inputTokens  Int
+  outputTokens Int
+  totalCost    Float
+  
+  createdAt DateTime @default(now())
+  
+  @@index([userId])
+  @@index([createdAt])
+  @@index([provider])
+}
