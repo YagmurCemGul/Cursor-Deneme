@@ -1,5 +1,6 @@
 import type { ResumeProfile, JobPost, AtsOptimization } from './types';
 import { loadOptions } from './storage';
+import { generateIndustryPrompt, suggestIndustry, getIndustryPrompt } from './promptLibrary';
 
 export type GeneratedResume = {
   text: string;
@@ -54,14 +55,86 @@ CREATIVE: Acted, Composed, Conceived, Conceptualized, Created, Customized, Desig
 HELPING: Assessed, Assisted, Clarified, Coached, Counseled, Demonstrated, Diagnosed, Educated, Enhanced, Expedited, Facilitated, Familiarized, Guided, Motivated, Participated, Proposed, Provided, Referred, Rehabilitated, Represented, Served, Supported
 ORGANIZATIONAL: Approved, Accelerated, Added, Arranged, Broadened, Cataloged, Centralized, Changed, Classified, Collected, Compiled, Completed, Controlled, Defined, Dispatched, Executed, Expanded, Gained, Gathered, Generated, Implemented, Inspected, Launched, Monitored, Operated, Organized, Prepared, Processed, Purchased, Recorded, Reduced, Reinforced, Retrieved, Screened, Selected, Simplified, Sold, Specified, Steered, Structured, Systematized, Tabulated, Unified, Updated, Utilized, Validated, Verified`;
 
-export async function generateAtsResume(profile: ResumeProfile, job: JobPost): Promise<GeneratedResume> {
+export async function generateAtsResume(
+  profile: ResumeProfile, 
+  job: JobPost,
+  industryId?: string
+): Promise<GeneratedResume> {
   const opts = await loadOptions();
-  const system = `You are an expert resume writer optimizing for ATS. Follow rules strictly. Avoid personal pronouns. Use action verbs. Language: ${opts?.language ?? 'tr'}.`;
-  const prompt = `Job description:\n${job.pastedText}\n\nCandidate profile JSON:\n${JSON.stringify(profile, null, 2)}\n\nRules:\n${RESUME_RULES_TR}\n\nAction verbs:\n${ACTION_VERBS}\n\nReturn a concise, ATS-friendly resume body in Markdown sections: Summary, Skills, Experience (bullets), Education, Licenses/Certifications, Projects. Avoid headers like RESUME.`;
-  const text = await callOpenAI(system, prompt);
+  
+  // Auto-detect industry if not provided
+  const detectedIndustry = industryId || suggestIndustry(
+    profile.skills,
+    profile.experience.map(exp => exp.title)
+  );
+  
+  const industry = getIndustryPrompt(detectedIndustry);
+  
+  // Create profile summary for context
+  const profileSummary = `
+Name: ${profile.personal.firstName} ${profile.personal.lastName}
+Skills: ${profile.skills.join(', ')}
+Experience: ${profile.experience.map(exp => `${exp.title} at ${exp.company}`).join('; ')}
+Education: ${profile.education.map(edu => `${edu.degree} in ${edu.fieldOfStudy || 'N/A'}`).join('; ')}
+  `.trim();
+  
+  // Use industry-specific prompt
+  const industryPrompt = generateIndustryPrompt(
+    detectedIndustry,
+    job.pastedText,
+    profileSummary
+  );
+  
+  const system = `You are an expert resume writer specializing in ${industry.name} roles. 
+You optimize resumes for both ATS systems and human readers.
+Language: ${opts?.language ?? 'en'}.
+
+CRITICAL RULES:
+${RESUME_RULES_TR}
+
+AVAILABLE ACTION VERBS:
+${ACTION_VERBS}`;
+
+  const prompt = `${industryPrompt}
+
+CANDIDATE FULL PROFILE:
+${JSON.stringify(profile, null, 2)}
+
+TASK:
+Generate a professional, ATS-optimized resume in Markdown format with these sections:
+1. Professional Summary (3-4 lines, focused on ${industry.resumeStructure.summaryFocus})
+2. Skills (${industry.resumeStructure.skillsPresentation})
+3. Work Experience (emphasis on: ${industry.resumeStructure.experienceEmphasis.join(', ')})
+4. Education
+5. Certifications/Licenses (if applicable)
+6. Projects (if applicable)
+
+Use ${industry.name}-appropriate terminology and include metrics like: ${industry.successMetrics.slice(0, 3).join(', ')}.
+
+IMPORTANT: 
+- Do NOT include a resume title or "RESUME" header
+- Use bullet points for experiences
+- Quantify achievements with numbers
+- Match keywords from job description naturally
+- Maintain ${Math.round(industry.keywordDensity * 100)}% keyword density`;
+
+  const text = await callOpenAI(system, prompt, { temperature: 0.4 });
 
   const optimizations: AtsOptimization[] = [
-    { id: crypto.randomUUID(), kind: 'addition', section: 'Skills', after: 'Added keywords from job post', rationale: 'Increase ATS keyword match' }
+    { 
+      id: crypto.randomUUID(), 
+      kind: 'addition', 
+      section: 'Industry Optimization', 
+      after: `Applied ${industry.name} industry best practices`, 
+      rationale: `Optimized for ${industry.category} sector with ${industry.commonTerms.length} industry-specific keywords` 
+    },
+    { 
+      id: crypto.randomUUID(), 
+      kind: 'enhancement', 
+      section: 'Skills', 
+      after: 'Prioritized relevant skills for ATS', 
+      rationale: `Keyword density: ${Math.round(industry.keywordDensity * 100)}%` 
+    }
   ];
 
   return { text, optimizations };

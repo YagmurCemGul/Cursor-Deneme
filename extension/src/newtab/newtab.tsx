@@ -22,6 +22,7 @@ import { convertLinkedInToProfile, LinkedInProfile } from '../lib/linkedinImport
 import { initLanguage, setLanguage, getCurrentLanguage, t, Language } from '../lib/i18n';
 import { exportToGoogleDocs, isGoogleDocsAvailable } from '../lib/googleDocsExport';
 import { performAutoBackupIfDue } from '../lib/cloudBackup';
+import { INDUSTRY_PROMPTS, getIndustriesByCategory, suggestIndustry } from '../lib/promptLibrary';
 import '../styles/global.css';
 
 export function NewTab() {
@@ -69,6 +70,7 @@ export function NewTab() {
   const [isExportingToDocs, setIsExportingToDocs] = useState(false);
   const [showEmailComposer, setShowEmailComposer] = useState(false);
   const [showBackupManager, setShowBackupManager] = useState(false);
+  const [selectedIndustry, setSelectedIndustry] = useState<string>('generic-professional');
 
   useEffect(() => {
     (async () => {
@@ -361,13 +363,20 @@ export function NewTab() {
     if (!profile || !job.pastedText) return;
     setIsGenerating(true);
     try {
-      const result = await generateAtsResume(profile, job);
+      // Use industry-specific generation
+      const result = await generateAtsResume(profile, job, selectedIndustry);
       setResumeMd(result.text);
       setOptimizations(result.optimizations);
       await saveOptimizations(result.optimizations);
       await saveGeneratedResume(result.text);
       await saveJobPost(job);
       setActive('preview');
+      
+      // Show success message with industry info
+      const industryName = INDUSTRY_PROMPTS[selectedIndustry]?.name || 'Professional';
+      setTimeout(() => {
+        alert(`✅ ${industryName} resume generated with industry-specific optimization!`);
+      }, 500);
     } finally {
       setIsGenerating(false);
     }
@@ -1785,6 +1794,77 @@ Make it compelling, highlight key strengths, and use action-oriented language.`;
                 <p style={{ margin: 0, color: '#64748b', fontSize: 14 }}>
                   Paste the full job description here. The AI will analyze it to optimize your resume and match keywords.
                 </p>
+                
+                {/* Industry Selector */}
+                <div className="card" style={{ background: 'linear-gradient(135deg, #f0f4ff 0%, #e0e7ff 100%)', border: '2px solid #667eea', padding: 20 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 12 }}>
+                    <span style={{ fontSize: 24 }}>🎯</span>
+                    <div>
+                      <div style={{ fontSize: 16, fontWeight: 600, color: '#1e293b', marginBottom: 4 }}>
+                        Industry-Specific AI Optimization
+                      </div>
+                      <div style={{ fontSize: 13, color: '#64748b' }}>
+                        Select your industry for specialized resume generation
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <select
+                    value={selectedIndustry}
+                    onChange={(e) => setSelectedIndustry(e.target.value)}
+                    style={{
+                      width: '100%',
+                      padding: '12px 16px',
+                      border: '2px solid #667eea',
+                      borderRadius: 10,
+                      fontSize: 14,
+                      fontWeight: 500,
+                      background: 'white',
+                      cursor: 'pointer',
+                    }}
+                  >
+                    <optgroup label="🚀 Technology">
+                      <option value="tech-frontend">Frontend Developer</option>
+                      <option value="tech-backend">Backend Developer</option>
+                      <option value="tech-fullstack">Full Stack Developer</option>
+                      <option value="tech-devops">DevOps Engineer</option>
+                      <option value="tech-data-science">Data Scientist</option>
+                    </optgroup>
+                    <optgroup label="💼 Business & Management">
+                      <option value="business-product-manager">Product Manager</option>
+                      <option value="business-project-manager">Project Manager</option>
+                      <option value="business-sales">Sales Professional</option>
+                    </optgroup>
+                    <optgroup label="📢 Marketing & Design">
+                      <option value="marketing-digital">Digital Marketing</option>
+                      <option value="marketing-content">Content Marketing</option>
+                      <option value="design-ux-ui">UX/UI Designer</option>
+                    </optgroup>
+                    <optgroup label="💰 Finance">
+                      <option value="finance-analyst">Financial Analyst</option>
+                    </optgroup>
+                    <optgroup label="🏥 Healthcare">
+                      <option value="healthcare-nursing">Registered Nurse</option>
+                    </optgroup>
+                    <optgroup label="🎓 Education">
+                      <option value="education-teacher">Teacher / Educator</option>
+                    </optgroup>
+                    <optgroup label="📋 General">
+                      <option value="generic-professional">Professional (Generic)</option>
+                    </optgroup>
+                  </select>
+                  
+                  {profile && (
+                    <div style={{ marginTop: 12, padding: 10, background: 'white', borderRadius: 8, fontSize: 12, color: '#64748b' }}>
+                      💡 Auto-detected: <strong>{INDUSTRY_PROMPTS[suggestIndustry(profile.skills, profile.experience.map(e => e.title))]?.name || 'None'}</strong>
+                      {selectedIndustry !== suggestIndustry(profile.skills, profile.experience.map(e => e.title)) && (
+                        <span style={{ marginLeft: 8, color: '#667eea', cursor: 'pointer' }} onClick={() => setSelectedIndustry(suggestIndustry(profile.skills, profile.experience.map(e => e.title)))}>
+                          (Use auto-detected)
+                        </span>
+                      )}
+                    </div>
+                  )}
+                </div>
                 <textarea 
                   className="textarea" 
                   style={{ minHeight: 300 }}
