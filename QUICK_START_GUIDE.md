@@ -1,312 +1,242 @@
-# Quick Start Guide - AI Service Features
+# Quick Start Guide - API Enhancements
 
-## 🚀 Getting Started
+## What's New?
 
-### 1. Choose Your AI Provider
+Your AI CV Optimizer now has powerful new features for better reliability and user experience:
 
-You now have 5 AI providers to choose from:
+- ⏱️ **Timeout Management** - No more endless waiting
+- 📊 **Progress Indicators** - See what's happening in real-time
+- 📝 **Detailed Logging** - Better debugging and monitoring
+- 🔌 **Offline Support** - Work even without internet
+- 💾 **Smart Caching** - Faster responses for repeat requests
 
-#### OpenAI (ChatGPT)
-- **Best for**: General use, high quality
-- **Cost**: Moderate ($$)
-- **Setup**: Get API key from https://platform.openai.com/api-keys
+## Quick Setup
 
-#### Google Gemini
-- **Best for**: Budget-conscious users
-- **Cost**: Low ($)
-- **Setup**: Get API key from https://makersuite.google.com/app/apikey
+### 1. Basic Configuration (Optional)
 
-#### Anthropic Claude
-- **Best for**: Long documents, complex tasks
-- **Cost**: High ($$$)
-- **Setup**: Get API key from https://console.anthropic.com/settings/keys
+The enhancements work automatically, but you can customize:
 
-#### Azure OpenAI ⭐ NEW
-- **Best for**: Enterprise users, compliance requirements
-- **Cost**: Moderate ($$)
-- **Setup**: 
-  1. Create Azure OpenAI resource
-  2. Get API key, endpoint, and deployment name
-  3. Configure in extension settings
+```typescript
+import { APIManager } from './utils/apiManager';
 
-#### Ollama (Local AI) ⭐ NEW
-- **Best for**: Privacy, offline use, zero cost
-- **Cost**: FREE
-- **Setup**:
-  1. Install Ollama from https://ollama.ai
-  2. Run: `ollama run llama2` (or your preferred model)
-  3. Extension connects to http://localhost:11434
-
-## 📊 Usage Statistics
-
-Track your API usage automatically:
-
-### View Statistics
-1. Open extension
-2. Go to "Usage Statistics" tab
-3. See:
-   - Total API calls
-   - Tokens used
-   - Total cost
-   - Success rate
-   - Per-provider breakdown
-
-### Export Data
-- Click "Export" button to download JSON
-- Use for external analysis or reporting
-
-## 💰 Cost Calculator
-
-### Automatic Cost Tracking
-Every API call automatically:
-- Counts tokens used
-- Calculates cost
-- Stores in history
-
-### Compare Costs
-Use A/B Testing to compare costs across providers for same task.
-
-## 🔄 Batch Processing
-
-Process multiple CVs at once:
-
-### How to Use
-1. Select multiple CV profiles
-2. Choose operation (optimize CV or generate cover letter)
-3. Set job description
-4. Click "Start Batch Processing"
-5. Monitor progress in real-time
-
-### Configuration Options
-- **Parallel Limit**: How many requests at once (default: 3)
-- **Delay**: Time between batches (default: 1000ms)
-- **Continue on Error**: Keep going if one fails
-
-## 🎯 A/B Testing
-
-Compare different AI providers:
-
-### Steps
-1. Click "A/B Test" in extension
-2. Select 2-3 providers to compare
-3. Enter CV data and job description
-4. Click "Run Test"
-5. Review results side-by-side
-6. Rate each result (1-5 stars)
-7. Select the best one
-
-### Comparison Metrics
-- Output quality
-- Token usage
-- Cost
-- Speed (duration)
-- Your ratings
-
-## ✍️ Custom Prompts
-
-Create your own AI prompts:
-
-### Create Prompt
-1. Go to "Custom Prompts" tab
-2. Click "New Prompt"
-3. Fill in:
-   - Name
-   - Category (CV optimization, cover letter, general)
-   - System prompt
-   - User prompt template
-   - Variables (use {{variableName}} syntax)
-4. Save
-
-### Use Custom Prompt
-1. Select operation (optimize CV, generate cover letter)
-2. Choose "Use Custom Prompt"
-3. Select your prompt
-4. System fills in variables automatically
-
-### Default Templates
-5 templates included:
-- Standard CV Optimization
-- Senior Position CV Optimization
-- Technical Role CV Optimization
-- Standard Cover Letter
-- Career Change Cover Letter
-
-## 🏠 Ollama Setup (Local AI)
-
-### Installation
-```bash
-# macOS / Linux
-curl https://ollama.ai/install.sh | sh
-
-# Windows
-Download from https://ollama.ai/download
+// Set default timeout (optional - defaults are good for most cases)
+APIManager.setDefaultTimeout(30000); // 30 seconds
 ```
 
-### Running a Model
-```bash
-# Llama 2 (7B)
-ollama run llama2
+### 2. Using with AI Service
 
-# Llama 3 (8B)
-ollama run llama3
+```typescript
+import { AIService } from './utils/aiService';
 
-# Mistral (7B)
-ollama run mistral
+// Create AI service with enhancements
+const aiService = new AIService({
+  provider: 'openai',
+  apiKey: 'your-api-key',
+  timeout: 60000,      // 60 seconds (optional)
+  enableCache: true,   // Cache responses (optional, default: true)
+  cacheTTL: 300000,    // Cache for 5 minutes (optional)
+});
 
-# Code Llama (for technical CVs)
-ollama run codellama
+// Use normally - enhancements work automatically!
+const result = await aiService.optimizeCV(cvData, jobDescription);
 ```
 
-### Configure Extension
-1. Open AI Settings
-2. Select "Ollama (Local AI)"
-3. Verify endpoint: `http://localhost:11434`
-4. Select model you're running
-5. Save
+### 3. Show Progress to Users
 
-### Benefits
-- ✅ 100% private - data never leaves your computer
-- ✅ Free - no API costs
-- ✅ Offline - works without internet
-- ✅ Fast - no network latency
+```typescript
+import { ProgressTracker } from './utils/progressTracker';
 
-## 🔐 Azure OpenAI Setup
+// Subscribe to progress updates
+const unsubscribe = ProgressTracker.subscribeAll((progress) => {
+  // Update your UI
+  updateProgressBar(progress.progress);
+  showMessage(progress.message);
+  
+  // Handle different states
+  if (progress.status === 'success') {
+    showSuccess();
+  } else if (progress.status === 'error') {
+    showError(progress.error);
+  } else if (progress.status === 'offline') {
+    showOfflineWarning();
+  }
+});
 
-### Prerequisites
-1. Azure subscription
-2. Azure OpenAI resource created
-3. Model deployed (GPT-4, GPT-4o, etc.)
-
-### Configuration
-1. Open AI Settings
-2. Select "Azure OpenAI Service"
-3. Enter:
-   - **Endpoint**: `https://your-resource-name.openai.azure.com`
-   - **Deployment Name**: Your deployment name (e.g., "gpt-4")
-   - **API Key**: From Azure portal
-4. Select model
-5. Test connection
-6. Save
-
-### Advantages
-- Enterprise security
-- Compliance (GDPR, HIPAA, etc.)
-- Data residency control
-- SLA guarantees
-- Integration with Azure services
-
-## 📈 Best Practices
-
-### Cost Optimization
-1. Use Ollama for testing/drafts (free)
-2. Use GPT-4o-mini for final versions (cheap)
-3. Save expensive models (GPT-4, Claude Opus) for important applications
-4. Monitor usage statistics regularly
-5. Set up batch processing to reduce per-request overhead
-
-### Quality Optimization
-1. Run A/B tests to find best provider for your field
-2. Create custom prompts for your industry
-3. Use appropriate model:
-   - Technical roles: Claude or GPT-4
-   - General: GPT-4o-mini or Gemini
-   - Senior positions: GPT-4 or Claude Opus
-4. Iterate: Generate, review, regenerate
-
-### Privacy Best Practices
-1. Use Ollama for sensitive information
-2. Use Azure OpenAI for enterprise data
-3. Never include SSN, passwords, or personal IDs in CV
-4. Review generated content before sending
-
-## 🆘 Troubleshooting
-
-### Ollama Not Connecting
-```bash
-# Check if Ollama is running
-curl http://localhost:11434/api/tags
-
-# Start Ollama
-ollama serve
-
-# Pull a model if needed
-ollama pull llama2
+// Clean up when component unmounts
+// unsubscribe();
 ```
 
-### Azure OpenAI Errors
-- Check endpoint format: Must include `https://`
-- Verify deployment name matches Azure portal
-- Ensure API key is correct
-- Check Azure subscription status
+### 4. Handle Offline Scenarios
 
-### High Costs
-1. Check usage statistics
-2. Switch to cheaper model (GPT-4o-mini)
-3. Use Ollama for testing
-4. Reduce batch parallel limit
+```typescript
+import { OfflineSupportManager } from './utils/offlineSupport';
 
-### Poor Quality Results
-1. Try A/B testing with different providers
-2. Create custom prompt with more specific instructions
-3. Use higher-tier model (GPT-4, Claude Sonnet)
-4. Provide more detailed job description
+// Check if online
+if (!OfflineSupportManager.isCurrentlyOnline()) {
+  // Show offline UI or queue operation
+  alert('You are offline. Your request will be processed when connection is restored.');
+}
 
-## 📚 Resources
+// Subscribe to online/offline events
+OfflineSupportManager.subscribe((status) => {
+  if (status.isOnline) {
+    showOnlineIndicator();
+  } else {
+    showOfflineIndicator();
+  }
+});
 
-- **Documentation**: See `AI_SERVICE_FEATURES_IMPLEMENTATION.md`
-- **Turkish Docs**: See `AI_SERVIS_OZELLIKLERI_TR.md`
-- **OpenAI Pricing**: https://openai.com/pricing
-- **Gemini Pricing**: https://ai.google.dev/pricing
-- **Claude Pricing**: https://www.anthropic.com/pricing
-- **Azure OpenAI**: https://azure.microsoft.com/en-us/pricing/details/cognitive-services/openai-service/
-- **Ollama Models**: https://ollama.ai/library
+// Get offline suggestions (works without internet!)
+const suggestions = OfflineSupportManager.getOfflineOptimizationSuggestions(cvData);
+```
 
-## 💡 Tips & Tricks
+### 5. View Metrics and Logs
 
-### Save Money
-- Use Ollama for iterating on prompts
-- Batch process multiple CVs at once
-- Use GPT-4o-mini instead of GPT-4 when possible
-- Monitor token usage to avoid surprises
+```typescript
+import { logger } from './utils/logger';
 
-### Improve Quality
-- Create custom prompts for your industry
-- Use A/B testing to find best provider
-- Iterate: test different models and prompts
-- Provide detailed, well-structured job descriptions
+// Get API call statistics
+const stats = logger.getAPICallStats();
+console.log('API Statistics:', stats);
+// { total: 50, success: 48, error: 2, timeout: 0, averageDuration: 1234 }
 
-### Stay Organized
-- Name custom prompts clearly
-- Tag A/B tests with meaningful names
-- Export usage stats monthly
-- Review and update custom prompts regularly
+// Get performance metrics
+const metrics = logger.getMetrics('cv-optimization');
+console.log('Performance:', metrics);
+// { count: 10, average: 1200, min: 800, max: 2000, total: 12000 }
 
-### Go Fast
-- Use batch processing for multiple CVs
-- Set parallel limit to 5 for faster processing
-- Use faster models (GPT-4o-mini, Gemini Flash, Claude Haiku)
-- Keep Ollama running in background for instant responses
+// Export logs for debugging
+const logs = logger.exportLogs();
+// Download or send logs
+```
 
-## 🎯 Common Use Cases
+## Common Use Cases
 
-### Job Seeker
-1. Use Ollama to draft CV optimizations (free)
-2. Use GPT-4o-mini for final cover letters (cheap, good quality)
-3. A/B test important applications
-4. Track costs to stay in budget
+### Show Progress Bar
 
-### Recruiter
-1. Use batch processing for multiple candidates
-2. Custom prompts for your industry
-3. Azure OpenAI for enterprise compliance
-4. Usage stats for reporting
+```typescript
+import { ProgressTracker } from './utils/progressTracker';
 
-### Career Coach
-1. Custom prompts for different career levels
-2. A/B test to show clients options
-3. Ollama for client privacy
-4. Cost tracking for billing
+function MyComponent() {
+  const [progress, setProgress] = useState(0);
+  const [message, setMessage] = useState('');
+  
+  useEffect(() => {
+    const unsubscribe = ProgressTracker.subscribeAll((p) => {
+      setProgress(p.progress);
+      setMessage(p.message);
+    });
+    return unsubscribe;
+  }, []);
+  
+  return (
+    <div>
+      <ProgressBar value={progress} />
+      <p>{message}</p>
+    </div>
+  );
+}
+```
 
----
+### Handle Timeout Errors
 
-Need help? Check the full documentation or create an issue on GitHub.
+```typescript
+try {
+  const result = await aiService.optimizeCV(cvData, jobDescription);
+} catch (error) {
+  if (error.message.includes('timeout')) {
+    alert('Request timed out. Please try again.');
+  } else if (error.message.includes('No internet connection')) {
+    alert('You are offline. Please check your connection.');
+  } else {
+    alert('An error occurred: ' + error.message);
+  }
+}
+```
+
+### Clear Cache
+
+```typescript
+import { APIManager } from './utils/apiManager';
+
+// Clear all cache (e.g., on logout)
+APIManager.clearCache();
+
+// Or clear specific entry
+APIManager.clearCacheEntry('specific-cache-key');
+```
+
+### Monitor Performance
+
+```typescript
+import { logger } from './utils/logger';
+
+// Start timer
+logger.startTimer('my-operation');
+
+// ... do operation ...
+
+// End timer (returns duration)
+const duration = logger.endTimer('my-operation');
+
+// Get metrics later
+const metrics = logger.getMetrics('my-operation');
+console.log(`Average: ${metrics.average}ms`);
+```
+
+## Default Settings
+
+All enhancements have sensible defaults:
+
+- **Timeout**: 30 seconds (API calls), 60 seconds (AI operations)
+- **Max Timeout**: 2 minutes
+- **Cache**: Enabled by default
+- **Cache TTL**: 5 minutes
+- **Retries**: 2 retries with exponential backoff
+- **Log Level**: INFO (DEBUG in development)
+
+## Tips
+
+1. **Progress Updates**: Always show progress for operations >2 seconds
+2. **Error Messages**: Show user-friendly messages for timeouts/offline
+3. **Cache**: Keep enabled for better performance
+4. **Cleanup**: Unsubscribe from progress updates when done
+5. **Monitoring**: Check metrics regularly in production
+
+## Troubleshooting
+
+### "Request timeout" errors
+→ Increase timeout: `timeout: 90000` (90 seconds)
+
+### High memory usage
+→ Clear cache regularly: `APIManager.clearCache()`
+→ Clear log history: `logger.clearHistory()`
+
+### Slow performance
+→ Check if caching is enabled: `enableCache: true`
+→ Review metrics: `logger.getAPICallStats()`
+
+### Offline not working
+→ System initializes automatically with AIService
+→ Check: `OfflineSupportManager.isCurrentlyOnline()`
+
+## Need Help?
+
+1. Check full documentation: `API_ENHANCEMENTS.md`
+2. Review implementation summary: `IMPLEMENTATION_SUMMARY.md`
+3. Export logs for debugging: `logger.exportLogs()`
+4. Check code comments - all functions are documented
+
+## What Happens Automatically?
+
+You don't need to do anything special - these work automatically:
+
+✅ Timeout protection on all API calls
+✅ Automatic retries on transient failures
+✅ Response caching for repeated requests
+✅ Request deduplication
+✅ Offline detection
+✅ Progress tracking
+✅ Performance logging
+
+Just use your existing code, and the enhancements work behind the scenes!

@@ -1,24 +1,147 @@
 import { CVData, ATSOptimization } from '../types';
+import { AIConfig, AIRequestOptions } from './aiProviders';
+import { EnhancedAIProvider, createEnhancedAIProvider } from './enhancedAIProviders';
+import { logger } from './logger';
+import { APIManager } from './apiManager';
+import { OfflineSupportManager } from './offlineSupport';
 
+/**
+ * AIService - Handles AI-powered CV optimization and cover letter generation
+ * 
+ * Enhanced with:
+ * - Timeout management
+ * - Progress tracking
+ * - Response caching
+ * - Offline detection
+ * - Detailed logging
+ * 
+ * @class AIService
+ * @example
+ * ```typescript
+ * const aiService = new AIService({
+ *   provider: 'openai',
+ *   apiKey: 'your-api-key',
+ *   temperature: 0.7,
+ *   timeout: 60000,
+ *   enableCache: true
+ * });
+ * 
+ * const result = await aiService.optimizeCV(cvData, jobDescription);
+ * ```
+ */
 export class AIService {
-  constructor(_apiKey: string) {
-    // Store API key for future use
+  private provider: EnhancedAIProvider | null = null;
+  private useMockMode: boolean = false;
+  private initialized: boolean = false;
+
+  /**
+   * Creates an instance of AIService
+   * 
+   * @param {AIConfig} [config] - Optional AI configuration
+   * @constructor
+   */
+  constructor(config?: AIConfig) {
+    // Initialize supporting systems if not already done
+    if (!this.initialized) {
+      this.initializeSystems();
+      this.initialized = true;
+    }
+
+    if (config && config.apiKey && config.apiKey.trim()) {
+      try {
+        this.provider = createEnhancedAIProvider(config);
+        this.useMockMode = false;
+        logger.info('AI Service initialized with enhanced provider', {
+          provider: config.provider,
+          timeout: config.timeout,
+          cacheEnabled: config.enableCache,
+        });
+      } catch (error) {
+        logger.error('Failed to initialize AI provider, falling back to mock mode:', error);
+        this.useMockMode = true;
+      }
+    } else {
+      logger.warn('No API key provided - AI service running in mock mode');
+      this.useMockMode = true;
+    }
   }
 
-  async optimizeCV(cvData: CVData, _jobDescription: string): Promise<{ optimizedCV: CVData; optimizations: ATSOptimization[] }> {
-    // In a real implementation, this would call OpenAI API
-    // For now, we'll simulate the optimization
+  /**
+   * Initialize supporting systems
+   * @private
+   */
+  private initializeSystems(): void {
+    try {
+      APIManager.initialize();
+      OfflineSupportManager.initialize();
+      logger.info('AI Service supporting systems initialized');
+    } catch (error) {
+      logger.error('Failed to initialize supporting systems:', error);
+    }
+  }
 
-    // Mock optimizations for demonstration
+  /**
+   * Update the AI provider configuration
+   * 
+   * @param {AIConfig} config - New AI configuration
+   * @throws {Error} If the configuration is invalid
+   * @public
+   */
+  updateConfig(config: AIConfig): void {
+    try {
+      if (this.provider) {
+        this.provider.updateConfig(config);
+      } else {
+        this.provider = createEnhancedAIProvider(config);
+      }
+      this.useMockMode = false;
+      logger.info('AI provider configuration updated');
+    } catch (error) {
+      logger.error('Failed to update AI provider:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Optimizes a CV based on a job description using AI
+   * 
+   * @param {CVData} cvData - The CV data to optimize
+   * @param {string} jobDescription - The target job description
+   * @param {AIRequestOptions} [options] - Optional request options
+   * @returns {Promise<{optimizedCV: CVData, optimizations: ATSOptimization[]}>} Optimized CV and list of optimizations
+   * @throws {Error} If optimization fails
+   * @public
+   * @async
+   */
+  async optimizeCV(
+    cvData: CVData,
+    jobDescription: string,
+    options?: AIRequestOptions
+  ): Promise<{ optimizedCV: CVData; optimizations: ATSOptimization[] }> {
+    logger.info('Starting CV optimization');
+    
+    // If we have a real provider configured, use it
+    if (!this.useMockMode && this.provider) {
+      try {
+        return await this.provider.optimizeCV(cvData, jobDescription, options);
+      } catch (error) {
+        logger.error('AI provider error, falling back to mock:', error);
+        // Fall through to mock mode
+      }
+    }
+
+    // Mock optimizations for demonstration or fallback
     const mockOptimizations: ATSOptimization[] = [
       {
         id: '1',
         category: 'Keywords',
         change: 'Add relevant technical keywords from job description',
         originalText: cvData.personalInfo.summary,
-        optimizedText: cvData.personalInfo.summary + ' with experience in React, TypeScript, and modern web development.',
+        optimizedText:
+          cvData.personalInfo.summary +
+          ' with experience in React, TypeScript, and modern web development.',
         applied: false,
-        section: 'summary'
+        section: 'summary',
       },
       {
         id: '2',
@@ -27,7 +150,7 @@ export class AIService {
         originalText: 'Responsible for developing applications',
         optimizedText: 'Developed and deployed scalable web applications',
         applied: false,
-        section: 'experience'
+        section: 'experience',
       },
       {
         id: '3',
@@ -36,39 +159,100 @@ export class AIService {
         originalText: 'Improved system performance',
         optimizedText: 'Improved system performance by 40% through code optimization',
         applied: false,
-        section: 'experience'
-      }
+        section: 'experience',
+      },
     ];
 
-    try {
-      return {
-        optimizedCV: cvData,
-        optimizations: mockOptimizations
-      };
-    } catch (error) {
-      console.error('Error optimizing CV:', error);
-      throw error;
-    }
+    return {
+      optimizedCV: cvData,
+      optimizations: mockOptimizations,
+    };
   }
 
-  async generateCoverLetter(cvData: CVData, jobDescription: string, extraPrompt?: string): Promise<string> {
-    // In a real implementation, this would call OpenAI API
-    // This enhanced mock simulates intelligent data extraction and matching
+  /**
+   * Generates a cover letter based on CV data and job description
+   * 
+   * @param {CVData} cvData - The CV data to use
+   * @param {string} jobDescription - The target job description
+   * @param {string} [extraPrompt] - Optional additional instructions
+   * @param {AIRequestOptions} [options] - Optional request options
+   * @returns {Promise<string>} Generated cover letter text
+   * @throws {Error} If generation fails or validation fails
+   * @public
+   * @async
+   */
+  async generateCoverLetter(
+    cvData: CVData,
+    jobDescription: string,
+    extraPrompt?: string,
+    options?: AIRequestOptions
+  ): Promise<string> {
+    logger.info('Starting cover letter generation');
+    
+    // Validate inputs
+    this.validateCoverLetterInputs(cvData, jobDescription);
 
+    // If we have a real provider configured, use it
+    if (!this.useMockMode && this.provider) {
+      try {
+        return await this.provider.generateCoverLetter(cvData, jobDescription, extraPrompt, options);
+      } catch (error: any) {
+        logger.error('AI provider error:', error);
+        // Don't fall back to mock mode - let user know what went wrong
+        throw error;
+      }
+    }
+
+    // Mock/fallback implementation (when no API key is configured)
+    logger.warn('Running in mock mode - no API key configured');
     try {
       // Extract job information from description
       const jobInfo = this.extractJobInfo(jobDescription);
-      
+
       // Analyze and match profile to job requirements
       const matchedData = this.matchProfileToJob(cvData, jobDescription, jobInfo);
-      
+
       // Generate comprehensive cover letter
-      const coverLetter = this.generateEnhancedCoverLetter(cvData, jobInfo, matchedData, extraPrompt);
-      
+      const coverLetter = this.generateEnhancedCoverLetter(
+        cvData,
+        jobInfo,
+        matchedData,
+        extraPrompt
+      );
+
       return coverLetter;
     } catch (error) {
-      console.error('Error generating cover letter:', error);
-      throw error;
+      logger.error('Error generating cover letter:', error);
+      throw new Error(
+        'Failed to generate cover letter. Please check your CV data and job description.'
+      );
+    }
+  }
+
+  /**
+   * Validate inputs for cover letter generation
+   */
+  private validateCoverLetterInputs(cvData: CVData, jobDescription: string): void {
+    if (!jobDescription || jobDescription.trim().length < 50) {
+      throw new Error(
+        'Job description is too short. Please provide a detailed job description (at least 50 characters).'
+      );
+    }
+
+    if (!cvData.personalInfo.firstName || !cvData.personalInfo.lastName) {
+      throw new Error('Please fill in your name in the Personal Information section.');
+    }
+
+    if (!cvData.personalInfo.email) {
+      throw new Error('Please fill in your email in the Personal Information section.');
+    }
+
+    if (cvData.skills.length === 0) {
+      throw new Error('Please add at least one skill to your CV.');
+    }
+
+    if (cvData.experience.length === 0) {
+      logger.warn('No experience entries found - cover letter may be less effective');
     }
   }
 
@@ -84,9 +268,9 @@ export class AIService {
     const companyPatterns = [
       /(?:at|@|for)\s+([A-Z][A-Za-z0-9\s&,.']+?)(?:\s+is|\s+we|\s+are|,|\.|$)/,
       /([A-Z][A-Za-z0-9\s&,.']+?)\s+is\s+(?:hiring|looking|seeking)/,
-      /(?:About|Join)\s+([A-Z][A-Za-z0-9\s&,.']+)/
+      /(?:About|Join)\s+([A-Z][A-Za-z0-9\s&,.']+)/,
     ];
-    
+
     for (const pattern of companyPatterns) {
       const match = jobDescription.match(pattern);
       if (match && match[1] && match[1].trim().length < 50) {
@@ -100,9 +284,9 @@ export class AIService {
     const positionPatterns = [
       /(?:Position|Role|Title):\s*([^\n]+)/i,
       /(?:hiring|seeking|looking for)\s+(?:a|an)\s+([A-Z][A-Za-z\s]+?)(?:\s+to|\s+who|$)/,
-      /([A-Z][A-Za-z\s]+?)\s+(?:Position|Role|Opportunity)/
+      /([A-Z][A-Za-z\s]+?)\s+(?:Position|Role|Opportunity)/,
     ];
-    
+
     for (const pattern of positionPatterns) {
       const match = jobDescription.match(pattern);
       if (match && match[1] && match[1].trim().length < 50) {
@@ -113,20 +297,56 @@ export class AIService {
 
     // Extract skills (look for technical terms and tools)
     const skillKeywords = [
-      'JavaScript', 'TypeScript', 'Python', 'Java', 'C++', 'React', 'Angular', 'Vue',
-      'Node.js', 'Express', 'Django', 'Flask', 'Spring', 'AWS', 'Azure', 'GCP',
-      'Docker', 'Kubernetes', 'CI/CD', 'Git', 'SQL', 'NoSQL', 'MongoDB', 'PostgreSQL',
-      'REST', 'GraphQL', 'Microservices', 'Agile', 'Scrum', 'TDD', 'Machine Learning',
-      'Data Science', 'AI', 'DevOps', 'Cloud', 'API', 'Frontend', 'Backend', 'Full Stack'
+      'JavaScript',
+      'TypeScript',
+      'Python',
+      'Java',
+      'C++',
+      'React',
+      'Angular',
+      'Vue',
+      'Node.js',
+      'Express',
+      'Django',
+      'Flask',
+      'Spring',
+      'AWS',
+      'Azure',
+      'GCP',
+      'Docker',
+      'Kubernetes',
+      'CI/CD',
+      'Git',
+      'SQL',
+      'NoSQL',
+      'MongoDB',
+      'PostgreSQL',
+      'REST',
+      'GraphQL',
+      'Microservices',
+      'Agile',
+      'Scrum',
+      'TDD',
+      'Machine Learning',
+      'Data Science',
+      'AI',
+      'DevOps',
+      'Cloud',
+      'API',
+      'Frontend',
+      'Backend',
+      'Full Stack',
     ];
-    
+
     const requiredSkills: string[] = [];
     const preferredSkills: string[] = [];
-    
-    const requiredSection = jobDescription.match(/(?:required|must have|essential).*?(?:preferred|nice to have|bonus|$)/is);
+
+    const requiredSection = jobDescription.match(
+      /(?:required|must have|essential).*?(?:preferred|nice to have|bonus|$)/is
+    );
     const preferredSection = jobDescription.match(/(?:preferred|nice to have|bonus).*?$/is);
-    
-    skillKeywords.forEach(skill => {
+
+    skillKeywords.forEach((skill) => {
       const regex = new RegExp(`\\b${skill}\\b`, 'i');
       if (requiredSection && regex.test(requiredSection[0])) {
         requiredSkills.push(skill);
@@ -139,14 +359,11 @@ export class AIService {
 
     // Extract key responsibilities
     const keyResponsibilities: string[] = [];
-    const responsibilityPatterns = [
-      /[•\-*]\s*([A-Z][^\n•\-*]+)/g,
-      /\d+\.\s*([A-Z][^\n\d]+)/g
-    ];
-    
-    responsibilityPatterns.forEach(pattern => {
+    const responsibilityPatterns = [/[•\-*]\s*([A-Z][^\n•\-*]+)/g, /\d+\.\s*([A-Z][^\n\d]+)/g];
+
+    responsibilityPatterns.forEach((pattern) => {
       const matches = Array.from(jobDescription.matchAll(pattern));
-      matches.slice(0, 3).forEach(match => {
+      matches.slice(0, 3).forEach((match) => {
         if (match[1] && match[1].trim().length > 10 && match[1].trim().length < 200) {
           keyResponsibilities.push(match[1].trim());
         }
@@ -158,11 +375,15 @@ export class AIService {
       positionTitle,
       requiredSkills: [...new Set(requiredSkills)],
       preferredSkills: [...new Set(preferredSkills)],
-      keyResponsibilities
+      keyResponsibilities,
     };
   }
 
-  private matchProfileToJob(cvData: CVData, _jobDescription: string, jobInfo: any): {
+  private matchProfileToJob(
+    cvData: CVData,
+    _jobDescription: string,
+    jobInfo: any
+  ): {
     matchingSkills: string[];
     relevantExperiences: any[];
     relevantProjects: any[];
@@ -171,29 +392,37 @@ export class AIService {
     matchScore: number;
   } {
     // Match skills
-    const allJobSkills = [...jobInfo.requiredSkills, ...jobInfo.preferredSkills].map(s => s.toLowerCase());
-    const matchingSkills = cvData.skills.filter(skill => 
-      allJobSkills.some(jobSkill => 
-        skill.toLowerCase().includes(jobSkill) || jobSkill.includes(skill.toLowerCase())
+    const allJobSkills = [...jobInfo.requiredSkills, ...jobInfo.preferredSkills].map((s) =>
+      s.toLowerCase()
+    );
+    const matchingSkills = cvData.skills.filter((skill) =>
+      allJobSkills.some(
+        (jobSkill) =>
+          skill.toLowerCase().includes(jobSkill) || jobSkill.includes(skill.toLowerCase())
       )
     );
 
     // Score and sort experiences by relevance
     const relevantExperiences = cvData.experience
-      .map(exp => {
+      .map((exp) => {
         let score = 0;
         const expText = `${exp.title} ${exp.description} ${exp.skills.join(' ')}`.toLowerCase();
-        
+
         // Score based on skill matches
-        allJobSkills.forEach(skill => {
+        allJobSkills.forEach((skill) => {
           if (expText.includes(skill)) score += 3;
         });
-        
+
         // Score based on title similarity
-        if (jobInfo.positionTitle.toLowerCase().split(' ').some((word: string) => exp.title.toLowerCase().includes(word))) {
+        if (
+          jobInfo.positionTitle
+            .toLowerCase()
+            .split(' ')
+            .some((word: string) => exp.title.toLowerCase().includes(word))
+        ) {
           score += 5;
         }
-        
+
         // Prefer recent experiences
         const yearMatch = exp.startDate.match(/\d{4}/);
         if (yearMatch) {
@@ -201,66 +430,67 @@ export class AIService {
           if (year >= new Date().getFullYear() - 2) score += 2;
           else if (year >= new Date().getFullYear() - 5) score += 1;
         }
-        
+
         return { ...exp, relevanceScore: score };
       })
-      .filter(exp => exp.relevanceScore > 0)
+      .filter((exp) => exp.relevanceScore > 0)
       .sort((a, b) => b.relevanceScore - a.relevanceScore)
       .slice(0, 3);
 
     // Match projects
     const relevantProjects = cvData.projects
-      .map(proj => {
+      .map((proj) => {
         let score = 0;
         const projText = `${proj.name} ${proj.description} ${proj.skills.join(' ')}`.toLowerCase();
-        
-        allJobSkills.forEach(skill => {
+
+        allJobSkills.forEach((skill) => {
           if (projText.includes(skill)) score += 2;
         });
-        
+
         return { ...proj, relevanceScore: score };
       })
-      .filter(proj => proj.relevanceScore > 0)
+      .filter((proj) => proj.relevanceScore > 0)
       .sort((a, b) => b.relevanceScore - a.relevanceScore)
       .slice(0, 2);
 
     // Match education
     const relevantEducation = cvData.education
-      .map(edu => {
+      .map((edu) => {
         let score = 0;
         const eduText = `${edu.degree} ${edu.fieldOfStudy} ${edu.description}`.toLowerCase();
-        
+
         // Check if field of study is relevant
-        allJobSkills.forEach(skill => {
+        allJobSkills.forEach((skill) => {
           if (eduText.includes(skill)) score += 2;
         });
-        
+
         // Prefer recent education
         const yearMatch = edu.endDate.match(/\d{4}/);
         if (yearMatch) {
           const year = parseInt(yearMatch[0]);
           if (year >= new Date().getFullYear() - 5) score += 1;
         }
-        
+
         return { ...edu, relevanceScore: score };
       })
-      .filter(edu => edu.relevanceScore > 0 || cvData.education.length <= 2)
+      .filter((edu) => edu.relevanceScore > 0 || cvData.education.length <= 2)
       .sort((a, b) => b.relevanceScore - a.relevanceScore)
       .slice(0, 1);
 
     // Match certifications
     const relevantCertifications = cvData.certifications
-      .map(cert => {
+      .map((cert) => {
         let score = 0;
-        const certText = `${cert.name} ${cert.issuingOrganization} ${cert.skills.join(' ')}`.toLowerCase();
-        
-        allJobSkills.forEach(skill => {
+        const certText =
+          `${cert.name} ${cert.issuingOrganization} ${cert.skills.join(' ')}`.toLowerCase();
+
+        allJobSkills.forEach((skill) => {
           if (certText.includes(skill)) score += 3;
         });
-        
+
         return { ...cert, relevanceScore: score };
       })
-      .filter(cert => cert.relevanceScore > 0)
+      .filter((cert) => cert.relevanceScore > 0)
       .sort((a, b) => b.relevanceScore - a.relevanceScore)
       .slice(0, 2);
 
@@ -277,7 +507,7 @@ export class AIService {
       relevantProjects,
       relevantEducation,
       relevantCertifications,
-      matchScore
+      matchScore,
     };
   }
 
@@ -288,8 +518,12 @@ export class AIService {
     extraPrompt?: string
   ): string {
     const fullName = `${cvData.personalInfo.firstName} ${cvData.personalInfo.lastName}`.trim();
-    const today = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
-    
+    const today = new Date().toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+    });
+
     // Generate opening paragraph
     const opening = `Dear Hiring Manager,
 
@@ -297,15 +531,16 @@ I am writing to express my strong interest in the ${jobInfo.positionTitle} posit
 
     // Generate experience paragraph(s)
     const experienceParagraphs: string[] = [];
-    
+
     if (matchedData.relevantExperiences.length > 0) {
       const topExp = matchedData.relevantExperiences[0];
-      const achievements = topExp.description
-        .split(/[.!]\s+/)
-        .filter((s: string) => s.length > 20)
-        .slice(0, 2)
-        .join('. ') + '.';
-      
+      const achievements =
+        topExp.description
+          .split(/[.!]\s+/)
+          .filter((s: string) => s.length > 20)
+          .slice(0, 2)
+          .join('. ') + '.';
+
       experienceParagraphs.push(
         `In my recent role as ${topExp.title} at ${topExp.company}, I ${achievements.toLowerCase().startsWith('i ') ? achievements.slice(2) : achievements} This experience has equipped me with ${topExp.skills.slice(0, 3).join(', ')} skills that directly align with the requirements outlined in your job description.`
       );
@@ -325,19 +560,19 @@ I am writing to express my strong interest in the ${jobInfo.positionTitle} posit
     }
 
     // Generate skills paragraph
-    const skillsParagraph = matchedData.matchingSkills.length > 0
-      ? `My technical proficiency includes ${matchedData.matchingSkills.join(', ')}, which I understand are crucial for this role. I am confident that my skill set and hands-on experience make me well-suited to excel in the ${jobInfo.positionTitle} position and contribute meaningfully to ${jobInfo.companyName}'s objectives.`
-      : `My diverse skill set in ${cvData.skills.slice(0, 5).join(', ')} positions me well to contribute effectively to your team's success.`;
+    const skillsParagraph =
+      matchedData.matchingSkills.length > 0
+        ? `My technical proficiency includes ${matchedData.matchingSkills.join(', ')}, which I understand are crucial for this role. I am confident that my skill set and hands-on experience make me well-suited to excel in the ${jobInfo.positionTitle} position and contribute meaningfully to ${jobInfo.companyName}'s objectives.`
+        : `My diverse skill set in ${cvData.skills.slice(0, 5).join(', ')} positions me well to contribute effectively to your team's success.`;
 
     // Generate education paragraph if relevant
-    const educationParagraph = matchedData.relevantEducation.length > 0
-      ? `\n\nMy ${matchedData.relevantEducation[0].degree} in ${matchedData.relevantEducation[0].fieldOfStudy} from ${matchedData.relevantEducation[0].school} has provided me with a strong theoretical foundation that complements my practical experience.`
-      : '';
+    const educationParagraph =
+      matchedData.relevantEducation.length > 0
+        ? `\n\nMy ${matchedData.relevantEducation[0].degree} in ${matchedData.relevantEducation[0].fieldOfStudy} from ${matchedData.relevantEducation[0].school} has provided me with a strong theoretical foundation that complements my practical experience.`
+        : '';
 
     // Add extra prompt if provided
-    const extraParagraph = extraPrompt
-      ? `\n\n${extraPrompt}`
-      : '';
+    const extraParagraph = extraPrompt ? `\n\n${extraPrompt}` : '';
 
     // Generate closing paragraph
     const closing = `\n\nI am particularly drawn to this opportunity at ${jobInfo.companyName} and am eager to bring my expertise to your team. I would welcome the opportunity to discuss how my background, skills, and enthusiasm align with your needs. Thank you for considering my application. I look forward to the possibility of contributing to your organization's continued success.
@@ -358,5 +593,5 @@ ${skillsParagraph}${educationParagraph}${extraParagraph}${closing}`;
   }
 }
 
-// Export singleton instance
-export const aiService = new AIService('mock-api-key');
+// Export singleton instance (will be initialized with proper config from popup)
+export const aiService = new AIService();
