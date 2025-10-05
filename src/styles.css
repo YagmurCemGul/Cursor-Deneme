@@ -839,6 +839,12 @@ body:has(.app-container.dark) {
   transform: translateY(-2px);
 }
 
+.card.selected {
+  border: 2px solid #4f46e5;
+  background: rgba(79, 70, 229, 0.05);
+  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+}
+
 .card-header {
   display: flex;
   justify-content: space-between;
@@ -1290,6 +1296,31 @@ body:has(.app-container.dark) {
 
 .app-container.dark .photo-cropper-header h3 {
   color: #e2e8f0;
+}
+
+.photo-cropper-instructions {
+  background: #f1f5f9;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  padding: 12px 16px;
+  margin-bottom: 16px;
+  text-align: center;
+}
+
+.app-container.dark .photo-cropper-instructions {
+  background: #1e293b;
+  border-color: #334155;
+}
+
+.photo-cropper-instructions p {
+  margin: 0;
+  font-size: 14px;
+  color: #475569;
+  font-weight: 500;
+}
+
+.app-container.dark .photo-cropper-instructions p {
+  color: #94a3b8;
 }
 
 .photo-cropper-content {
@@ -2100,4 +2131,376 @@ body:has(.app-container.dark) {
   white-space: pre-wrap;
   font-family: inherit;
   line-height: inherit;
+}
+
+/* ===================================
+   Google Drive Integration Styles
+   =================================== */
+
+.google-drive-status {
+  margin-bottom: 20px;
+}
+
+.google-drive-status .alert {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.google-drive-info {
+  background: #f8f9fa;
+  padding: 20px;
+  border-radius: 12px;
+  margin-bottom: 20px;
+}
+
+.app-container.dark .google-drive-info {
+  background: #1a2332;
+}
+
+.google-drive-info .subsection-title {
+  margin-top: 0;
+  margin-bottom: 12px;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.google-drive-info .info-text {
+  margin-bottom: 16px;
+  color: #64748b;
+  line-height: 1.6;
+}
+
+.app-container.dark .google-drive-info .info-text {
+  color: #94a3b8;
+}
+
+.feature-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.feature-list li {
+  padding: 8px 0;
+  font-size: 14px;
+  color: #475569;
+}
+
+.app-container.dark .feature-list li {
+  color: #cbd5e1;
+}
+
+.google-drive-files {
+  margin-top: 20px;
+}
+
+.file-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.file-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px;
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  transition: all 0.2s ease;
+}
+
+.file-item:hover {
+  border-color: #8b5cf6;
+  box-shadow: 0 4px 12px rgba(139, 92, 246, 0.1);
+}
+
+.app-container.dark .file-item {
+  background: #1a2332;
+  border-color: #334155;
+}
+
+.app-container.dark .file-item:hover {
+  border-color: #8b5cf6;
+}
+
+.file-icon {
+  font-size: 24px;
+  flex-shrink: 0;
+}
+
+.file-details {
+  flex: 1;
+  min-width: 0;
+}
+
+.file-name {
+  font-weight: 600;
+  margin-bottom: 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.file-meta {
+  font-size: 12px;
+  color: #64748b;
+}
+
+.app-container.dark .file-meta {
+  color: #94a3b8;
+}
+
+.file-actions {
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.google-drive-setup {
+  margin-top: 30px;
+  padding: 20px;
+  background: #fef3c7;
+  border: 1px solid #fbbf24;
+  border-radius: 12px;
+}
+
+.app-container.dark .google-drive-setup {
+  background: #422006;
+  border-color: #d97706;
+}
+
+.google-drive-setup .subsection-title {
+  margin-top: 0;
+  margin-bottom: 12px;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.google-drive-setup .info-text {
+  color: #92400e;
+  line-height: 1.6;
+}
+
+.app-container.dark .google-drive-setup .info-text {
+  color: #fbbf24;
+}
+
+.google-drive-setup .info-text p {
+  margin: 8px 0;
+}
+
+.btn-link {
+  display: inline-flex;
+  align-items: center;
+  padding: 8px 16px;
+  background: #3b82f6;
+  color: white;
+  text-decoration: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  transition: background-color 0.2s;
+  margin-top: 12px;
+}
+
+.btn-link:hover {
+  background: #2563eb;
+}
+
+/* Google export dropdown */
+.google-export-dropdown {
+  animation: slideDown 0.2s ease;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.google-export-dropdown .btn {
+  text-align: left;
+  white-space: nowrap;
+}
+
+/* Alert message improvements */
+.alert {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 16px;
+  border-radius: 8px;
+  margin-bottom: 16px;
+  font-size: 14px;
+}
+
+.alert-success {
+  background: #d1fae5;
+  color: #065f46;
+  border: 1px solid #10b981;
+}
+
+.app-container.dark .alert-success {
+  background: #064e3b;
+  color: #6ee7b7;
+  border-color: #10b981;
+}
+
+.alert-info {
+  background: #dbeafe;
+  color: #1e40af;
+  border: 1px solid #3b82f6;
+}
+
+.app-container.dark .alert-info {
+  background: #1e3a8a;
+  color: #93c5fd;
+  border-color: #3b82f6;
+}
+
+.alert-error {
+  background: #fee2e2;
+  color: #991b1b;
+  border: 1px solid #ef4444;
+}
+
+.app-container.dark .alert-error {
+  background: #7f1d1d;
+  color: #fca5a5;
+  border-color: #ef4444;
+}
+
+/* Location Selector Enhancements */
+.location-selector-wrapper {
+  position: relative;
+}
+
+.location-search-input {
+  width: 100%;
+}
+
+.location-flag {
+  user-select: none;
+}
+
+.location-dropdown {
+  animation: fadeIn 0.15s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.location-dropdown-item {
+  font-size: 14px;
+}
+
+.location-dropdown-item:hover {
+  background-color: #f1f5f9;
+}
+
+.location-dropdown-item.highlighted {
+  background-color: #f1f5f9;
+}
+
+.location-dropdown-item:active {
+  background-color: #e2e8f0;
+}
+
+.location-custom-option {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.app-container.dark .location-dropdown {
+  background: #1e293b;
+  border-color: #334155;
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+}
+
+.app-container.dark .location-dropdown-item {
+  color: #e2e8f0;
+}
+
+.app-container.dark .location-dropdown-item:hover,
+.app-container.dark .location-dropdown-item.highlighted {
+  background-color: #334155;
+}
+
+.app-container.dark .location-dropdown-item:active {
+  background-color: #475569;
+}
+
+.app-container.dark .location-custom-option {
+  color: #60a5fa;
+  border-top-color: #334155;
+}
+
+.app-container.dark .location-clear-custom {
+  color: #94a3b8;
+}
+
+.app-container.dark .location-clear-custom:hover {
+  color: #cbd5e1;
+}
+
+/* Smooth scrolling in dropdowns */
+.location-dropdown {
+  scroll-behavior: smooth;
+}
+
+.location-dropdown::-webkit-scrollbar {
+  width: 8px;
+}
+
+.location-dropdown::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 4px;
+}
+
+.location-dropdown::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+}
+
+.location-dropdown::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+.app-container.dark .location-dropdown::-webkit-scrollbar-track {
+  background: #0f172a;
+}
+
+.app-container.dark .location-dropdown::-webkit-scrollbar-thumb {
+  background: #475569;
+}
+
+.app-container.dark .location-dropdown::-webkit-scrollbar-thumb:hover {
+  background: #64748b;
+}
+
+/* Accessibility - Focus states */
+.location-search-input:focus {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+}
+
+.app-container.dark .location-search-input:focus {
+  outline-color: #60a5fa;
 }

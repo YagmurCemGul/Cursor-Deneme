@@ -17,7 +17,7 @@ export const LocationSelector: React.FC<LocationSelectorProps> = ({
   onCountryChange,
   onCityChange,
   language,
-  disabled = false,
+  disabled = false
 }) => {
   const [countrySearch, setCountrySearch] = useState('');
   const [citySearch, setCitySearch] = useState('');
@@ -27,7 +27,7 @@ export const LocationSelector: React.FC<LocationSelectorProps> = ({
   const [isCustomCity, setIsCustomCity] = useState(false);
   const [highlightedCountryIndex, setHighlightedCountryIndex] = useState(-1);
   const [highlightedCityIndex, setHighlightedCityIndex] = useState(-1);
-
+  
   const countryInputRef = useRef<HTMLInputElement>(null);
   const cityInputRef = useRef<HTMLInputElement>(null);
   const countryDropdownRef = useRef<HTMLDivElement>(null);
@@ -38,34 +38,34 @@ export const LocationSelector: React.FC<LocationSelectorProps> = ({
     if (!search) return true;
     const searchLower = search.toLowerCase();
     const textLower = text.toLowerCase();
-
+    
     // Exact substring match
     if (textLower.includes(searchLower)) return true;
-
+    
     // Check if search terms match the beginning of words
     const words = textLower.split(/\s+/);
-    if (words.some((word) => word.startsWith(searchLower))) return true;
-
+    if (words.some(word => word.startsWith(searchLower))) return true;
+    
     // Levenshtein distance for fuzzy matching (max distance 2)
     if (searchLower.length >= 3) {
       return calculateLevenshteinDistance(textLower, searchLower) <= 2;
     }
-
+    
     return false;
   };
 
   const calculateLevenshteinDistance = (str1: string, str2: string): number => {
     const matrix: number[][] = [];
-
+    
     for (let i = 0; i <= str2.length; i++) {
       matrix[i] = [i];
     }
-
+    
     for (let j = 0; j <= str1.length; j++) {
       const row = matrix[0];
       if (row) row[j] = j;
     }
-
+    
     for (let i = 1; i <= str2.length; i++) {
       for (let j = 1; j <= str1.length; j++) {
         const currentRow = matrix[i];
@@ -83,19 +83,23 @@ export const LocationSelector: React.FC<LocationSelectorProps> = ({
         }
       }
     }
-
+    
     const lastRow = matrix[str2.length];
     return lastRow?.[str1.length] ?? 0;
   };
 
   // Filter countries based on search
-  const filteredCountries = countries.filter((c) => fuzzyMatch(c.name, countrySearch));
+  const filteredCountries = countries.filter((c) =>
+    fuzzyMatch(c.name, countrySearch)
+  );
 
   // Get cities for selected country
   const availableCities = country ? citiesByCountry[country] || [] : [];
-
+  
   // Filter cities based on search
-  const filteredCities = availableCities.filter((c) => fuzzyMatch(c, citySearch));
+  const filteredCities = availableCities.filter((c) =>
+    fuzzyMatch(c, citySearch)
+  );
 
   // Check if current city is custom
   useEffect(() => {
@@ -117,7 +121,7 @@ export const LocationSelector: React.FC<LocationSelectorProps> = ({
     setCountrySearch('');
     setShowCountryDropdown(false);
     setHighlightedCountryIndex(-1);
-
+    
     // Check if current city exists in new country
     if (city && newCountry) {
       const citiesInNewCountry = citiesByCountry[newCountry] || [];
@@ -203,7 +207,9 @@ export const LocationSelector: React.FC<LocationSelectorProps> = ({
     switch (e.key) {
       case 'ArrowDown':
         e.preventDefault();
-        setHighlightedCityIndex((prev) => (prev < totalItems - 1 ? prev + 1 : prev));
+        setHighlightedCityIndex((prev) =>
+          prev < totalItems - 1 ? prev + 1 : prev
+        );
         break;
       case 'ArrowUp':
         e.preventDefault();
@@ -305,22 +311,12 @@ export const LocationSelector: React.FC<LocationSelectorProps> = ({
             autoComplete="off"
           />
           {selectedCountry && !showCountryDropdown && (
-            <span
-              className="location-flag"
-              style={{
-                position: 'absolute',
-                right: '12px',
-                top: '50%',
-                transform: 'translateY(-50%)',
-                fontSize: '20px',
-                pointerEvents: 'none',
-              }}
-            >
+            <span className="location-flag" style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', fontSize: '20px', pointerEvents: 'none' }}>
               {selectedCountry.flag}
             </span>
           )}
           {showCountryDropdown && filteredCountries.length > 0 && (
-            <div
+            <div 
               ref={countryDropdownRef}
               className="location-dropdown"
               style={{
@@ -335,7 +331,7 @@ export const LocationSelector: React.FC<LocationSelectorProps> = ({
                 borderRadius: '8px',
                 marginTop: '4px',
                 boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
-                zIndex: 1000,
+                zIndex: 1000
               }}
             >
               {filteredCountries.map((countryInfo, index) => (
@@ -350,7 +346,7 @@ export const LocationSelector: React.FC<LocationSelectorProps> = ({
                     alignItems: 'center',
                     gap: '10px',
                     backgroundColor: highlightedCountryIndex === index ? '#f1f5f9' : 'transparent',
-                    transition: 'background-color 0.15s',
+                    transition: 'background-color 0.15s'
                   }}
                   onMouseEnter={() => setHighlightedCountryIndex(index)}
                 >
@@ -362,7 +358,7 @@ export const LocationSelector: React.FC<LocationSelectorProps> = ({
             </div>
           )}
           {showCountryDropdown && filteredCountries.length === 0 && countrySearch && (
-            <div
+            <div 
               className="location-dropdown"
               style={{
                 position: 'absolute',
@@ -377,7 +373,7 @@ export const LocationSelector: React.FC<LocationSelectorProps> = ({
                 color: '#64748b',
                 textAlign: 'center',
                 boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
-                zIndex: 1000,
+                zIndex: 1000
               }}
             >
               {t(language, 'location.noCountriesFound')}
@@ -385,7 +381,7 @@ export const LocationSelector: React.FC<LocationSelectorProps> = ({
           )}
         </div>
       </div>
-
+      
       <div className="form-group">
         <label className="form-label">{t(language, 'experience.city')}</label>
         <div className="location-selector-wrapper" style={{ position: 'relative' }}>
@@ -393,7 +389,7 @@ export const LocationSelector: React.FC<LocationSelectorProps> = ({
             ref={cityInputRef}
             type="text"
             className="form-input location-search-input"
-            value={isCustomCity ? customCity : city || citySearch}
+            value={isCustomCity ? customCity : (city || citySearch)}
             onChange={(e) => {
               const value = e.target.value;
               if (isCustomCity) {
@@ -418,7 +414,7 @@ export const LocationSelector: React.FC<LocationSelectorProps> = ({
             }}
             onKeyDown={handleCityKeyDown}
             placeholder={
-              !country
+              !country 
                 ? t(language, 'experience.selectCountryFirst')
                 : t(language, 'experience.selectCity')
             }
@@ -444,7 +440,7 @@ export const LocationSelector: React.FC<LocationSelectorProps> = ({
                 color: '#64748b',
                 cursor: 'pointer',
                 fontSize: '18px',
-                padding: '4px',
+                padding: '4px'
               }}
               title={t(language, 'location.clearCustomCity')}
             >
@@ -452,7 +448,7 @@ export const LocationSelector: React.FC<LocationSelectorProps> = ({
             </button>
           )}
           {showCityDropdown && country && (
-            <div
+            <div 
               ref={cityDropdownRef}
               className="location-dropdown"
               style={{
@@ -467,7 +463,7 @@ export const LocationSelector: React.FC<LocationSelectorProps> = ({
                 borderRadius: '8px',
                 marginTop: '4px',
                 boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
-                zIndex: 1000,
+                zIndex: 1000
               }}
             >
               {filteredCities.map((cityName, index) => (
@@ -479,7 +475,7 @@ export const LocationSelector: React.FC<LocationSelectorProps> = ({
                     padding: '10px 12px',
                     cursor: 'pointer',
                     backgroundColor: highlightedCityIndex === index ? '#f1f5f9' : 'transparent',
-                    transition: 'background-color 0.15s',
+                    transition: 'background-color 0.15s'
                   }}
                   onMouseEnter={() => setHighlightedCityIndex(index)}
                 >
@@ -501,12 +497,11 @@ export const LocationSelector: React.FC<LocationSelectorProps> = ({
                 style={{
                   padding: '10px 12px',
                   cursor: 'pointer',
-                  backgroundColor:
-                    highlightedCityIndex === filteredCities.length ? '#f1f5f9' : 'transparent',
+                  backgroundColor: highlightedCityIndex === filteredCities.length ? '#f1f5f9' : 'transparent',
                   borderTop: filteredCities.length > 0 ? '1px solid #e2e8f0' : 'none',
                   color: '#3b82f6',
                   fontWeight: 500,
-                  transition: 'background-color 0.15s',
+                  transition: 'background-color 0.15s'
                 }}
               >
                 ✏️ {t(language, 'location.enterCustomCity')}
