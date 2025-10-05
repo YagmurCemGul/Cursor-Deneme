@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { t, Lang } from '../i18n';
-import { logger } from '../utils/logger';
 import { StorageService } from '../utils/storage';
 import { AIApiKeys } from '../types/storage';
 
@@ -9,7 +8,7 @@ interface AISettingsProps {
   onConfigChange?: () => void;
 }
 
-type AIProvider = 'openai' | 'gemini' | 'claude' | 'azure-openai' | 'ollama';
+type AIProvider = 'openai' | 'gemini' | 'claude';
 
 interface ModelOption {
   value: string;
@@ -21,42 +20,24 @@ const MODEL_OPTIONS: Record<AIProvider, ModelOption[]> = {
     { value: 'gpt-4o', label: 'GPT-4o (Recommended)' },
     { value: 'gpt-4o-mini', label: 'GPT-4o Mini (Fast & Cost-effective)' },
     { value: 'gpt-4-turbo', label: 'GPT-4 Turbo' },
-    { value: 'gpt-3.5-turbo', label: 'GPT-3.5 Turbo (Budget)' },
+    { value: 'gpt-3.5-turbo', label: 'GPT-3.5 Turbo (Budget)' }
   ],
   gemini: [
     { value: 'gemini-pro', label: 'Gemini Pro' },
     { value: 'gemini-1.5-pro', label: 'Gemini 1.5 Pro (Recommended)' },
-    { value: 'gemini-1.5-flash', label: 'Gemini 1.5 Flash (Fast)' },
+    { value: 'gemini-1.5-flash', label: 'Gemini 1.5 Flash (Fast)' }
   ],
   claude: [
     { value: 'claude-3-5-sonnet-20241022', label: 'Claude 3.5 Sonnet (Recommended)' },
     { value: 'claude-3-haiku-20240307', label: 'Claude 3 Haiku (Fast)' },
-    { value: 'claude-3-opus-20240229', label: 'Claude 3 Opus (Powerful)' },
-  ],
-  'azure-openai': [
-    { value: 'gpt-4o', label: 'GPT-4o' },
-    { value: 'gpt-4o-mini', label: 'GPT-4o Mini' },
-    { value: 'gpt-4-turbo', label: 'GPT-4 Turbo' },
-    { value: 'gpt-4', label: 'GPT-4' },
-    { value: 'gpt-35-turbo', label: 'GPT-3.5 Turbo' },
-  ],
-  ollama: [
-    { value: 'llama2', label: 'Llama 2' },
-    { value: 'llama3', label: 'Llama 3' },
-    { value: 'mistral', label: 'Mistral' },
-    { value: 'mixtral', label: 'Mixtral' },
-    { value: 'codellama', label: 'Code Llama' },
-    { value: 'phi', label: 'Phi' },
-    { value: 'gemma', label: 'Gemma' },
-  ],
+    { value: 'claude-3-opus-20240229', label: 'Claude 3 Opus (Powerful)' }
+  ]
 };
 
 const API_KEY_URLS: Record<AIProvider, string> = {
   openai: 'https://platform.openai.com/api-keys',
   gemini: 'https://makersuite.google.com/app/apikey',
-  claude: 'https://console.anthropic.com/settings/keys',
-  'azure-openai': 'https://portal.azure.com',
-  ollama: 'https://ollama.ai/download',
+  claude: 'https://console.anthropic.com/settings/keys'
 };
 
 export const AISettings: React.FC<AISettingsProps> = ({ language, onConfigChange }) => {
@@ -65,15 +46,10 @@ export const AISettings: React.FC<AISettingsProps> = ({ language, onConfigChange
   const [showApiKey, setShowApiKey] = useState<Record<AIProvider, boolean>>({
     openai: false,
     gemini: false,
-    claude: false,
-    'azure-openai': false,
-    ollama: false,
+    claude: false
   });
   const [model, setModel] = useState<string>('');
   const [temperature, setTemperature] = useState<number>(0.3);
-  const [azureEndpoint, setAzureEndpoint] = useState<string>('');
-  const [azureDeployment, setAzureDeployment] = useState<string>('');
-  const [ollamaEndpoint, setOllamaEndpoint] = useState<string>('http://localhost:11434');
   const [isSaving, setIsSaving] = useState(false);
   const [isTesting, setIsTesting] = useState(false);
   const [testResult, setTestResult] = useState<{ success: boolean; message: string } | null>(null);
@@ -89,18 +65,15 @@ export const AISettings: React.FC<AISettingsProps> = ({ language, onConfigChange
         StorageService.getAIProvider(),
         StorageService.getAPIKeys(),
         StorageService.getAIModel(),
-        StorageService.getSettings(),
+        StorageService.getSettings()
       ]);
 
       setProvider(savedProvider);
       setApiKeys(savedApiKeys);
       setModel(savedModel || MODEL_OPTIONS[savedProvider][0]?.value || '');
       setTemperature((settings as any)?.aiTemperature || 0.3);
-      setAzureEndpoint((settings as any)?.azureEndpoint || '');
-      setAzureDeployment((settings as any)?.azureDeployment || '');
-      setOllamaEndpoint((settings as any)?.ollamaEndpoint || 'http://localhost:11434');
     } catch (error) {
-      logger.error('Error loading AI settings:', error);
+      console.error('Error loading AI settings:', error);
     }
   };
 
@@ -113,9 +86,9 @@ export const AISettings: React.FC<AISettingsProps> = ({ language, onConfigChange
   };
 
   const handleApiKeyChange = (provider: AIProvider, value: string) => {
-    setApiKeys((prev) => ({
+    setApiKeys(prev => ({
       ...prev,
-      [provider]: value,
+      [provider]: value
     }));
     setTestResult(null);
   };
@@ -123,30 +96,27 @@ export const AISettings: React.FC<AISettingsProps> = ({ language, onConfigChange
   const handleSave = async () => {
     setIsSaving(true);
     setSaveMessage('');
-
+    
     try {
       // Get current settings first to avoid race conditions
-      const currentSettings = (await StorageService.getSettings()) || {};
-
+      const currentSettings = await StorageService.getSettings() || {};
+      
       // Update all settings in one object to prevent race conditions
       const updatedSettings = {
         ...currentSettings,
         aiProvider: provider,
         aiModel: model,
-        aiTemperature: temperature,
-        azureEndpoint,
-        azureDeployment,
-        ollamaEndpoint,
+        aiTemperature: temperature
       };
-
+      
       // Save everything together
       await Promise.all([
         StorageService.saveAPIKeys(apiKeys),
-        StorageService.saveSettings(updatedSettings),
+        StorageService.saveSettings(updatedSettings)
       ]);
 
       setSaveMessage(t(language, 'settings.saveSuccess'));
-
+      
       // Notify parent component that config has changed
       if (onConfigChange) {
         onConfigChange();
@@ -154,7 +124,7 @@ export const AISettings: React.FC<AISettingsProps> = ({ language, onConfigChange
 
       setTimeout(() => setSaveMessage(''), 3000);
     } catch (error) {
-      logger.error('Error saving settings:', error);
+      console.error('Error saving settings:', error);
       setSaveMessage(t(language, 'settings.saveError'));
     } finally {
       setIsSaving(false);
@@ -163,11 +133,11 @@ export const AISettings: React.FC<AISettingsProps> = ({ language, onConfigChange
 
   const handleTestConnection = async () => {
     const currentApiKey = apiKeys[provider];
-
+    
     if (!currentApiKey) {
       setTestResult({
         success: false,
-        message: t(language, 'settings.apiKeyRequired'),
+        message: t(language, 'settings.apiKeyRequired')
       });
       return;
     }
@@ -178,10 +148,10 @@ export const AISettings: React.FC<AISettingsProps> = ({ language, onConfigChange
     try {
       // Simple test: try to make a minimal API call
       let testSuccessful = false;
-
+      
       if (provider === 'openai') {
         const response = await fetch('https://api.openai.com/v1/models', {
-          headers: { Authorization: `Bearer ${currentApiKey}` },
+          headers: { 'Authorization': `Bearer ${currentApiKey}` }
         });
         testSuccessful = response.ok;
       } else if (provider === 'gemini') {
@@ -195,27 +165,27 @@ export const AISettings: React.FC<AISettingsProps> = ({ language, onConfigChange
           headers: {
             'x-api-key': currentApiKey,
             'anthropic-version': '2023-06-01',
-            'content-type': 'application/json',
+            'content-type': 'application/json'
           },
           body: JSON.stringify({
             model: 'claude-3-haiku-20240307',
             max_tokens: 10,
-            messages: [{ role: 'user', content: 'Hi' }],
-          }),
+            messages: [{ role: 'user', content: 'Hi' }]
+          })
         });
         testSuccessful = response.ok;
       }
 
       setTestResult({
         success: testSuccessful,
-        message: testSuccessful
+        message: testSuccessful 
           ? t(language, 'settings.testSuccess')
-          : t(language, 'settings.testError'),
+          : t(language, 'settings.testError')
       });
     } catch (error) {
       setTestResult({
         success: false,
-        message: t(language, 'settings.testError'),
+        message: t(language, 'settings.testError')
       });
     } finally {
       setIsTesting(false);
@@ -228,24 +198,24 @@ export const AISettings: React.FC<AISettingsProps> = ({ language, onConfigChange
   return (
     <div className="section">
       <h2 className="section-title">⚙️ {t(language, 'settings.aiSection')}</h2>
-
+      
       {/* Provider Selection */}
       <div style={{ marginBottom: '24px' }}>
         <label className="form-label">{t(language, 'settings.aiProvider')}</label>
         <p style={{ fontSize: '14px', color: '#666', marginBottom: '12px' }}>
           {t(language, 'settings.aiProviderDesc')}
         </p>
-
+        
         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
           {/* OpenAI */}
-          <div
+          <div 
             className={`card ${provider === 'openai' ? 'selected' : ''}`}
             onClick={() => handleProviderChange('openai')}
             style={{ cursor: 'pointer', padding: '16px' }}
           >
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-              <input
-                type="radio"
+              <input 
+                type="radio" 
                 checked={provider === 'openai'}
                 onChange={() => handleProviderChange('openai')}
               />
@@ -259,14 +229,14 @@ export const AISettings: React.FC<AISettingsProps> = ({ language, onConfigChange
           </div>
 
           {/* Gemini */}
-          <div
+          <div 
             className={`card ${provider === 'gemini' ? 'selected' : ''}`}
             onClick={() => handleProviderChange('gemini')}
             style={{ cursor: 'pointer', padding: '16px' }}
           >
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-              <input
-                type="radio"
+              <input 
+                type="radio" 
                 checked={provider === 'gemini'}
                 onChange={() => handleProviderChange('gemini')}
               />
@@ -280,14 +250,14 @@ export const AISettings: React.FC<AISettingsProps> = ({ language, onConfigChange
           </div>
 
           {/* Claude */}
-          <div
+          <div 
             className={`card ${provider === 'claude' ? 'selected' : ''}`}
             onClick={() => handleProviderChange('claude')}
             style={{ cursor: 'pointer', padding: '16px' }}
           >
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-              <input
-                type="radio"
+              <input 
+                type="radio" 
                 checked={provider === 'claude'}
                 onChange={() => handleProviderChange('claude')}
               />
@@ -299,113 +269,12 @@ export const AISettings: React.FC<AISettingsProps> = ({ language, onConfigChange
               </div>
             </div>
           </div>
-
-          {/* Azure OpenAI */}
-          <div
-            className={`card ${provider === 'azure-openai' ? 'selected' : ''}`}
-            onClick={() => handleProviderChange('azure-openai')}
-            style={{ cursor: 'pointer', padding: '16px' }}
-          >
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-              <input
-                type="radio"
-                checked={provider === 'azure-openai'}
-                onChange={() => handleProviderChange('azure-openai')}
-              />
-              <div>
-                <div style={{ fontWeight: 'bold', marginBottom: '4px' }}>Azure OpenAI Service</div>
-                <div style={{ fontSize: '13px', color: '#666' }}>
-                  {language === 'tr' 
-                    ? 'Kurumsal Azure OpenAI hizmeti - Gelişmiş güvenlik ve uyumluluk'
-                    : 'Enterprise Azure OpenAI service - Enhanced security and compliance'}
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Ollama */}
-          <div
-            className={`card ${provider === 'ollama' ? 'selected' : ''}`}
-            onClick={() => handleProviderChange('ollama')}
-            style={{ cursor: 'pointer', padding: '16px' }}
-          >
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-              <input
-                type="radio"
-                checked={provider === 'ollama'}
-                onChange={() => handleProviderChange('ollama')}
-              />
-              <div>
-                <div style={{ fontWeight: 'bold', marginBottom: '4px' }}>🏠 Ollama (Local AI)</div>
-                <div style={{ fontSize: '13px', color: '#666' }}>
-                  {language === 'tr'
-                    ? 'Yerel AI modelleri - Gizlilik odaklı, ücretsiz, internet bağlantısı gerektirmez'
-                    : 'Local AI models - Privacy-focused, free, no internet required'}
-                </div>
-              </div>
-            </div>
-          </div>
         </div>
       </div>
 
-      {/* Azure OpenAI Configuration */}
-      {provider === 'azure-openai' && (
-        <div style={{ marginBottom: '24px' }}>
-          <label className="form-label">
-            {language === 'tr' ? 'Azure Endpoint (Uç Nokta)' : 'Azure Endpoint'} *
-          </label>
-          <input
-            type="text"
-            className="form-input"
-            value={azureEndpoint}
-            onChange={(e) => setAzureEndpoint(e.target.value)}
-            placeholder="https://your-resource-name.openai.azure.com"
-            style={{ marginBottom: '12px' }}
-          />
-          <label className="form-label">
-            {language === 'tr' ? 'Deployment Adı' : 'Deployment Name'} *
-          </label>
-          <input
-            type="text"
-            className="form-input"
-            value={azureDeployment}
-            onChange={(e) => setAzureDeployment(e.target.value)}
-            placeholder="gpt-4"
-          />
-        </div>
-      )}
-
-      {/* Ollama Configuration */}
-      {provider === 'ollama' && (
-        <div style={{ marginBottom: '24px' }}>
-          <label className="form-label">
-            {language === 'tr' ? 'Ollama Endpoint' : 'Ollama Endpoint'}
-          </label>
-          <input
-            type="text"
-            className="form-input"
-            value={ollamaEndpoint}
-            onChange={(e) => setOllamaEndpoint(e.target.value)}
-            placeholder="http://localhost:11434"
-          />
-          <p style={{ fontSize: '12px', color: '#666', marginTop: '4px' }}>
-            {language === 'tr'
-              ? 'Ollama\'yı yerel makinenizde çalıştırmanız gerekir. Kurulum için: ollama.ai'
-              : 'You need to run Ollama on your local machine. Install from: ollama.ai'}
-          </p>
-        </div>
-      )}
-
       {/* API Key Input */}
       <div style={{ marginBottom: '24px' }}>
-        <label className="form-label">
-          {t(language, 'settings.apiKey')} {provider !== 'ollama' && '*'}
-          {provider === 'ollama' && (
-            <span style={{ fontSize: '12px', fontWeight: 'normal', color: '#666' }}>
-              {language === 'tr' ? ' (İsteğe bağlı - güvenli örnekler için)' : ' (Optional - for secured instances)'}
-            </span>
-          )}
-        </label>
+        <label className="form-label">{t(language, 'settings.apiKey')} *</label>
         <div style={{ display: 'flex', gap: '8px', marginBottom: '8px' }}>
           <input
             type={showApiKey[provider] ? 'text' : 'password'}
@@ -417,11 +286,9 @@ export const AISettings: React.FC<AISettingsProps> = ({ language, onConfigChange
           />
           <button
             className="btn btn-secondary"
-            onClick={() => setShowApiKey((prev) => ({ ...prev, [provider]: !prev[provider] }))}
+            onClick={() => setShowApiKey(prev => ({ ...prev, [provider]: !prev[provider] }))}
           >
-            {showApiKey[provider]
-              ? t(language, 'settings.hideApiKey')
-              : t(language, 'settings.showApiKey')}
+            {showApiKey[provider] ? t(language, 'settings.hideApiKey') : t(language, 'settings.showApiKey')}
           </button>
         </div>
         <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
@@ -444,7 +311,7 @@ export const AISettings: React.FC<AISettingsProps> = ({ language, onConfigChange
           </button>
         </div>
         {testResult && (
-          <div
+          <div 
             className={`alert ${testResult.success ? 'alert-success' : 'alert-error'}`}
             style={{ marginTop: '8px' }}
           >
@@ -464,8 +331,12 @@ export const AISettings: React.FC<AISettingsProps> = ({ language, onConfigChange
         <p style={{ fontSize: '13px', color: '#666', marginBottom: '8px' }}>
           {t(language, 'settings.aiModelDesc')}
         </p>
-        <select className="form-select" value={model} onChange={(e) => setModel(e.target.value)}>
-          {MODEL_OPTIONS[provider].map((option) => (
+        <select
+          className="form-select"
+          value={model}
+          onChange={(e) => setModel(e.target.value)}
+        >
+          {MODEL_OPTIONS[provider].map(option => (
             <option key={option.value} value={option.value}>
               {option.label}
             </option>
@@ -490,14 +361,7 @@ export const AISettings: React.FC<AISettingsProps> = ({ language, onConfigChange
           onChange={(e) => setTemperature(parseFloat(e.target.value))}
           style={{ width: '100%' }}
         />
-        <div
-          style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            fontSize: '12px',
-            color: '#666',
-          }}
-        >
+        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', color: '#666' }}>
           <span>{language === 'tr' ? 'Odaklı (0.0)' : 'Focused (0.0)'}</span>
           <span>{language === 'tr' ? 'Dengeli (0.5)' : 'Balanced (0.5)'}</span>
           <span>{language === 'tr' ? 'Yaratıcı (1.0)' : 'Creative (1.0)'}</span>
@@ -512,14 +376,12 @@ export const AISettings: React.FC<AISettingsProps> = ({ language, onConfigChange
           disabled={isSaving}
           style={{ flex: 1 }}
         >
-          {isSaving
-            ? '⏳ ' + t(language, 'common.save') + '...'
-            : '💾 ' + t(language, 'common.save')}
+          {isSaving ? '⏳ ' + t(language, 'common.save') + '...' : '💾 ' + t(language, 'common.save')}
         </button>
       </div>
-
+      
       {saveMessage && (
-        <div
+        <div 
           className={`alert ${saveMessage.includes('success') || saveMessage.includes('başarı') ? 'alert-success' : 'alert-error'}`}
           style={{ marginTop: '12px' }}
         >
