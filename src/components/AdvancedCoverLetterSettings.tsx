@@ -22,8 +22,8 @@ export const AdvancedCoverLetterSettings: React.FC<AdvancedCoverLetterSettingsPr
   onOptionsChange,
   onClose,
 }) => {
-  const [localOptions, setLocalOptions] = useState<CoverLetterOptions>(options);
-  const [showCompanyResearch, setShowCompanyResearch] = useState(!!options.companyResearch);
+  const [localOptions, setLocalOptions] = useState<CoverLetterOptions>(options || { language: 'en' });
+  const [showCompanyResearch, setShowCompanyResearch] = useState(!!(options && options.companyResearch));
 
   const handleSave = () => {
     onOptionsChange(localOptions);
@@ -34,7 +34,8 @@ export const AdvancedCoverLetterSettings: React.FC<AdvancedCoverLetterSettingsPr
     setLocalOptions({
       ...localOptions,
       companyResearch: {
-        ...(localOptions.companyResearch || { name: '' }),
+        name: '',
+        ...(localOptions?.companyResearch || {}),
         [field]: value,
       },
     });
@@ -58,7 +59,7 @@ export const AdvancedCoverLetterSettings: React.FC<AdvancedCoverLetterSettingsPr
             </label>
             <select
               className="form-select"
-              value={localOptions.language}
+              value={localOptions?.language || 'en'}
               onChange={(e) =>
                 setLocalOptions({ ...localOptions, language: e.target.value as CoverLetterLanguage })
               }

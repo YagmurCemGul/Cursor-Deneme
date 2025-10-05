@@ -23,7 +23,7 @@ export const BatchPhotoOperations: React.FC<BatchPhotoOperationsProps> = ({
   onClose,
   onExport,
 }) => {
-  const [photos, setPhotos] = useState<BatchPhoto[]>(initialPhotos);
+  const [photos, setPhotos] = useState<BatchPhoto[]>(initialPhotos || []);
   const [filters, setFilters] = useState<PhotoFilters>({
     brightness: 100,
     contrast: 100,
@@ -119,11 +119,11 @@ export const BatchPhotoOperations: React.FC<BatchPhotoOperationsProps> = ({
   };
 
   const handleExport = () => {
-    const selectedPhotos = photos.filter(p => p.selected);
+    const selectedPhotos = (photos || []).filter(p => p.selected);
     onExport(selectedPhotos);
   };
 
-  const selectedCount = photos.filter(p => p.selected).length;
+  const selectedCount = (photos || []).filter(p => p.selected).length;
 
   return (
     <div className="batch-operations-overlay" onClick={onClose}>
@@ -151,7 +151,7 @@ export const BatchPhotoOperations: React.FC<BatchPhotoOperationsProps> = ({
 
         <div className="batch-operations-content">
           <div className="batch-photos-grid">
-            {photos.map((photo) => (
+            {(photos || []).map((photo) => (
               <div
                 key={photo.id}
                 className={`batch-photo-card ${photo.selected ? 'selected' : ''}`}

@@ -58,7 +58,9 @@ export const CoverLetter: React.FC<CoverLetterProps> = ({
   };
 
   const handleLoadPrompt = (prompt: SavedPrompt) => {
-    setExtraPrompt(prompt.content);
+    if (prompt && prompt.content) {
+      setExtraPrompt(prompt.content);
+    }
   };
 
   const handleDeletePrompt = async (id: string) => {
@@ -87,16 +89,16 @@ export const CoverLetter: React.FC<CoverLetterProps> = ({
     }
   };
 
-  const selectedTemplate = defaultCoverLetterTemplates.find(t => t.id === selectedTemplateId)!;
+  const selectedTemplate = defaultCoverLetterTemplates.find(t => t.id === selectedTemplateId) || defaultCoverLetterTemplates[0]!;
 
   const handleGoogleDoc = () => {
     alert(t(language, 'common.googleDocsMsg'));
   };
 
-  const folders = [t(language, 'common.all'), ...new Set(savedPrompts.map(p => p.folder))];
+  const folders = [t(language, 'common.all'), ...new Set((savedPrompts || []).map(p => p.folder))];
   const filteredPrompts = selectedFolder === t(language, 'common.all') 
-    ? savedPrompts 
-    : savedPrompts.filter(p => p.folder === selectedFolder);
+    ? (savedPrompts || []) 
+    : (savedPrompts || []).filter(p => p.folder === selectedFolder);
 
   return (
     <div className="section">
@@ -167,7 +169,7 @@ export const CoverLetter: React.FC<CoverLetterProps> = ({
       )}
       
       {/* Saved Prompts */}
-      {savedPrompts.length > 0 && (
+      {savedPrompts && savedPrompts.length > 0 && (
         <div className="saved-prompts-section">
           <h3 className="card-subtitle">
             {t(language, 'cover.savedPrompts')}
@@ -186,7 +188,7 @@ export const CoverLetter: React.FC<CoverLetterProps> = ({
           </div>
           
           <div className="card-list">
-            {filteredPrompts.map(prompt => (
+            {(filteredPrompts || []).map(prompt => (
               <div key={prompt.id} className="card">
                 <div className="card-header">
                   <div>
@@ -220,7 +222,7 @@ export const CoverLetter: React.FC<CoverLetterProps> = ({
       )}
       
       {/* Template Selector */}
-      {coverLetter && (
+      {coverLetter && defaultCoverLetterTemplates && defaultCoverLetterTemplates.length > 0 && (
         <>
           <div className="template-selector-section">
             <div className="template-selector-header">
@@ -235,9 +237,9 @@ export const CoverLetter: React.FC<CoverLetterProps> = ({
               </button>
             </div>
             
-            {showTemplateSelector && (
+            {showTemplateSelector && defaultCoverLetterTemplates && defaultCoverLetterTemplates.length > 0 && (
               <div className="template-grid">
-                {defaultCoverLetterTemplates.map(template => (
+                {(defaultCoverLetterTemplates || []).map(template => (
                   <div 
                     key={template.id}
                     className={`template-card ${selectedTemplateId === template.id ? 'selected' : ''}`}

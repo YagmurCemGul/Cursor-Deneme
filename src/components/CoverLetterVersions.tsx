@@ -16,14 +16,32 @@ export const CoverLetterVersions: React.FC<CoverLetterVersionsProps> = ({
   onSelectVersion,
   onRecordEdit,
 }) => {
+  // Validate versions array
+  const validVersions = versions && Array.isArray(versions) ? versions : [];
   const [selectedVersionId, setSelectedVersionId] = useState<string | null>(
-    versions[0]?.id || null
+    validVersions[0]?.id || null
   );
   const [isEditing, setIsEditing] = useState(false);
   const [editedContent, setEditedContent] = useState('');
   const [showComparison, setShowComparison] = useState(false);
 
-  const selectedVersion = versions.find((v) => v.id === selectedVersionId);
+  const selectedVersion = validVersions.find((v) => v.id === selectedVersionId);
+
+  // Show empty state if no versions
+  if (!validVersions || validVersions.length === 0) {
+    return (
+      <div className="cover-letter-versions-container">
+        <div className="versions-header">
+          <h3 className="subsection-title">
+            🎯 {t(language, 'advancedCoverLetter.versionsTitle')}
+          </h3>
+        </div>
+        <div style={{ padding: '40px', textAlign: 'center', color: '#6b7280' }}>
+          <p>No cover letter versions available. Generate a cover letter to see versions here.</p>
+        </div>
+      </div>
+    );
+  }
 
   const handleSelectVersion = (version: CoverLetterVersion) => {
     setSelectedVersionId(version.id);
@@ -104,7 +122,7 @@ export const CoverLetterVersions: React.FC<CoverLetterVersionsProps> = ({
 
       {/* Version Cards */}
       <div className="versions-grid">
-        {versions.map((version) => (
+        {validVersions.map((version) => (
           <div
             key={version.id}
             className={`version-card ${selectedVersionId === version.id ? 'selected' : ''}`}
@@ -184,13 +202,13 @@ export const CoverLetterVersions: React.FC<CoverLetterVersionsProps> = ({
       )}
 
       {/* Comparison View */}
-      {showComparison && versions.length > 1 && (
+      {showComparison && validVersions.length > 1 && (
         <div className="comparison-view">
           <h4 className="comparison-title">
             📊 {t(language, 'advancedCoverLetter.comparisonView')}
           </h4>
           <div className="comparison-grid">
-            {versions.map((version) => (
+            {validVersions.map((version) => (
               <div key={version.id} className="comparison-column">
                 <div className="comparison-header">
                   <strong>
