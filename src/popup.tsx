@@ -14,12 +14,39 @@ import { ATSOptimizations } from './components/ATSOptimizations';
 import { CVPreview } from './components/CVPreview';
 import { CoverLetter } from './components/CoverLetter';
 import { ProfileManager } from './components/ProfileManager';
+import { AISettings } from './components/AISettings';
+import { SetupWizard } from './components/SetupWizard';
+import { GoogleDriveSettings } from './components/GoogleDriveSettings';
+import { AutoSyncSettings } from './components/AutoSyncSettings';
+import { BatchExport } from './components/BatchExport';
+import { JobDescriptionLibrary } from './components/JobDescriptionLibrary';
+import { EnhancedJobDescriptionEditor } from './components/EnhancedJobDescriptionEditor';
+import { InterviewQuestionsGenerator } from './components/InterviewQuestionsGenerator';
+import { TalentGapAnalysis } from './components/TalentGapAnalysis';
+import { JobApplicationTracker } from './components/JobApplicationTracker';
+import { AnalyticsDashboard } from './components/AnalyticsDashboard';
+import { EnhancedAnalyticsDashboard } from './components/EnhancedAnalyticsDashboard';
+import { ErrorMonitoringDashboard } from './components/ErrorMonitoringDashboard';
+import { ProviderHealthDashboard } from './components/ProviderHealthDashboard';
+import { EnhancedTemplateManager } from './components/EnhancedTemplateManager';
+import { PhotoComparisonView } from './components/PhotoComparisonView';
+import { BatchPhotoOperations } from './components/BatchPhotoOperations';
+import { CloudPhotoSync } from './components/CloudPhotoSync';
+import { ATSScoreCard } from './components/ATSScoreCard';
+import { AdvancedCoverLetterSettings } from './components/AdvancedCoverLetterSettings';
+import { CoverLetterVersions } from './components/CoverLetterVersions';
+import { InteractiveGuide } from './components/InteractiveGuide';
+import { VideoTutorial } from './components/VideoTutorial';
+import { KeyboardShortcutsHelp } from './components/KeyboardShortcutsHelp';
+import { LinkedInImporter } from './components/LinkedInImporter';
+import { ShareDialog } from './components/ShareDialog';
+import { ErrorBoundary } from './components/ErrorBoundary';
 import { aiService } from './utils/aiService';
 import { StorageService } from './utils/storage';
 import { t } from './i18n';
 import './styles.css';
 
-type TabType = 'cv-info' | 'optimize' | 'cover-letter' | 'profiles';
+type TabType = 'cv-info' | 'optimize' | 'cover-letter' | 'profiles' | 'settings' | 'analytics' | 'tools' | 'help';
 type Theme = 'light' | 'dark' | 'system';
 type Language = 'en' | 'tr';
 
@@ -58,6 +85,9 @@ const App: React.FC = () => {
   const [systemPrefersDark, setSystemPrefersDark] = useState(false);
   const [focusedOptimizationId, setFocusedOptimizationId] = useState<string | null>(null);
   const [selectedTemplateId, setSelectedTemplateId] = useState<string>('classic');
+  const [showSetupWizard, setShowSetupWizard] = useState(false);
+  const [showShareDialog, setShowShareDialog] = useState(false);
+  const [activeSubSection, setActiveSubSection] = useState<string>('');
 
   useEffect(() => {
     loadInitial();
@@ -90,11 +120,25 @@ const App: React.FC = () => {
   const loadInitial = async () => {
     const key = await StorageService.getAPIKey();
     if (key) setApiKey(key);
+    
     // Restore settings
-    const settings = await StorageService.getSettings<{ theme?: Theme; language?: Language; templateId?: string }>();
+    const settings = await StorageService.getSettings<{ 
+      theme?: Theme; 
+      language?: Language; 
+      templateId?: string;
+      hasCompletedSetup?: boolean;
+    }>();
     if (settings?.theme) setTheme(settings.theme);
     if (settings?.language) setLanguage(settings.language);
     if (settings?.templateId) setSelectedTemplateId(settings.templateId);
+    
+    // Show setup wizard if not completed
+    if (!settings?.hasCompletedSetup && !key) {
+      setShowSetupWizard(true);
+      setActiveTab('help');
+      setActiveSubSection('wizard');
+    }
+    
     // Restore draft
     const draft = await StorageService.getDraft<{
       activeTab: TabType;
@@ -245,6 +289,30 @@ const App: React.FC = () => {
         >
           💾 {t(language, 'tabs.profiles')}
         </button>
+        <button 
+          className={`tab ${activeTab === 'settings' ? 'active' : ''}`}
+          onClick={() => setActiveTab('settings')}
+        >
+          ⚙️ {t(language, 'tabs.settings')}
+        </button>
+        <button 
+          className={`tab ${activeTab === 'analytics' ? 'active' : ''}`}
+          onClick={() => setActiveTab('analytics')}
+        >
+          📊 {t(language, 'tabs.analytics')}
+        </button>
+        <button 
+          className={`tab ${activeTab === 'tools' ? 'active' : ''}`}
+          onClick={() => setActiveTab('tools')}
+        >
+          🛠️ {t(language, 'tabs.tools')}
+        </button>
+        <button 
+          className={`tab ${activeTab === 'help' ? 'active' : ''}`}
+          onClick={() => setActiveTab('help')}
+        >
+          ❓ {t(language, 'tabs.help')}
+        </button>
       </div>
       
       <div className="content">
@@ -355,10 +423,243 @@ const App: React.FC = () => {
             onTemplateChange={setSelectedTemplateId}
           />
         )}
+        
+        {activeTab === 'settings' && (
+          <div className="settings-container">
+            <div className="section">
+              <h2>⚙️ {t(language, 'tabs.settings')}</h2>
+              
+              <div className="sub-section-buttons">
+                <button 
+                  className={`sub-section-btn ${activeSubSection === 'ai' ? 'active' : ''}`}
+                  onClick={() => setActiveSubSection(activeSubSection === 'ai' ? '' : 'ai')}
+                >
+                  🤖 {t(language, 'subsection.aiSettings')}
+                </button>
+                <button 
+                  className={`sub-section-btn ${activeSubSection === 'drive' ? 'active' : ''}`}
+                  onClick={() => setActiveSubSection(activeSubSection === 'drive' ? '' : 'drive')}
+                >
+                  💾 {t(language, 'subsection.googleDrive')}
+                </button>
+                <button 
+                  className={`sub-section-btn ${activeSubSection === 'sync' ? 'active' : ''}`}
+                  onClick={() => setActiveSubSection(activeSubSection === 'sync' ? '' : 'sync')}
+                >
+                  🔄 {t(language, 'subsection.autoSync')}
+                </button>
+                <button 
+                  className={`sub-section-btn ${activeSubSection === 'export' ? 'active' : ''}`}
+                  onClick={() => setActiveSubSection(activeSubSection === 'export' ? '' : 'export')}
+                >
+                  📤 {t(language, 'subsection.export')}
+                </button>
+              </div>
+              
+              {activeSubSection === 'ai' && <AISettings language={language} />}
+              {activeSubSection === 'drive' && <GoogleDriveSettings language={language} />}
+              {activeSubSection === 'sync' && <AutoSyncSettings language={language} />}
+              {activeSubSection === 'export' && <BatchExport cvData={cvData} language={language} />}
+            </div>
+          </div>
+        )}
+        
+        {activeTab === 'analytics' && (
+          <div className="analytics-container">
+            <div className="section">
+              <h2>📊 {t(language, 'tabs.analytics')}</h2>
+              
+              <div className="sub-section-buttons">
+                <button 
+                  className={`sub-section-btn ${activeSubSection === 'main' ? 'active' : ''}`}
+                  onClick={() => setActiveSubSection(activeSubSection === 'main' ? '' : 'main')}
+                >
+                  📈 {t(language, 'subsection.analytics')}
+                </button>
+                <button 
+                  className={`sub-section-btn ${activeSubSection === 'enhanced' ? 'active' : ''}`}
+                  onClick={() => setActiveSubSection(activeSubSection === 'enhanced' ? '' : 'enhanced')}
+                >
+                  📊 Enhanced Analytics
+                </button>
+                <button 
+                  className={`sub-section-btn ${activeSubSection === 'errors' ? 'active' : ''}`}
+                  onClick={() => setActiveSubSection(activeSubSection === 'errors' ? '' : 'errors')}
+                >
+                  🐛 {t(language, 'subsection.errorMonitoring')}
+                </button>
+                <button 
+                  className={`sub-section-btn ${activeSubSection === 'health' ? 'active' : ''}`}
+                  onClick={() => setActiveSubSection(activeSubSection === 'health' ? '' : 'health')}
+                >
+                  💚 {t(language, 'subsection.providerHealth')}
+                </button>
+              </div>
+              
+              {activeSubSection === 'main' && <AnalyticsDashboard language={language} />}
+              {activeSubSection === 'enhanced' && <EnhancedAnalyticsDashboard language={language} />}
+              {activeSubSection === 'errors' && <ErrorMonitoringDashboard language={language} />}
+              {activeSubSection === 'health' && <ProviderHealthDashboard language={language} />}
+            </div>
+          </div>
+        )}
+        
+        {activeTab === 'tools' && (
+          <div className="tools-container">
+            <div className="section">
+              <h2>🛠️ {t(language, 'tabs.tools')}</h2>
+              
+              <div className="sub-section-buttons">
+                <button 
+                  className={`sub-section-btn ${activeSubSection === 'jobLibrary' ? 'active' : ''}`}
+                  onClick={() => setActiveSubSection(activeSubSection === 'jobLibrary' ? '' : 'jobLibrary')}
+                >
+                  📚 {t(language, 'subsection.jobLibrary')}
+                </button>
+                <button 
+                  className={`sub-section-btn ${activeSubSection === 'jobEditor' ? 'active' : ''}`}
+                  onClick={() => setActiveSubSection(activeSubSection === 'jobEditor' ? '' : 'jobEditor')}
+                >
+                  ✏️ {t(language, 'subsection.jobEditor')}
+                </button>
+                <button 
+                  className={`sub-section-btn ${activeSubSection === 'interview' ? 'active' : ''}`}
+                  onClick={() => setActiveSubSection(activeSubSection === 'interview' ? '' : 'interview')}
+                >
+                  💬 {t(language, 'subsection.interviewQuestions')}
+                </button>
+                <button 
+                  className={`sub-section-btn ${activeSubSection === 'talentGap' ? 'active' : ''}`}
+                  onClick={() => setActiveSubSection(activeSubSection === 'talentGap' ? '' : 'talentGap')}
+                >
+                  🎯 {t(language, 'subsection.talentGap')}
+                </button>
+                <button 
+                  className={`sub-section-btn ${activeSubSection === 'jobTracker' ? 'active' : ''}`}
+                  onClick={() => setActiveSubSection(activeSubSection === 'jobTracker' ? '' : 'jobTracker')}
+                >
+                  📋 {t(language, 'subsection.jobTracker')}
+                </button>
+                <button 
+                  className={`sub-section-btn ${activeSubSection === 'templates' ? 'active' : ''}`}
+                  onClick={() => setActiveSubSection(activeSubSection === 'templates' ? '' : 'templates')}
+                >
+                  📄 {t(language, 'subsection.templates')}
+                </button>
+                <button 
+                  className={`sub-section-btn ${activeSubSection === 'photoTools' ? 'active' : ''}`}
+                  onClick={() => setActiveSubSection(activeSubSection === 'photoTools' ? '' : 'photoTools')}
+                >
+                  📷 {t(language, 'subsection.photoTools')}
+                </button>
+                <button 
+                  className={`sub-section-btn ${activeSubSection === 'atsScore' ? 'active' : ''}`}
+                  onClick={() => setActiveSubSection(activeSubSection === 'atsScore' ? '' : 'atsScore')}
+                >
+                  🎯 {t(language, 'subsection.atsScore')}
+                </button>
+                <button 
+                  className={`sub-section-btn ${activeSubSection === 'coverSettings' ? 'active' : ''}`}
+                  onClick={() => setActiveSubSection(activeSubSection === 'coverSettings' ? '' : 'coverSettings')}
+                >
+                  ⚙️ {t(language, 'subsection.coverLetterSettings')}
+                </button>
+                <button 
+                  className={`sub-section-btn ${activeSubSection === 'coverVersions' ? 'active' : ''}`}
+                  onClick={() => setActiveSubSection(activeSubSection === 'coverVersions' ? '' : 'coverVersions')}
+                >
+                  📝 {t(language, 'subsection.coverLetterVersions')}
+                </button>
+                <button 
+                  className={`sub-section-btn ${activeSubSection === 'linkedinImport' ? 'active' : ''}`}
+                  onClick={() => setActiveSubSection(activeSubSection === 'linkedinImport' ? '' : 'linkedinImport')}
+                >
+                  💼 {t(language, 'subsection.linkedinImport')}
+                </button>
+                <button 
+                  className={`sub-section-btn ${activeSubSection === 'share' ? 'active' : ''}`}
+                  onClick={() => setActiveSubSection(activeSubSection === 'share' ? '' : 'share')}
+                >
+                  🔗 {t(language, 'subsection.share')}
+                </button>
+              </div>
+              
+              {activeSubSection === 'jobLibrary' && <JobDescriptionLibrary language={language} />}
+              {activeSubSection === 'jobEditor' && <EnhancedJobDescriptionEditor language={language} />}
+              {activeSubSection === 'interview' && <InterviewQuestionsGenerator cvData={cvData} jobDescription={jobDescription} language={language} />}
+              {activeSubSection === 'talentGap' && <TalentGapAnalysis cvData={cvData} jobDescription={jobDescription} language={language} />}
+              {activeSubSection === 'jobTracker' && <JobApplicationTracker language={language} />}
+              {activeSubSection === 'templates' && <EnhancedTemplateManager language={language} />}
+              {activeSubSection === 'photoTools' && (
+                <div>
+                  <PhotoComparisonView language={language} />
+                  <BatchPhotoOperations language={language} />
+                  <CloudPhotoSync language={language} />
+                </div>
+              )}
+              {activeSubSection === 'atsScore' && <ATSScoreCard cvData={cvData} jobDescription={jobDescription} language={language} />}
+              {activeSubSection === 'coverSettings' && <AdvancedCoverLetterSettings language={language} />}
+              {activeSubSection === 'coverVersions' && <CoverLetterVersions language={language} />}
+              {activeSubSection === 'linkedinImport' && <LinkedInImporter onImport={handleCVParsed} language={language} />}
+              {activeSubSection === 'share' && (
+                <div>
+                  <button className="btn btn-primary" onClick={() => setShowShareDialog(true)}>
+                    {t(language, 'subsection.share')}
+                  </button>
+                  {showShareDialog && <ShareDialog onClose={() => setShowShareDialog(false)} language={language} />}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+        
+        {activeTab === 'help' && (
+          <div className="help-container">
+            <div className="section">
+              <h2>❓ {t(language, 'tabs.help')}</h2>
+              
+              <div className="sub-section-buttons">
+                <button 
+                  className={`sub-section-btn ${activeSubSection === 'wizard' ? 'active' : ''}`}
+                  onClick={() => setActiveSubSection(activeSubSection === 'wizard' ? '' : 'wizard')}
+                >
+                  🧙 {t(language, 'subsection.setupWizard')}
+                </button>
+                <button 
+                  className={`sub-section-btn ${activeSubSection === 'guide' ? 'active' : ''}`}
+                  onClick={() => setActiveSubSection(activeSubSection === 'guide' ? '' : 'guide')}
+                >
+                  📖 {t(language, 'subsection.guide')}
+                </button>
+                <button 
+                  className={`sub-section-btn ${activeSubSection === 'video' ? 'active' : ''}`}
+                  onClick={() => setActiveSubSection(activeSubSection === 'video' ? '' : 'video')}
+                >
+                  🎬 {t(language, 'subsection.videoTutorial')}
+                </button>
+                <button 
+                  className={`sub-section-btn ${activeSubSection === 'shortcuts' ? 'active' : ''}`}
+                  onClick={() => setActiveSubSection(activeSubSection === 'shortcuts' ? '' : 'shortcuts')}
+                >
+                  ⌨️ {t(language, 'subsection.shortcuts')}
+                </button>
+              </div>
+              
+              {activeSubSection === 'wizard' && <SetupWizard onComplete={() => setActiveSubSection('')} onCancel={() => setActiveSubSection('')} language={language} />}
+              {activeSubSection === 'guide' && <InteractiveGuide language={language} />}
+              {activeSubSection === 'video' && <VideoTutorial language={language} />}
+              {activeSubSection === 'shortcuts' && <KeyboardShortcutsHelp language={language} />}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
 };
 
 const root = ReactDOM.createRoot(document.getElementById('root')!);
-root.render(<App />);
+root.render(
+  <ErrorBoundary>
+    <App />
+  </ErrorBoundary>
+);
