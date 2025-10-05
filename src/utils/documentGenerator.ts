@@ -1,4 +1,4 @@
-import { Document, Packer, Paragraph, TextRun, HeadingLevel, AlignmentType, ImageRun, Table, TableRow, TableCell, WidthType, VerticalAlign, BorderStyle } from 'docx';
+import { Document, Packer, Paragraph, TextRun, HeadingLevel, AlignmentType } from 'docx';
 import { saveAs } from 'file-saver';
 import jsPDF from 'jspdf';
 import { CVData, ATSOptimization } from '../types';
@@ -6,103 +6,22 @@ import { getTemplateById, getDefaultTemplate } from '../data/cvTemplates';
 import { getCoverLetterTemplateById, getDefaultCoverLetterTemplate } from '../data/coverLetterTemplates';
 
 export class DocumentGenerator {
-  static base64ToBuffer(base64: string): Uint8Array {
-    // Remove data URL prefix if present
-    const base64Data = base64.includes(',') ? base64.split(',')[1] : base64;
-    const binaryString = atob(base64Data);
-    const bytes = new Uint8Array(binaryString.length);
-    for (let i = 0; i < binaryString.length; i++) {
-      bytes[i] = binaryString.charCodeAt(i);
-    }
-    return bytes;
-  }
-
   static async generateDOCX(cvData: CVData, _optimizations: ATSOptimization[], fileName: string, _templateId?: string): Promise<void> {
     // const template = templateId ? getTemplateById(templateId) || getDefaultTemplate() : getDefaultTemplate();
     // const _appliedOptimizations = optimizations.filter(o => o.applied);
     
-    const headerChildren: (Paragraph | Table)[] = [];
-    
-    // If photo exists, create a header table with photo on the right
-    if (cvData.personalInfo.photoDataUrl) {
-      try {
-        const photoBuffer = this.base64ToBuffer(cvData.personalInfo.photoDataUrl);
-        
-        headerChildren.push(
-          new Table({
-            width: { size: 100, type: WidthType.PERCENTAGE },
-            borders: {
-              top: { style: BorderStyle.NONE, size: 0, color: 'FFFFFF' },
-              bottom: { style: BorderStyle.NONE, size: 0, color: 'FFFFFF' },
-              left: { style: BorderStyle.NONE, size: 0, color: 'FFFFFF' },
-              right: { style: BorderStyle.NONE, size: 0, color: 'FFFFFF' },
-              insideHorizontal: { style: BorderStyle.NONE, size: 0, color: 'FFFFFF' },
-              insideVertical: { style: BorderStyle.NONE, size: 0, color: 'FFFFFF' },
-            },
-            rows: [
-              new TableRow({
-                children: [
-                  new TableCell({
-                    width: { size: 70, type: WidthType.PERCENTAGE },
-                    verticalAlign: VerticalAlign.CENTER,
-                    children: [
-                      new Paragraph({
-                        text: `${cvData.personalInfo.firstName} ${cvData.personalInfo.middleName} ${cvData.personalInfo.lastName}`.trim(),
-                        heading: HeadingLevel.HEADING_1,
-                      }),
-                      new Paragraph({
-                        children: [
-                          new TextRun({
-                            text: `${cvData.personalInfo.email} | ${cvData.personalInfo.countryCode}${cvData.personalInfo.phoneNumber}`,
-                          })
-                        ],
-                      }),
-                      new Paragraph({
-                        children: [
-                          new TextRun({
-                            text: cvData.personalInfo.linkedInUsername 
-                              ? `https://www.linkedin.com/in/${cvData.personalInfo.linkedInUsername}` 
-                              : '',
-                          }),
-                          cvData.personalInfo.githubUsername ? new TextRun({
-                            text: ` | https://github.com/${cvData.personalInfo.githubUsername}`,
-                          }) : new TextRun({ text: '' }),
-                        ],
-                      }),
-                    ],
-                  }),
-                  new TableCell({
-                    width: { size: 30, type: WidthType.PERCENTAGE },
-                    verticalAlign: VerticalAlign.CENTER,
-                    children: [
-                      new Paragraph({
-                        alignment: AlignmentType.CENTER,
-                        children: [
-                          new ImageRun({
-                            data: photoBuffer,
-                            transformation: {
-                              width: 100,
-                              height: 100,
-                            },
-                          }),
-                        ],
-                      }),
-                    ],
-                  }),
-                ],
-              }),
-            ],
-          })
-        );
-      } catch (error) {
-        console.error('Error adding photo to DOCX:', error);
-        // Fallback to header without photo
-        headerChildren.push(
+    const doc = new Document({
+      sections: [{
+        properties: {},
+        children: [
+          // Header with name
           new Paragraph({
             text: `${cvData.personalInfo.firstName} ${cvData.personalInfo.middleName} ${cvData.personalInfo.lastName}`.trim(),
             heading: HeadingLevel.HEADING_1,
             alignment: AlignmentType.CENTER,
           }),
+          
+          // Contact Information
           new Paragraph({
             children: [
               new TextRun({
@@ -111,6 +30,7 @@ export class DocumentGenerator {
             ],
             alignment: AlignmentType.CENTER,
           }),
+          
           new Paragraph({
             children: [
               new TextRun({
@@ -123,46 +43,7 @@ export class DocumentGenerator {
               }) : new TextRun({ text: '' }),
             ],
             alignment: AlignmentType.CENTER,
-          })
-        );
-      }
-    } else {
-      // No photo, use centered header
-      headerChildren.push(
-        new Paragraph({
-          text: `${cvData.personalInfo.firstName} ${cvData.personalInfo.middleName} ${cvData.personalInfo.lastName}`.trim(),
-          heading: HeadingLevel.HEADING_1,
-          alignment: AlignmentType.CENTER,
-        }),
-        new Paragraph({
-          children: [
-            new TextRun({
-              text: `${cvData.personalInfo.email} | ${cvData.personalInfo.countryCode}${cvData.personalInfo.phoneNumber}`,
-            })
-          ],
-          alignment: AlignmentType.CENTER,
-        }),
-        new Paragraph({
-          children: [
-            new TextRun({
-              text: cvData.personalInfo.linkedInUsername 
-                ? `https://www.linkedin.com/in/${cvData.personalInfo.linkedInUsername}` 
-                : '',
-            }),
-            cvData.personalInfo.githubUsername ? new TextRun({
-              text: ` | https://github.com/${cvData.personalInfo.githubUsername}`,
-            }) : new TextRun({ text: '' }),
-          ],
-          alignment: AlignmentType.CENTER,
-        })
-      );
-    }
-    
-    const doc = new Document({
-      sections: [{
-        properties: {},
-        children: [
-          ...headerChildren,
+          }),
           
           // Summary
           new Paragraph({ text: '' }),
@@ -249,16 +130,6 @@ export class DocumentGenerator {
     const doc = new jsPDF();
     let yPosition = 20;
     
-    // Add profile photo if available
-    if (cvData.personalInfo.photoDataUrl) {
-      try {
-        const photoSize = 30; // 30mm photo
-        doc.addImage(cvData.personalInfo.photoDataUrl, 'JPEG', 180, 10, photoSize, photoSize);
-      } catch (error) {
-        console.error('Error adding photo to PDF:', error);
-      }
-    }
-    
     // Apply template colors (jsPDF uses RGB values)
     const hexToRgb = (hex: string): [number, number, number] => {
       const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
@@ -274,11 +145,8 @@ export class DocumentGenerator {
     doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
     const fullName = `${cvData.personalInfo.firstName} ${cvData.personalInfo.middleName} ${cvData.personalInfo.lastName}`.trim();
     const headerAlign = template.layout.headerAlign === 'center' ? 'center' : template.layout.headerAlign === 'right' ? 'right' : 'left';
-    // Adjust x position if photo is present
-    const hasPhoto = cvData.personalInfo.photoDataUrl;
-    const xPosition = hasPhoto ? 20 : (headerAlign === 'center' ? 105 : headerAlign === 'right' ? 190 : 20);
-    const textAlign = hasPhoto ? 'left' : headerAlign;
-    doc.text(fullName, xPosition, yPosition, { align: textAlign });
+    const xPosition = headerAlign === 'center' ? 105 : headerAlign === 'right' ? 190 : 20;
+    doc.text(fullName, xPosition, yPosition, { align: headerAlign });
     
     yPosition += 10;
     
@@ -288,25 +156,20 @@ export class DocumentGenerator {
     const textColor = hexToRgb(template.colors.text);
     doc.setTextColor(textColor[0], textColor[1], textColor[2]);
     const contactLine1 = `${cvData.personalInfo.email} | ${cvData.personalInfo.countryCode}${cvData.personalInfo.phoneNumber}`;
-    doc.text(contactLine1, xPosition, yPosition, { align: textAlign });
+    doc.text(contactLine1, xPosition, yPosition, { align: headerAlign });
     
     yPosition += 5;
     
     if (cvData.personalInfo.linkedInUsername) {
       const contactLine2 = `linkedin.com/in/${cvData.personalInfo.linkedInUsername}`;
       if (cvData.personalInfo.githubUsername) {
-        doc.text(`${contactLine2} | github.com/${cvData.personalInfo.githubUsername}`, xPosition, yPosition, { align: textAlign });
+        doc.text(`${contactLine2} | github.com/${cvData.personalInfo.githubUsername}`, xPosition, yPosition, { align: headerAlign });
       } else {
-        doc.text(contactLine2, xPosition, yPosition, { align: textAlign });
+        doc.text(contactLine2, xPosition, yPosition, { align: headerAlign });
       }
       yPosition += 10;
     } else {
       yPosition += 5;
-    }
-    
-    // Add extra space if photo is present to avoid overlap
-    if (hasPhoto && yPosition < 50) {
-      yPosition = 50;
     }
     
     // Apply section spacing from template

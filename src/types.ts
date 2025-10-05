@@ -20,7 +20,6 @@ export interface Experience {
   company: string;
   startDate: string;
   endDate: string;
-  currentlyWorking?: boolean;
   location: string; // backward compatibility string
   country?: string; // ISO country name
   city?: string;
@@ -89,17 +88,9 @@ export interface CVData {
 export interface CustomQuestion {
   id: string;
   question: string;
-  type: 'text' | 'form_group' | 'choice' | 'fieldset' | 'selection' | 'checkbox' | 'file';
+  type: 'text' | 'form_group' | 'choice' | 'fieldset' | 'selection' | 'checkbox';
   options?: string[] | undefined;
   answer: string | string[];
-  required?: boolean;
-  maxLength?: number;
-  fileData?: {
-    name: string;
-    size: number;
-    type: string;
-    dataUrl: string;
-  };
 }
 
 export interface ATSOptimization {
@@ -109,7 +100,6 @@ export interface ATSOptimization {
   originalText: string;
   optimizedText: string;
   applied: boolean;
-  section?: string; // Which CV section this applies to (e.g., 'summary', 'experience', 'skills')
 }
 
 export interface SavedPrompt {
@@ -139,141 +129,4 @@ export interface CoverLetterTemplateSelection {
   id: string;
   name: string;
   selected: boolean;
-}
-
-export interface ProfileVersion {
-  id: string;
-  profileId: string;
-  versionNumber: number;
-  data: CVData;
-  createdAt: string;
-  description?: string;
-  changesSummary?: string;
-}
-
-export interface HistoryState {
-  cvData: CVData;
-  timestamp: number;
-}
-
-export interface OptimizationAnalytics {
-  id: string;
-  timestamp: string;
-  profileId?: string;
-  optimizationsApplied: number;
-  categoriesOptimized: string[];
-  jobDescriptionLength: number;
-  cvSections: string[];
-  aiProvider: 'openai' | 'gemini' | 'claude';
-  changes: Array<{
-    section: string;
-    category: string;
-    applied: boolean;
-  }>;
-}
-
-export interface ProfileFilter {
-  searchQuery: string;
-  dateRange?: {
-    start: string;
-    end: string;
-  };
-  sortBy: 'name' | 'updatedAt' | 'createdAt';
-  sortOrder: 'asc' | 'desc';
-}
-
-export interface SavedJobDescription {
-  id: string;
-  name: string;
-  description: string;
-  category?: string;
-  tags?: string[];
-  createdAt: string;
-  updatedAt: string;
-  usageCount?: number;
-}
-
-export interface TemplateCategory {
-  id: string;
-  name: string;
-  description: string;
-  icon: string;
-  industry?: string[];
-  style?: string[];
-}
-
-export interface TemplateRating {
-  id: string;
-  templateId: string;
-  rating: number; // 1-5 stars
-  review?: string;
-  userId?: string;
-  createdAt: string;
-}
-
-export interface CustomCVTemplate {
-  id: string;
-  name: string;
-  description: string;
-  preview: string;
-  categoryId?: string;
-  colors: {
-    primary: string;
-    secondary: string;
-    text: string;
-    background: string;
-    accent: string;
-  };
-  fonts: {
-    heading: string;
-    body: string;
-  };
-  layout: {
-    headerAlign: 'left' | 'center' | 'right';
-    sectionSpacing: number;
-    columnLayout: 'single' | 'two-column';
-  };
-  features: string[];
-  isCustom: boolean;
-  createdAt: string;
-  updatedAt?: string;
-  averageRating?: number;
-  totalRatings?: number;
-}
-
-export interface CustomCoverLetterTemplate {
-  id: string;
-  name: string;
-  description: string;
-  preview: string;
-  categoryId?: string;
-  style: {
-    fontSize: number;
-    fontFamily: string;
-    lineHeight: number;
-    paragraphSpacing: number;
-    headerFormat: 'left' | 'center' | 'right';
-    includeDate: boolean;
-    includeAddress: boolean;
-    signatureStyle: 'formal' | 'casual' | 'modern';
-  };
-  colors: {
-    primary: string;
-    text: string;
-    accent: string;
-  };
-  tone: 'formal' | 'professional' | 'modern' | 'creative' | 'executive' | 'friendly';
-  features: string[];
-  isCustom: boolean;
-  createdAt: string;
-  updatedAt?: string;
-  averageRating?: number;
-  totalRatings?: number;
-}
-
-export interface AITemplateSuggestion {
-  templateId: string;
-  confidence: number; // 0-1
-  reason: string;
-  matchedKeywords: string[];
 }

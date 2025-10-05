@@ -2039,3 +2039,65 @@ body:has(.app-container.dark) {
   margin: -20px -20px 20px -20px;
   border-radius: 8px 8px 0 0;
 }
+
+/* Cover Letter Template Selector Styles */
+.template-selector-section {
+  margin: 20px 0;
+  padding: 20px;
+  background: #f9fafb;
+  border-radius: 12px;
+  border: 1px solid #e5e7eb;
+}
+
+.app-container.dark .template-selector-section {
+  background: #1e293b;
+  border-color: #374151;
+}
+
+.template-selector-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.template-card-header {
+  display: flex;
+  gap: 15px;
+  align-items: flex-start;
+  margin-bottom: 15px;
+}
+
+.template-preview {
+  font-size: 36px;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.template-info {
+  flex: 1;
+  text-align: left;
+}
+
+.template-selected-badge {
+  text-align: center;
+  padding: 8px 12px;
+  background: #10b981;
+  color: white;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  margin-top: 10px;
+}
+
+.btn-sm {
+  padding: 6px 12px;
+  font-size: 13px;
+}
+
+/* Cover letter preview with template styles */
+.cover-letter-preview {
+  white-space: pre-wrap;
+  font-family: inherit;
+  line-height: inherit;
+}
