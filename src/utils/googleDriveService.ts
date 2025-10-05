@@ -4,7 +4,6 @@
  */
 
 import { CVData, ATSOptimization } from '../types';
-import { logger } from './logger';
 
 export interface GoogleAuthConfig {
   clientId: string;
@@ -25,474 +24,31 @@ export class GoogleDriveService {
   private static tokenExpiry: number = 0;
 
   /**
-   * Validate OAuth2 configuration in manifest.json
-   */
-  private static async validateOAuth2Config(): Promise<{ valid: boolean; error?: string }> {
-    try {
-      // Get the manifest
-      const manifest = chrome.runtime.getManifest();
-      const oauth2 = (manifest as any).oauth2;
-
-      if (!oauth2) {
-        return {
-          valid: false,
-          error: 'OAuth2 configuration is missing from manifest.json',
-        };
-      }
-
-      const clientId = oauth2.client_id;
-
-      if (!clientId) {
-        return {
-          valid: false,
-          error: 'Client ID is not configured in manifest.json',
-        };
-      }
-
-      // Check if it's still the placeholder value
-      if (
-        clientId === 'YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com' ||
-        clientId.includes('YOUR_GOOGLE_CLIENT_ID') ||
-        clientId === 'YOUR_CLIENT_ID'
-      ) {
-        return {
-          valid: false,
-          error: 'SETUP_REQUIRED',
-        };
-      }
-
-      // Validate client ID format
-      if (!clientId.endsWith('.apps.googleusercontent.com')) {
-        return {
-          valid: false,
-          error: 'Invalid Client ID format. Must end with .apps.googleusercontent.com',
-        };
-      }
-
-      return { valid: true };
-    } catch (error) {
-      return {
-        valid: false,
-        error: 'Failed to validate OAuth2 configuration',
-      };
-    }
-  }
-
-  /**
-   * Validate Client ID with Google Cloud Console API
-   * Makes an actual API call to verify the Client ID is valid and properly configured
-   */
-  static async validateClientIdWithAPI(): Promise<{
-    valid: boolean;
-    error?: string;
-    details?: string;
-  }> {
-    try {
-      // First do basic validation
-      const basicValidation = await this.validateOAuth2Config();
-      if (!basicValidation.valid) {
-        return {
-          valid: false,
-          error: basicValidation.error || 'Client ID validation failed',
-          details: 'Basic validation failed. Please check your manifest.json configuration.',
-        };
-      }
-
-      // Try to get an auth token (non-interactive) to test the Client ID
-      return new Promise((resolve) => {
-        chrome.identity.getAuthToken({ interactive: false }, (token) => {
-          if (chrome.runtime.lastError) {
-            const error = chrome.runtime.lastError;
-            const errorMessage = error.message || '';
-
-            // Analyze the error to provide helpful feedback
-            if (errorMessage.includes('bad client id')) {
-              resolve({
-                valid: false,
-                error: 'Invalid Client ID',
-                details:
-                  'The Client ID does not exist in Google Cloud Console or is not properly configured for this Chrome Extension.',
-              });
-            } else if (errorMessage.includes('invalid_client')) {
-              resolve({
-                valid: false,
-                error: 'Invalid OAuth2 Configuration',
-                details:
-                  'The OAuth2 client is not configured correctly. Make sure all required APIs are enabled in Google Cloud Console.',
-              });
-            } else if (errorMessage.includes('OAuth2 not granted or revoked')) {
-              // This is actually a good sign - it means the Client ID is valid
-              resolve({
-                valid: true,
-                details: 'Client ID is valid. Ready for authentication.',
-              });
-            } else {
-              resolve({
-                valid: false,
-                error: 'Validation Error',
-                details: errorMessage || 'Unable to validate Client ID.',
-              });
-            }
-            return;
-          }
-
-          // If we got a token without interaction, the Client ID is definitely valid
-          if (token) {
-            resolve({
-              valid: true,
-              details: 'Client ID is valid and already authenticated.',
-            });
-          } else {
-            resolve({
-              valid: false,
-              error: 'Unknown Error',
-              details: 'Unable to validate Client ID.',
-            });
-          }
-        });
-      });
-    } catch (error: any) {
-      logger.error('Client ID validation error:', error);
-      return {
-        valid: false,
-        error: 'Validation Failed',
-        details: error.message || 'An unexpected error occurred during validation.',
-      };
-    }
-  }
-
-  /**
-   * Get the current Client ID from manifest
-   */
-  static getClientId(): string | null {
-    try {
-      const manifest = chrome.runtime.getManifest();
-      return (manifest as any).oauth2?.client_id || null;
-    } catch (error) {
-      logger.error('Failed to get Client ID:', error);
-      return null;
-    }
-  }
-
-  /**
-   * Enhanced validation with API endpoint testing and scope verification
-   */
-  static async validateEnhanced(): Promise<{
-    valid: boolean;
-    checks: {
-      clientId: { passed: boolean; message: string };
-      apis: { passed: boolean; message: string; details?: string[] };
-      scopes: { passed: boolean; message: string; details?: string[] };
-      quota: { passed: boolean; message: string; details?: string };
-    };
-    overallScore: number;
-    recommendations: string[];
-  }> {
-    const results = {
-      valid: true,
-      checks: {
-        clientId: { passed: false, message: '' },
-        apis: { passed: false, message: '', details: [] as string[] },
-        scopes: { passed: false, message: '', details: [] as string[] },
-        quota: { passed: false, message: '', details: '' },
-      },
-      overallScore: 0,
-      recommendations: [] as string[],
-    };
-
-    try {
-      // 1. Validate Client ID
-      const clientIdValidation = await this.validateClientIdWithAPI();
-      results.checks.clientId.passed = clientIdValidation.valid;
-      results.checks.clientId.message = clientIdValidation.valid
-        ? 'Client ID is valid and properly configured'
-        : clientIdValidation.error || 'Client ID validation failed';
-
-      if (!clientIdValidation.valid) {
-        results.valid = false;
-        results.recommendations.push('Fix Client ID configuration in manifest.json');
-      }
-
-      // 2. Test API Endpoints
-      if (this.accessToken) {
-        const apiTests = await this.testAPIEndpoints();
-        results.checks.apis.passed = apiTests.allPassed;
-        results.checks.apis.message = apiTests.allPassed
-          ? 'All required APIs are accessible'
-          : 'Some APIs are not accessible';
-        results.checks.apis.details = apiTests.results.map(
-          (r) => `${r.api}: ${r.accessible ? '✓' : '✗'} ${r.message}`
-        );
-
-        if (!apiTests.allPassed) {
-          results.valid = false;
-          results.recommendations.push('Enable missing APIs in Google Cloud Console');
-        }
-      } else {
-        results.checks.apis.message = 'Skipped - Not authenticated';
-        results.checks.apis.details = ['Authenticate first to test API access'];
-      }
-
-      // 3. Verify Scopes
-      const scopeValidation = this.verifyScopes();
-      results.checks.scopes.passed = scopeValidation.allPresent;
-      results.checks.scopes.message = scopeValidation.allPresent
-        ? 'All required scopes are configured'
-        : 'Some required scopes are missing';
-      results.checks.scopes.details = scopeValidation.details;
-
-      if (!scopeValidation.allPresent) {
-        results.valid = false;
-        results.recommendations.push('Add missing scopes to manifest.json');
-      }
-
-      // 4. Check Quota (estimate based on usage)
-      const quotaCheck = this.estimateQuotaStatus();
-      results.checks.quota.passed = quotaCheck.healthy;
-      results.checks.quota.message = quotaCheck.message;
-      results.checks.quota.details = quotaCheck.details;
-
-      if (!quotaCheck.healthy) {
-        results.recommendations.push('Monitor API usage to avoid quota limits');
-      }
-
-      // Calculate overall score
-      const passedChecks = Object.values(results.checks).filter((c) => c.passed).length;
-      results.overallScore = Math.round((passedChecks / 4) * 100);
-
-      return results;
-    } catch (error: any) {
-      logger.error('Enhanced validation error:', error);
-      results.valid = false;
-      results.recommendations.push('Check console for detailed error information');
-      return results;
-    }
-  }
-
-  /**
-   * Test API endpoints for accessibility
-   */
-  private static async testAPIEndpoints(): Promise<{
-    allPassed: boolean;
-    results: Array<{ api: string; accessible: boolean; message: string }>;
-  }> {
-    const apis = [
-      { name: 'Drive API', url: 'https://www.googleapis.com/drive/v3/about?fields=user' },
-      { name: 'Docs API', url: 'https://docs.googleapis.com/v1/documents/test' },
-      { name: 'Sheets API', url: 'https://sheets.googleapis.com/v4/spreadsheets/test' },
-      { name: 'Slides API', url: 'https://slides.googleapis.com/v1/presentations/test' },
-    ];
-
-    const results = [];
-    let allPassed = true;
-
-    for (const api of apis) {
-      try {
-        const response = await fetch(api.url, {
-          headers: { Authorization: `Bearer ${this.accessToken}` },
-        });
-
-        // 404 or 403 with proper error means API is accessible but resource doesn't exist (expected)
-        // 403 with "API not enabled" means API is not enabled
-        const accessible =
-          response.status === 404 || (response.status === 403 && !response.statusText.includes('disabled'));
-
-        if (!accessible) {
-          const error = await response.json().catch(() => ({}));
-          results.push({
-            api: api.name,
-            accessible: false,
-            message: (error as any).error?.message || 'API not enabled',
-          });
-          allPassed = false;
-        } else {
-          results.push({
-            api: api.name,
-            accessible: true,
-            message: 'API is enabled and accessible',
-          });
-        }
-      } catch (error: any) {
-        results.push({
-          api: api.name,
-          accessible: false,
-          message: error.message || 'Failed to test API',
-        });
-        allPassed = false;
-      }
-    }
-
-    return { allPassed, results };
-  }
-
-  /**
-   * Verify all required scopes are configured
-   */
-  private static verifyScopes(): {
-    allPresent: boolean;
-    details: string[];
-  } {
-    const requiredScopes = [
-      'https://www.googleapis.com/auth/drive.file',
-      'https://www.googleapis.com/auth/documents',
-      'https://www.googleapis.com/auth/spreadsheets',
-      'https://www.googleapis.com/auth/presentations',
-    ];
-
-    const manifest = chrome.runtime.getManifest();
-    const configuredScopes = (manifest as any).oauth2?.scopes || [];
-
-    const details: string[] = [];
-    let allPresent = true;
-
-    for (const scope of requiredScopes) {
-      const present = configuredScopes.includes(scope);
-      details.push(
-        `${present ? '✓' : '✗'} ${scope.split('/').pop()?.toUpperCase() || scope}`
-      );
-      if (!present) allPresent = false;
-    }
-
-    return { allPresent, details };
-  }
-
-  /**
-   * Estimate quota status (simplified check)
-   */
-  private static estimateQuotaStatus(): {
-    healthy: boolean;
-    message: string;
-    details: string;
-  } {
-    // In a real implementation, this would track actual API usage
-    // For now, we'll return a healthy status with monitoring recommendation
-    return {
-      healthy: true,
-      message: 'Quota status appears healthy',
-      details:
-        'Google Drive API has generous free tier limits. Monitor usage in Google Cloud Console if you have high traffic.',
-    };
-  }
-
-  /**
-   * Get health status for monitoring dashboard
-   */
-  static async getHealthStatus(): Promise<{
-    status: 'healthy' | 'warning' | 'error';
-    lastCheck: string;
-    issues: string[];
-    metrics: {
-      authentication: boolean;
-      apiAccess: boolean;
-      recentErrors: number;
-    };
-  }> {
-    const issues: string[] = [];
-    const metrics = {
-      authentication: false,
-      apiAccess: false,
-      recentErrors: 0,
-    };
-
-    try {
-      // Check authentication
-      metrics.authentication = this.accessToken !== null && Date.now() < this.tokenExpiry;
-      if (!metrics.authentication) {
-        issues.push('Not authenticated or token expired');
-      }
-
-      // Check API access (if authenticated)
-      if (metrics.authentication) {
-        try {
-          const response = await fetch(
-            'https://www.googleapis.com/drive/v3/about?fields=user',
-            {
-              headers: { Authorization: `Bearer ${this.accessToken}` },
-            }
-          );
-          metrics.apiAccess = response.ok;
-          if (!response.ok) {
-            issues.push('API access check failed');
-          }
-        } catch (error) {
-          metrics.apiAccess = false;
-          issues.push('Failed to test API access');
-        }
-      }
-
-      // Determine overall status
-      let status: 'healthy' | 'warning' | 'error' = 'healthy';
-      if (issues.length > 0) {
-        status = issues.length > 2 ? 'error' : 'warning';
-      }
-
-      return {
-        status,
-        lastCheck: new Date().toISOString(),
-        issues,
-        metrics,
-      };
-    } catch (error) {
-      return {
-        status: 'error',
-        lastCheck: new Date().toISOString(),
-        issues: ['Health check failed'],
-        metrics,
-      };
-    }
-  }
-
-  /**
    * Initialize Google API client and authenticate
    */
   static async authenticate(): Promise<boolean> {
     try {
-      // First, validate the OAuth2 configuration
-      const validation = await this.validateOAuth2Config();
-      if (!validation.valid) {
-        const errorMsg =
-          validation.error === 'SETUP_REQUIRED'
-            ? 'Google Drive integration requires setup. Please configure your Google Client ID in manifest.json. See GOOGLE_DRIVE_INTEGRATION.md for instructions.'
-            : validation.error;
-        throw new Error(errorMsg || 'OAuth2 configuration validation failed');
-      }
-
       // Use Chrome Identity API for OAuth2
       return new Promise((resolve, reject) => {
         chrome.identity.getAuthToken({ interactive: true }, (token) => {
           if (chrome.runtime.lastError) {
-            const error = chrome.runtime.lastError;
-            logger.error('Auth error:', error);
-
-            // Provide helpful error messages
-            let errorMessage = error.message || 'Authentication failed';
-
-            if (errorMessage.includes('bad client id')) {
-              errorMessage =
-                'Invalid Client ID. Please verify your Google Client ID in manifest.json matches the one from Google Cloud Console.';
-            } else if (errorMessage.includes('invalid_client')) {
-              errorMessage =
-                'Invalid OAuth2 client configuration. Make sure all required APIs are enabled in Google Cloud Console.';
-            } else if (errorMessage.includes('access_denied')) {
-              errorMessage = 'Access denied. Please grant the required permissions.';
-            }
-
-            reject(new Error(errorMessage));
+            console.error('Auth error:', chrome.runtime.lastError);
+            reject(chrome.runtime.lastError);
             return;
           }
-
+          
           if (token) {
             this.accessToken = token;
             this.tokenExpiry = Date.now() + 3600000; // 1 hour
             resolve(true);
           } else {
-            reject(new Error('No authentication token received from Google'));
+            reject(new Error('No token received'));
           }
         });
       });
-    } catch (error: any) {
-      logger.error('Authentication failed:', error);
-      throw error;
+    } catch (error) {
+      console.error('Authentication failed:', error);
+      return false;
     }
   }
 
@@ -527,17 +83,17 @@ export class GoogleDriveService {
     _templateId?: string
   ): Promise<GoogleDriveFile> {
     await this.ensureAuthenticated();
-
+    
     // Create a new Google Doc
     const createResponse = await fetch('https://docs.googleapis.com/v1/documents', {
       method: 'POST',
       headers: {
-        Authorization: `Bearer ${this.accessToken}`,
+        'Authorization': `Bearer ${this.accessToken}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        title: `${cvData.personalInfo.firstName}_${cvData.personalInfo.lastName}_Resume_${new Date().toISOString().split('T')[0]}`,
-      }),
+        title: `${cvData.personalInfo.firstName}_${cvData.personalInfo.lastName}_Resume_${new Date().toISOString().split('T')[0]}`
+      })
     });
 
     const doc = await createResponse.json();
@@ -550,10 +106,10 @@ export class GoogleDriveService {
     await fetch(`https://docs.googleapis.com/v1/documents/${documentId}:batchUpdate`, {
       method: 'POST',
       headers: {
-        Authorization: `Bearer ${this.accessToken}`,
+        'Authorization': `Bearer ${this.accessToken}`,
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ requests }),
+      body: JSON.stringify({ requests })
     });
 
     return {
@@ -561,7 +117,7 @@ export class GoogleDriveService {
       name: doc.title,
       mimeType: 'application/vnd.google-apps.document',
       webViewLink: `https://docs.google.com/document/d/${documentId}/edit`,
-      createdTime: new Date().toISOString(),
+      createdTime: new Date().toISOString()
     };
   }
 
@@ -577,32 +133,31 @@ export class GoogleDriveService {
       requests.push({
         insertText: {
           location: { index },
-          text: text,
-        },
+          text: text
+        }
       });
-
+      
       if (style) {
         requests.push({
           updateTextStyle: {
             range: {
               startIndex: index,
-              endIndex: index + text.length,
+              endIndex: index + text.length
             },
             textStyle: style,
-            fields: Object.keys(style).join(','),
-          },
+            fields: Object.keys(style).join(',')
+          }
         });
       }
-
+      
       index += text.length;
     };
 
     // Header - Name
-    const fullName =
-      `${cvData.personalInfo.firstName} ${cvData.personalInfo.middleName} ${cvData.personalInfo.lastName}`.trim();
+    const fullName = `${cvData.personalInfo.firstName} ${cvData.personalInfo.middleName} ${cvData.personalInfo.lastName}`.trim();
     insertText(fullName + '\n', {
       bold: true,
-      fontSize: { magnitude: 20, unit: 'PT' },
+      fontSize: { magnitude: 20, unit: 'PT' }
     });
 
     // Contact Information
@@ -626,7 +181,7 @@ export class GoogleDriveService {
     if (cvData.personalInfo.summary) {
       insertText('SUMMARY\n', {
         bold: true,
-        fontSize: { magnitude: 14, unit: 'PT' },
+        fontSize: { magnitude: 14, unit: 'PT' }
       });
       insertText(cvData.personalInfo.summary + '\n\n');
     }
@@ -635,7 +190,7 @@ export class GoogleDriveService {
     if (cvData.skills.length > 0) {
       insertText('SKILLS\n', {
         bold: true,
-        fontSize: { magnitude: 14, unit: 'PT' },
+        fontSize: { magnitude: 14, unit: 'PT' }
       });
       insertText(cvData.skills.join(' • ') + '\n\n');
     }
@@ -644,15 +199,12 @@ export class GoogleDriveService {
     if (cvData.experience.length > 0) {
       insertText('EXPERIENCE\n', {
         bold: true,
-        fontSize: { magnitude: 14, unit: 'PT' },
+        fontSize: { magnitude: 14, unit: 'PT' }
       });
-
-      cvData.experience.forEach((exp) => {
+      
+      cvData.experience.forEach(exp => {
         insertText(`${exp.title} | ${exp.company}\n`, { bold: true });
-        insertText(
-          `${exp.startDate} - ${exp.currentlyWorking ? 'Present' : exp.endDate || 'Present'} | ${exp.location}\n`,
-          { italic: true }
-        );
+        insertText(`${exp.startDate} - ${exp.endDate} | ${exp.location}\n`, { italic: true });
         if (exp.description) {
           insertText(exp.description + '\n');
         }
@@ -664,15 +216,13 @@ export class GoogleDriveService {
     if (cvData.education.length > 0) {
       insertText('EDUCATION\n', {
         bold: true,
-        fontSize: { magnitude: 14, unit: 'PT' },
+        fontSize: { magnitude: 14, unit: 'PT' }
       });
-
-      cvData.education.forEach((edu) => {
+      
+      cvData.education.forEach(edu => {
         insertText(edu.school + '\n', { bold: true });
         insertText(`${edu.degree} in ${edu.fieldOfStudy}\n`);
-        insertText(`${edu.startDate} - ${edu.currentlyStudying ? 'Expected' : edu.endDate}\n`, {
-          italic: true,
-        });
+        insertText(`${edu.startDate} - ${edu.endDate}\n`, { italic: true });
         if (edu.description) {
           insertText(edu.description + '\n');
         }
@@ -684,10 +234,10 @@ export class GoogleDriveService {
     if (cvData.certifications.length > 0) {
       insertText('CERTIFICATIONS\n', {
         bold: true,
-        fontSize: { magnitude: 14, unit: 'PT' },
+        fontSize: { magnitude: 14, unit: 'PT' }
       });
-
-      cvData.certifications.forEach((cert) => {
+      
+      cvData.certifications.forEach(cert => {
         insertText(`${cert.name}\n`, { bold: true });
         insertText(`${cert.issuingOrganization}`);
         if (cert.issueDate) {
@@ -701,10 +251,10 @@ export class GoogleDriveService {
     if (cvData.projects.length > 0) {
       insertText('PROJECTS\n', {
         bold: true,
-        fontSize: { magnitude: 14, unit: 'PT' },
+        fontSize: { magnitude: 14, unit: 'PT' }
       });
-
-      cvData.projects.forEach((proj) => {
+      
+      cvData.projects.forEach(proj => {
         insertText(proj.name + '\n', { bold: true });
         if (proj.associatedWith) {
           insertText(proj.associatedWith + '\n', { italic: true });
@@ -727,151 +277,95 @@ export class GoogleDriveService {
 
     const spreadsheet = {
       properties: {
-        title: `${cvData.personalInfo.firstName}_${cvData.personalInfo.lastName}_CV_Data_${new Date().toISOString().split('T')[0]}`,
+        title: `${cvData.personalInfo.firstName}_${cvData.personalInfo.lastName}_CV_Data_${new Date().toISOString().split('T')[0]}`
       },
       sheets: [
         {
           properties: { title: 'Personal Info' },
-          data: [
-            {
-              rowData: [
-                {
-                  values: [
-                    { userEnteredValue: { stringValue: 'Field' } },
-                    { userEnteredValue: { stringValue: 'Value' } },
-                  ],
-                },
-                {
-                  values: [
-                    { userEnteredValue: { stringValue: 'First Name' } },
-                    { userEnteredValue: { stringValue: cvData.personalInfo.firstName } },
-                  ],
-                },
-                {
-                  values: [
-                    { userEnteredValue: { stringValue: 'Last Name' } },
-                    { userEnteredValue: { stringValue: cvData.personalInfo.lastName } },
-                  ],
-                },
-                {
-                  values: [
-                    { userEnteredValue: { stringValue: 'Email' } },
-                    { userEnteredValue: { stringValue: cvData.personalInfo.email } },
-                  ],
-                },
-                {
-                  values: [
-                    { userEnteredValue: { stringValue: 'Phone' } },
-                    {
-                      userEnteredValue: {
-                        stringValue: `${cvData.personalInfo.countryCode}${cvData.personalInfo.phoneNumber}`,
-                      },
-                    },
-                  ],
-                },
-                {
-                  values: [
-                    { userEnteredValue: { stringValue: 'LinkedIn' } },
-                    { userEnteredValue: { stringValue: cvData.personalInfo.linkedInUsername } },
-                  ],
-                },
-                {
-                  values: [
-                    { userEnteredValue: { stringValue: 'GitHub' } },
-                    { userEnteredValue: { stringValue: cvData.personalInfo.githubUsername } },
-                  ],
-                },
-                {
-                  values: [
-                    { userEnteredValue: { stringValue: 'Summary' } },
-                    { userEnteredValue: { stringValue: cvData.personalInfo.summary } },
-                  ],
-                },
-              ],
-            },
-          ],
+          data: [{
+            rowData: [
+              { values: [{ userEnteredValue: { stringValue: 'Field' }}, { userEnteredValue: { stringValue: 'Value' }}] },
+              { values: [{ userEnteredValue: { stringValue: 'First Name' }}, { userEnteredValue: { stringValue: cvData.personalInfo.firstName }}] },
+              { values: [{ userEnteredValue: { stringValue: 'Last Name' }}, { userEnteredValue: { stringValue: cvData.personalInfo.lastName }}] },
+              { values: [{ userEnteredValue: { stringValue: 'Email' }}, { userEnteredValue: { stringValue: cvData.personalInfo.email }}] },
+              { values: [{ userEnteredValue: { stringValue: 'Phone' }}, { userEnteredValue: { stringValue: `${cvData.personalInfo.countryCode}${cvData.personalInfo.phoneNumber}` }}] },
+              { values: [{ userEnteredValue: { stringValue: 'LinkedIn' }}, { userEnteredValue: { stringValue: cvData.personalInfo.linkedInUsername }}] },
+              { values: [{ userEnteredValue: { stringValue: 'GitHub' }}, { userEnteredValue: { stringValue: cvData.personalInfo.githubUsername }}] },
+              { values: [{ userEnteredValue: { stringValue: 'Summary' }}, { userEnteredValue: { stringValue: cvData.personalInfo.summary }}] }
+            ]
+          }]
         },
         {
           properties: { title: 'Skills' },
-          data: [
-            {
-              rowData: [
-                { values: [{ userEnteredValue: { stringValue: 'Skill' } }] },
-                ...cvData.skills.map((skill) => ({
-                  values: [{ userEnteredValue: { stringValue: skill } }],
-                })),
-              ],
-            },
-          ],
+          data: [{
+            rowData: [
+              { values: [{ userEnteredValue: { stringValue: 'Skill' }}] },
+              ...cvData.skills.map(skill => ({
+                values: [{ userEnteredValue: { stringValue: skill }}]
+              }))
+            ]
+          }]
         },
         {
           properties: { title: 'Experience' },
-          data: [
-            {
-              rowData: [
-                {
-                  values: [
-                    { userEnteredValue: { stringValue: 'Title' } },
-                    { userEnteredValue: { stringValue: 'Company' } },
-                    { userEnteredValue: { stringValue: 'Start Date' } },
-                    { userEnteredValue: { stringValue: 'End Date' } },
-                    { userEnteredValue: { stringValue: 'Location' } },
-                    { userEnteredValue: { stringValue: 'Description' } },
-                  ],
-                },
-                ...cvData.experience.map((exp) => ({
-                  values: [
-                    { userEnteredValue: { stringValue: exp.title } },
-                    { userEnteredValue: { stringValue: exp.company } },
-                    { userEnteredValue: { stringValue: exp.startDate } },
-                    { userEnteredValue: { stringValue: exp.endDate } },
-                    { userEnteredValue: { stringValue: exp.location } },
-                    { userEnteredValue: { stringValue: exp.description } },
-                  ],
-                })),
-              ],
-            },
-          ],
+          data: [{
+            rowData: [
+              { values: [
+                { userEnteredValue: { stringValue: 'Title' }},
+                { userEnteredValue: { stringValue: 'Company' }},
+                { userEnteredValue: { stringValue: 'Start Date' }},
+                { userEnteredValue: { stringValue: 'End Date' }},
+                { userEnteredValue: { stringValue: 'Location' }},
+                { userEnteredValue: { stringValue: 'Description' }}
+              ]},
+              ...cvData.experience.map(exp => ({
+                values: [
+                  { userEnteredValue: { stringValue: exp.title }},
+                  { userEnteredValue: { stringValue: exp.company }},
+                  { userEnteredValue: { stringValue: exp.startDate }},
+                  { userEnteredValue: { stringValue: exp.endDate }},
+                  { userEnteredValue: { stringValue: exp.location }},
+                  { userEnteredValue: { stringValue: exp.description }}
+                ]
+              }))
+            ]
+          }]
         },
         {
           properties: { title: 'Education' },
-          data: [
-            {
-              rowData: [
-                {
-                  values: [
-                    { userEnteredValue: { stringValue: 'School' } },
-                    { userEnteredValue: { stringValue: 'Degree' } },
-                    { userEnteredValue: { stringValue: 'Field of Study' } },
-                    { userEnteredValue: { stringValue: 'Start Date' } },
-                    { userEnteredValue: { stringValue: 'End Date' } },
-                    { userEnteredValue: { stringValue: 'Grade' } },
-                  ],
-                },
-                ...cvData.education.map((edu) => ({
-                  values: [
-                    { userEnteredValue: { stringValue: edu.school } },
-                    { userEnteredValue: { stringValue: edu.degree } },
-                    { userEnteredValue: { stringValue: edu.fieldOfStudy } },
-                    { userEnteredValue: { stringValue: edu.startDate } },
-                    { userEnteredValue: { stringValue: edu.endDate } },
-                    { userEnteredValue: { stringValue: edu.grade } },
-                  ],
-                })),
-              ],
-            },
-          ],
-        },
-      ],
+          data: [{
+            rowData: [
+              { values: [
+                { userEnteredValue: { stringValue: 'School' }},
+                { userEnteredValue: { stringValue: 'Degree' }},
+                { userEnteredValue: { stringValue: 'Field of Study' }},
+                { userEnteredValue: { stringValue: 'Start Date' }},
+                { userEnteredValue: { stringValue: 'End Date' }},
+                { userEnteredValue: { stringValue: 'Grade' }}
+              ]},
+              ...cvData.education.map(edu => ({
+                values: [
+                  { userEnteredValue: { stringValue: edu.school }},
+                  { userEnteredValue: { stringValue: edu.degree }},
+                  { userEnteredValue: { stringValue: edu.fieldOfStudy }},
+                  { userEnteredValue: { stringValue: edu.startDate }},
+                  { userEnteredValue: { stringValue: edu.endDate }},
+                  { userEnteredValue: { stringValue: edu.grade }}
+                ]
+              }))
+            ]
+          }]
+        }
+      ]
     };
 
     const response = await fetch('https://sheets.googleapis.com/v4/spreadsheets', {
       method: 'POST',
       headers: {
-        Authorization: `Bearer ${this.accessToken}`,
+        'Authorization': `Bearer ${this.accessToken}`,
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify(spreadsheet),
+      body: JSON.stringify(spreadsheet)
     });
 
     const result = await response.json();
@@ -881,7 +375,7 @@ export class GoogleDriveService {
       name: spreadsheet.properties.title,
       mimeType: 'application/vnd.google-apps.spreadsheet',
       webViewLink: result.spreadsheetUrl,
-      createdTime: new Date().toISOString(),
+      createdTime: new Date().toISOString()
     };
   }
 
@@ -895,12 +389,12 @@ export class GoogleDriveService {
     const createResponse = await fetch('https://slides.googleapis.com/v1/presentations', {
       method: 'POST',
       headers: {
-        Authorization: `Bearer ${this.accessToken}`,
+        'Authorization': `Bearer ${this.accessToken}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        title: `${cvData.personalInfo.firstName}_${cvData.personalInfo.lastName}_Resume_Presentation_${new Date().toISOString().split('T')[0]}`,
-      }),
+        title: `${cvData.personalInfo.firstName}_${cvData.personalInfo.lastName}_Resume_Presentation_${new Date().toISOString().split('T')[0]}`
+      })
     });
 
     const presentation = await createResponse.json();
@@ -913,10 +407,10 @@ export class GoogleDriveService {
     await fetch(`https://slides.googleapis.com/v1/presentations/${presentationId}:batchUpdate`, {
       method: 'POST',
       headers: {
-        Authorization: `Bearer ${this.accessToken}`,
+        'Authorization': `Bearer ${this.accessToken}`,
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ requests }),
+      body: JSON.stringify({ requests })
     });
 
     return {
@@ -924,7 +418,7 @@ export class GoogleDriveService {
       name: presentation.title,
       mimeType: 'application/vnd.google-apps.presentation',
       webViewLink: `https://docs.google.com/presentation/d/${presentationId}/edit`,
-      createdTime: new Date().toISOString(),
+      createdTime: new Date().toISOString()
     };
   }
 
@@ -933,68 +427,49 @@ export class GoogleDriveService {
    */
   private static buildSlidesContent(cvData: CVData, firstSlideId: string): any[] {
     const requests: any[] = [];
-
+    
     // Update first slide with title
-    const fullName =
-      `${cvData.personalInfo.firstName} ${cvData.personalInfo.middleName} ${cvData.personalInfo.lastName}`.trim();
-
+    const fullName = `${cvData.personalInfo.firstName} ${cvData.personalInfo.middleName} ${cvData.personalInfo.lastName}`.trim();
+    
     requests.push({
       createShape: {
         objectId: 'titleTextBox',
         shapeType: 'TEXT_BOX',
         elementProperties: {
           pageObjectId: firstSlideId,
-          size: {
-            width: { magnitude: 6000000, unit: 'EMU' },
-            height: { magnitude: 1000000, unit: 'EMU' },
-          },
-          transform: {
-            scaleX: 1,
-            scaleY: 1,
-            translateX: 1000000,
-            translateY: 1000000,
-            unit: 'EMU',
-          },
-        },
-      },
+          size: { width: { magnitude: 6000000, unit: 'EMU' }, height: { magnitude: 1000000, unit: 'EMU' }},
+          transform: { scaleX: 1, scaleY: 1, translateX: 1000000, translateY: 1000000, unit: 'EMU' }
+        }
+      }
     });
 
     requests.push({
       insertText: {
         objectId: 'titleTextBox',
-        text: fullName,
-      },
+        text: fullName
+      }
     });
 
     // Add contact info
     const contactText = `${cvData.personalInfo.email} | ${cvData.personalInfo.countryCode}${cvData.personalInfo.phoneNumber}`;
-
+    
     requests.push({
       createShape: {
         objectId: 'contactTextBox',
         shapeType: 'TEXT_BOX',
         elementProperties: {
           pageObjectId: firstSlideId,
-          size: {
-            width: { magnitude: 6000000, unit: 'EMU' },
-            height: { magnitude: 500000, unit: 'EMU' },
-          },
-          transform: {
-            scaleX: 1,
-            scaleY: 1,
-            translateX: 1000000,
-            translateY: 2200000,
-            unit: 'EMU',
-          },
-        },
-      },
+          size: { width: { magnitude: 6000000, unit: 'EMU' }, height: { magnitude: 500000, unit: 'EMU' }},
+          transform: { scaleX: 1, scaleY: 1, translateX: 1000000, translateY: 2200000, unit: 'EMU' }
+        }
+      }
     });
 
     requests.push({
       insertText: {
         objectId: 'contactTextBox',
-        text: contactText,
-      },
+        text: contactText
+      }
     });
 
     // Create slides for each section
@@ -1006,15 +481,15 @@ export class GoogleDriveService {
       requests.push({
         createSlide: {
           objectId: slideId,
-          slideLayoutReference: { predefinedLayout: 'TITLE_AND_BODY' },
-        },
+          slideLayoutReference: { predefinedLayout: 'TITLE_AND_BODY' }
+        }
       });
 
       requests.push({
         insertText: {
           objectId: slideId,
-          text: 'Skills\n\n' + cvData.skills.join(' • '),
-        },
+          text: 'Skills\n\n' + cvData.skills.join(' • ')
+        }
       });
     }
 
@@ -1024,17 +499,17 @@ export class GoogleDriveService {
       requests.push({
         createSlide: {
           objectId: slideId,
-          slideLayoutReference: { predefinedLayout: 'TITLE_AND_BODY' },
-        },
+          slideLayoutReference: { predefinedLayout: 'TITLE_AND_BODY' }
+        }
       });
 
-      const expText = `${exp.title} - ${exp.company}\n\n${exp.startDate} - ${exp.currentlyWorking ? 'Present' : exp.endDate || 'Present'}\n${exp.location}\n\n${exp.description}`;
-
+      const expText = `${exp.title} - ${exp.company}\n\n${exp.startDate} - ${exp.endDate}\n${exp.location}\n\n${exp.description}`;
+      
       requests.push({
         insertText: {
           objectId: slideId,
-          text: expText,
-        },
+          text: expText
+        }
       });
     });
 
@@ -1044,17 +519,17 @@ export class GoogleDriveService {
       requests.push({
         createSlide: {
           objectId: slideId,
-          slideLayoutReference: { predefinedLayout: 'TITLE_AND_BODY' },
-        },
+          slideLayoutReference: { predefinedLayout: 'TITLE_AND_BODY' }
+        }
       });
 
-      const eduText = `${edu.school}\n\n${edu.degree} in ${edu.fieldOfStudy}\n${edu.startDate} - ${edu.currentlyStudying ? 'Expected' : edu.endDate}\n\n${edu.description}`;
-
+      const eduText = `${edu.school}\n\n${edu.degree} in ${edu.fieldOfStudy}\n${edu.startDate} - ${edu.endDate}\n\n${edu.description}`;
+      
       requests.push({
         insertText: {
           objectId: slideId,
-          text: eduText,
-        },
+          text: eduText
+        }
       });
     });
 
@@ -1067,16 +542,14 @@ export class GoogleDriveService {
   static async listFiles(query?: string): Promise<GoogleDriveFile[]> {
     await this.ensureAuthenticated();
 
-    const queryParam =
-      query ||
-      "mimeType='application/vnd.google-apps.document' or mimeType='application/vnd.google-apps.spreadsheet' or mimeType='application/vnd.google-apps.presentation'";
-
+    const queryParam = query || "mimeType='application/vnd.google-apps.document' or mimeType='application/vnd.google-apps.spreadsheet' or mimeType='application/vnd.google-apps.presentation'";
+    
     const response = await fetch(
       `https://www.googleapis.com/drive/v3/files?q=${encodeURIComponent(queryParam)}&fields=files(id,name,mimeType,webViewLink,createdTime)&orderBy=createdTime desc`,
       {
         headers: {
-          Authorization: `Bearer ${this.accessToken}`,
-        },
+          'Authorization': `Bearer ${this.accessToken}`,
+        }
       }
     );
 
@@ -1090,12 +563,15 @@ export class GoogleDriveService {
   static async deleteFile(fileId: string): Promise<boolean> {
     await this.ensureAuthenticated();
 
-    const response = await fetch(`https://www.googleapis.com/drive/v3/files/${fileId}`, {
-      method: 'DELETE',
-      headers: {
-        Authorization: `Bearer ${this.accessToken}`,
-      },
-    });
+    const response = await fetch(
+      `https://www.googleapis.com/drive/v3/files/${fileId}`,
+      {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${this.accessToken}`,
+        }
+      }
+    );
 
     return response.ok;
   }
@@ -1103,11 +579,7 @@ export class GoogleDriveService {
   /**
    * Share a file with specific email
    */
-  static async shareFile(
-    fileId: string,
-    email: string,
-    role: 'reader' | 'writer' = 'reader'
-  ): Promise<boolean> {
+  static async shareFile(fileId: string, email: string, role: 'reader' | 'writer' = 'reader'): Promise<boolean> {
     await this.ensureAuthenticated();
 
     const response = await fetch(
@@ -1115,14 +587,14 @@ export class GoogleDriveService {
       {
         method: 'POST',
         headers: {
-          Authorization: `Bearer ${this.accessToken}`,
+          'Authorization': `Bearer ${this.accessToken}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
           role: role,
           type: 'user',
-          emailAddress: email,
-        }),
+          emailAddress: email
+        })
       }
     );
 
@@ -1132,25 +604,19 @@ export class GoogleDriveService {
   /**
    * Create a folder in Google Drive
    */
-  static async createFolder(name: string, parentId?: string): Promise<GoogleDriveFile> {
+  static async createFolder(name: string): Promise<GoogleDriveFile> {
     await this.ensureAuthenticated();
-
-    const body: any = {
-      name: name,
-      mimeType: 'application/vnd.google-apps.folder',
-    };
-
-    if (parentId) {
-      body.parents = [parentId];
-    }
 
     const response = await fetch('https://www.googleapis.com/drive/v3/files', {
       method: 'POST',
       headers: {
-        Authorization: `Bearer ${this.accessToken}`,
+        'Authorization': `Bearer ${this.accessToken}`,
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify(body),
+      body: JSON.stringify({
+        name: name,
+        mimeType: 'application/vnd.google-apps.folder'
+      })
     });
 
     const result = await response.json();
@@ -1159,179 +625,7 @@ export class GoogleDriveService {
       name: result.name,
       mimeType: result.mimeType,
       webViewLink: result.webViewLink,
-      createdTime: new Date().toISOString(),
+      createdTime: new Date().toISOString()
     };
-  }
-
-  /**
-   * List folders in Google Drive
-   */
-  static async listFolders(parentId?: string): Promise<GoogleDriveFile[]> {
-    await this.ensureAuthenticated();
-
-    let query = "mimeType='application/vnd.google-apps.folder'";
-    if (parentId) {
-      query += ` and '${parentId}' in parents`;
-    }
-
-    const response = await fetch(
-      `https://www.googleapis.com/drive/v3/files?q=${encodeURIComponent(query)}&fields=files(id,name,mimeType,webViewLink,createdTime)&orderBy=name`,
-      {
-        headers: {
-          Authorization: `Bearer ${this.accessToken}`,
-        },
-      }
-    );
-
-    const result = await response.json();
-    return result.files || [];
-  }
-
-  /**
-   * Upload file to specific folder
-   */
-  static async uploadToFolder(
-    fileName: string,
-    content: string,
-    mimeType: string,
-    folderId?: string
-  ): Promise<GoogleDriveFile> {
-    await this.ensureAuthenticated();
-
-    const metadata: any = {
-      name: fileName,
-      mimeType: mimeType,
-    };
-
-    if (folderId) {
-      metadata.parents = [folderId];
-    }
-
-    // Create multipart upload
-    const boundary = '-------314159265358979323846';
-    const delimiter = `\r\n--${boundary}\r\n`;
-    const closeDelimiter = `\r\n--${boundary}--`;
-
-    const multipartRequestBody =
-      delimiter +
-      'Content-Type: application/json\r\n\r\n' +
-      JSON.stringify(metadata) +
-      delimiter +
-      `Content-Type: ${mimeType}\r\n\r\n` +
-      content +
-      closeDelimiter;
-
-    const response = await fetch(
-      'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart',
-      {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${this.accessToken}`,
-          'Content-Type': `multipart/related; boundary=${boundary}`,
-        },
-        body: multipartRequestBody,
-      }
-    );
-
-    const result = await response.json();
-    return {
-      id: result.id,
-      name: result.name,
-      mimeType: result.mimeType,
-      webViewLink: result.webViewLink || `https://drive.google.com/file/d/${result.id}/view`,
-      createdTime: result.createdTime || new Date().toISOString(),
-    };
-  }
-
-  /**
-   * Export CV with folder selection
-   */
-  static async exportToGoogleDocsWithFolder(
-    cvData: CVData,
-    optimizations: ATSOptimization[],
-    folderId?: string
-  ): Promise<GoogleDriveFile> {
-    await this.ensureAuthenticated();
-
-    const metadata: any = {
-      title: `${cvData.personalInfo.firstName}_${cvData.personalInfo.lastName}_Resume_${new Date().toISOString().split('T')[0]}`,
-    };
-
-    if (folderId) {
-      metadata.parents = [folderId];
-    }
-
-    // Create a new Google Doc
-    const createResponse = await fetch('https://docs.googleapis.com/v1/documents', {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${this.accessToken}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(metadata),
-    });
-
-    const doc = await createResponse.json();
-    const documentId = doc.documentId;
-
-    // Build content for the document
-    const requests = this.buildDocumentContent(cvData, optimizations);
-
-    // Update the document with content
-    await fetch(`https://docs.googleapis.com/v1/documents/${documentId}:batchUpdate`, {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${this.accessToken}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ requests }),
-    });
-
-    // If folder specified, move the file
-    if (folderId) {
-      await fetch(
-        `https://www.googleapis.com/drive/v3/files/${documentId}?addParents=${folderId}&fields=id,parents`,
-        {
-          method: 'PATCH',
-          headers: {
-            Authorization: `Bearer ${this.accessToken}`,
-          },
-        }
-      );
-    }
-
-    return {
-      id: documentId,
-      name: doc.title,
-      mimeType: 'application/vnd.google-apps.document',
-      webViewLink: `https://docs.google.com/document/d/${documentId}/edit`,
-      createdTime: new Date().toISOString(),
-    };
-  }
-
-  /**
-   * Bulk export multiple CVs to a folder
-   */
-  static async bulkExportToFolder(
-    cvDataList: Array<{ cvData: CVData; optimizations: ATSOptimization[] }>,
-    folderName: string
-  ): Promise<{ folder: GoogleDriveFile; files: GoogleDriveFile[] }> {
-    await this.ensureAuthenticated();
-
-    // Create folder for bulk export
-    const folder = await this.createFolder(folderName);
-
-    // Export all CVs to the folder
-    const files: GoogleDriveFile[] = [];
-    for (const { cvData, optimizations } of cvDataList) {
-      try {
-        const file = await this.exportToGoogleDocsWithFolder(cvData, optimizations, folder.id);
-        files.push(file);
-      } catch (error) {
-        logger.error(`Failed to export CV for ${cvData.personalInfo.firstName}:`, error);
-      }
-    }
-
-    return { folder, files };
   }
 }
