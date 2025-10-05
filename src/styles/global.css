@@ -29,3 +29,211 @@ input, select, textarea { font: inherit; }
 .section { margin-top: 14px; }
 
 .kbd { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; background: #f3f4f6; border: 1px solid #e5e7eb; border-bottom-width: 2px; border-radius: 6px; padding: 0 4px; }
+
+/* Autofill Interface Styles */
+.autofill-container {
+  width: 100%;
+  max-width: 800px;
+  margin: 0 auto;
+  background: #f5f5f5;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.autofill-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 20px;
+  background: white;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.autofill-logo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.autofill-title {
+  font-size: 20px;
+  font-weight: 600;
+  color: #4FC3F7;
+}
+
+.autofill-controls {
+  display: flex;
+  gap: 8px;
+}
+
+.icon-btn {
+  width: 32px;
+  height: 32px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  border-radius: 6px;
+  font-size: 14px;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.icon-btn:hover {
+  background: #f3f4f6;
+}
+
+.autofill-banner {
+  background: #5B9BD5;
+  color: white;
+  text-align: center;
+  padding: 16px 20px;
+  font-size: 16px;
+  font-weight: 500;
+}
+
+.autofill-table {
+  background: white;
+  margin: 20px;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.autofill-table-header {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  background: #5B9BD5;
+  color: white;
+  font-weight: 600;
+  font-size: 16px;
+}
+
+.autofill-table-cell {
+  padding: 14px 20px;
+}
+
+.autofill-fields-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.autofill-field-row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  padding: 16px 20px;
+  border-bottom: 1px solid #f0f0f0;
+  transition: background 0.2s;
+}
+
+.autofill-field-row:last-child {
+  border-bottom: none;
+}
+
+.autofill-field-row:hover {
+  background: #f8f9fa;
+}
+
+.autofill-field-name {
+  font-size: 15px;
+  font-weight: 500;
+  color: #1f2937;
+}
+
+.autofill-field-status {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.autofill-eye-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.autofill-eye-btn.visible {
+  color: #10b981;
+}
+
+.autofill-eye-btn.hidden {
+  color: #9ca3af;
+}
+
+.autofill-eye-btn:hover {
+  background: #f3f4f6;
+}
+
+.autofill-status-indicator {
+  font-size: 18px;
+}
+
+.autofill-status-indicator.filled {
+  color: #10b981;
+}
+
+.autofill-status-indicator.empty {
+  color: #e5e7eb;
+}
+
+.autofill-footer {
+  padding: 20px;
+  background: white;
+}
+
+.autofill-nav {
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  padding: 12px 0;
+  margin-bottom: 16px;
+  border-top: 1px solid #e5e7eb;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.nav-icon {
+  background: none;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 8px;
+  transition: all 0.2s;
+}
+
+.nav-icon:hover {
+  background: #f3f4f6;
+  transform: scale(1.1);
+}
+
+.autofill-action-btn {
+  width: 100%;
+  padding: 16px 24px;
+  background: #10b981;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.autofill-action-btn:hover {
+  background: #059669;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+}
+
+.autofill-action-btn:active {
+  transform: translateY(0);
+}
