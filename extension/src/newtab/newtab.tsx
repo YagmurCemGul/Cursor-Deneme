@@ -4,6 +4,7 @@ import { getActiveProfile, loadOptimizations, saveJobPost, saveOptimizations, sa
 import { generateAtsResume, generateCoverLetter } from '../lib/ai';
 import { TabButton, TextRow, SectionHeader, Pill, Button } from '../components/ui';
 import { validateEmail, validatePhone, validateURL, validateLinkedIn, validateGitHub, formatPhoneNumber, calculateDateDuration, formatDate, calculateProfileCompletion, getSkillSuggestions, skillSuggestions } from '../lib/validation';
+import { CVPreview } from '../components/CVPreview';
 import '../styles/global.css';
 
 export function NewTab() {
@@ -27,6 +28,8 @@ export function NewTab() {
   const [showSkillSuggestions, setShowSkillSuggestions] = useState(false);
   const [skillSearchQuery, setSkillSearchQuery] = useState('');
   const [isGeneratingSummary, setIsGeneratingSummary] = useState(false);
+  const [showPreview, setShowPreview] = useState(false);
+  const [cvTemplate, setCvTemplate] = useState<'professional' | 'modern' | 'minimal'>('professional');
 
   useEffect(() => {
     (async () => {
@@ -481,7 +484,47 @@ Make it compelling, highlight key strengths, and use action-oriented language.`;
             <TabButton id="settings" active={active} setActive={id => setActive(id as any)}>⚙️ Settings</TabButton>
           </div>
 
-          <div style={{ padding: 32, maxHeight: 'calc(100vh - 300px)', overflowY: 'auto' }}>
+          {/* CV Tab with Split-Screen Preview */}
+          {active === 'cv' ? (
+            <div style={{ display: 'flex', height: 'calc(100vh - 300px)' }}>
+              {/* Left Side - Form */}
+              <div style={{ 
+                flex: showPreview ? '0 0 50%' : '1', 
+                padding: 32, 
+                overflowY: 'auto',
+                borderRight: showPreview ? '1px solid #e5e7eb' : 'none',
+                transition: 'flex 0.3s ease'
+              }}>
+                {/* Preview Toggle Button */}
+                <div style={{ marginBottom: 16, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <Button 
+                    variant={showPreview ? 'primary' : 'secondary'}
+                    onClick={() => setShowPreview(!showPreview)}
+                  >
+                    {showPreview ? '👁️ Hide Preview' : '👁️ Show Live Preview'}
+                  </Button>
+                  {showPreview && (
+                    <div style={{ display: 'flex', gap: 8 }}>
+                      <span style={{ fontSize: 12, color: '#64748b', alignSelf: 'center' }}>Template:</span>
+                      <select 
+                        value={cvTemplate} 
+                        onChange={(e) => setCvTemplate(e.target.value as any)}
+                        style={{ 
+                          padding: '6px 12px',
+                          borderRadius: 6,
+                          border: '1px solid #cbd5e1',
+                          fontSize: 13,
+                          cursor: 'pointer'
+                        }}
+                      >
+                        <option value="professional">Professional</option>
+                        <option value="modern">Modern</option>
+                        <option value="minimal">Minimal</option>
+                      </select>
+                    </div>
+                  )}
+                </div>
+
             {active === 'cv' && (
               <div className="col" style={{ gap: 16 }}>
                 <SectionHeader 
@@ -1114,7 +1157,21 @@ Make it compelling, highlight key strengths, and use action-oriented language.`;
                 </div>
               </div>
             )}
-
+              </div>
+              
+              {/* Right Side - Live CV Preview */}
+              {showPreview && profile && (
+                <div style={{ 
+                  flex: '0 0 50%', 
+                  overflowY: 'auto',
+                  background: '#f8fafc'
+                }}>
+                  <CVPreview profile={profile} template={cvTemplate} />
+                </div>
+              )}
+            </div>
+          ) : (
+            <div style={{ padding: 32, maxHeight: 'calc(100vh - 300px)', overflowY: 'auto' }}>
             {active === 'job' && (
               <div className="col" style={{ gap: 16 }}>
                 <SectionHeader title="Job Description" />
@@ -1326,7 +1383,8 @@ Make it compelling, highlight key strengths, and use action-oriented language.`;
                 </div>
               </div>
             )}
-          </div>
+            </div>
+          )}
         </div>
 
         {/* Footer */}
