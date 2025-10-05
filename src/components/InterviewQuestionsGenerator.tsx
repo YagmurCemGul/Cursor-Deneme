@@ -24,7 +24,18 @@ const InterviewQuestionsGenerator: React.FC<InterviewQuestionsGeneratorProps> = 
   const [numberOfQuestions, setNumberOfQuestions] = useState(15);
   const [selectedCategory, setSelectedCategory] = useState<string>('All');
   const [selectedDifficulty, setSelectedDifficulty] = useState<string>('All');
-  const [categories, setCategories] = useState<string[]>([]);
+  const [categories, setCategories] = useState<string[]>(['All']);
+
+  // Validate props
+  if (!cvData) {
+    return (
+      <div className="interview-questions-generator">
+        <div className="error-message">
+          <p>No CV data available. Please fill in your CV information first.</p>
+        </div>
+      </div>
+    );
+  }
 
   const handleGenerate = async () => {
     setLoading(true);
@@ -37,8 +48,8 @@ const InterviewQuestionsGenerator: React.FC<InterviewQuestionsGeneratorProps> = 
         numberOfQuestions
       );
       
-      setQuestions(result.questions);
-      setCategories(['All', ...result.categories]);
+      setQuestions(result?.questions || []);
+      setCategories(['All', ...(result?.categories || [])]);
     } catch (err) {
       setError('Failed to generate interview questions. Please try again.');
       console.error(err);
@@ -48,7 +59,7 @@ const InterviewQuestionsGenerator: React.FC<InterviewQuestionsGeneratorProps> = 
   };
 
   const getFilteredQuestions = () => {
-    let filtered = questions;
+    let filtered = questions || [];
     
     if (selectedCategory !== 'All') {
       filtered = filterQuestionsByCategory(filtered, selectedCategory);

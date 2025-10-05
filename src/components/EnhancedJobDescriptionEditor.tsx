@@ -31,7 +31,7 @@ export const EnhancedJobDescriptionEditor: React.FC<EnhancedJobDescriptionEditor
   const [showPreview, setShowPreview] = useState(false);
   
   // Undo/Redo history
-  const [history, setHistory] = useState<HistoryEntry[]>([{ value: '', timestamp: Date.now() }]);
+  const [history, setHistory] = useState<HistoryEntry[]>([{ value: value || '', timestamp: Date.now() }]);
   const [historyIndex, setHistoryIndex] = useState(0);
   const [isUndoRedoAction, setIsUndoRedoAction] = useState(false);
 
@@ -48,6 +48,10 @@ export const EnhancedJobDescriptionEditor: React.FC<EnhancedJobDescriptionEditor
 
   // Handle value changes and update history
   useEffect(() => {
+    if (!history || history.length === 0) {
+      setHistory([{ value: value || '', timestamp: Date.now() }]);
+      return;
+    }
     if (!isUndoRedoAction && value !== history[historyIndex]?.value) {
       const newHistory = history.slice(0, historyIndex + 1);
       newHistory.push({ value, timestamp: Date.now() });
@@ -217,10 +221,10 @@ export const EnhancedJobDescriptionEditor: React.FC<EnhancedJobDescriptionEditor
     onChange(newValue);
   };
 
-  const charCount = value.length;
-  const wordCount = value.trim() ? value.trim().split(/\s+/).length : 0;
-  const canUndo = historyIndex > 0;
-  const canRedo = historyIndex < history.length - 1;
+  const charCount = (value || '').length;
+  const wordCount = (value || '').trim() ? (value || '').trim().split(/\s+/).length : 0;
+  const canUndo = historyIndex > 0 && history && history.length > 0;
+  const canRedo = history && historyIndex < history.length - 1;
 
   return (
     <div className="enhanced-jd-editor">

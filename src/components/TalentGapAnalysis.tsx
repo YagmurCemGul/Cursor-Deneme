@@ -22,6 +22,16 @@ const TalentGapAnalysis: React.FC<TalentGapAnalysisProps> = ({
   const [loading, setLoading] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<'matched' | 'missing' | 'additional'>('matched');
 
+  // Validate props
+  if (!cvData || !jobDescription) {
+    return (
+      <div className="talent-gap-empty">
+        <FiTarget className="empty-icon" />
+        <p>Add CV data and a job description to analyze talent gaps</p>
+      </div>
+    );
+  }
+
   useEffect(() => {
     if (cvData && jobDescription) {
       performAnalysis();
@@ -89,7 +99,7 @@ const TalentGapAnalysis: React.FC<TalentGapAnalysisProps> = ({
   };
 
   const renderCategorySection = (title: string, skills: SkillGap[]) => {
-    if (skills.length === 0) return null;
+    if (!skills || skills.length === 0) return null;
     
     const categoryGroups = groupSkillsByCategory(skills);
     

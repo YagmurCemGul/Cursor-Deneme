@@ -12,6 +12,22 @@ interface CVPreviewProps {
 }
 
 export const CVPreview: React.FC<CVPreviewProps> = ({ cvData, optimizations, language, focusedOptimizationId, templateId = 'classic' }) => {
+  // Validate props
+  if (!cvData || !cvData.personalInfo) {
+    return (
+      <div className="section">
+        <h2 className="section-title">
+          👁️ {t(language, 'preview.title')}
+        </h2>
+        <div className="empty-state empty-state-margin">
+          <div className="empty-state-icon">📄</div>
+          <div className="empty-state-text">
+            No CV data available. Please fill in your CV information first.
+          </div>
+        </div>
+      </div>
+    );
+  }
   const [, setTemplate] = React.useState<'Classic' | 'Modern' | 'Compact'>('Classic');
   const highlightRefs = React.useRef<Map<string, HTMLElement>>(new Map());
   
@@ -27,7 +43,7 @@ export const CVPreview: React.FC<CVPreviewProps> = ({ cvData, optimizations, lan
   
   const highlightOptimized = (text: string): React.ReactNode => {
     if (!text) return null;
-    const applied = optimizations.filter(o => o.applied);
+    const applied = (optimizations || []).filter(o => o.applied);
     if (applied.length === 0) return text;
     let parts: Array<string | React.ReactNode> = [text];
     applied.forEach((opt, idx) => {
@@ -131,7 +147,7 @@ export const CVPreview: React.FC<CVPreviewProps> = ({ cvData, optimizations, lan
         )}
         
         {/* Skills */}
-        {cvData.skills.length > 0 && (
+        {cvData.skills && cvData.skills.length > 0 && (
           <div className="preview-section">
             <div className="preview-section-title">{t(language, 'preview.skills')}</div>
             <div className="preview-item-description">
@@ -141,7 +157,7 @@ export const CVPreview: React.FC<CVPreviewProps> = ({ cvData, optimizations, lan
         )}
         
         {/* Experience */}
-        {cvData.experience.length > 0 && (
+        {cvData.experience && cvData.experience.length > 0 && (
           <div className="preview-section">
             <div className="preview-section-title">{t(language, 'preview.experienceTitle')}</div>
             {cvData.experience.map((exp) => (
@@ -172,7 +188,7 @@ export const CVPreview: React.FC<CVPreviewProps> = ({ cvData, optimizations, lan
         )}
         
         {/* Education */}
-        {cvData.education.length > 0 && (
+        {cvData.education && cvData.education.length > 0 && (
           <div className="preview-section">
             <div className="preview-section-title">{t(language, 'preview.educationTitle')}</div>
             {cvData.education.map((edu) => (
@@ -202,7 +218,7 @@ export const CVPreview: React.FC<CVPreviewProps> = ({ cvData, optimizations, lan
         )}
         
         {/* Certifications */}
-        {cvData.certifications.length > 0 && (
+        {cvData.certifications && cvData.certifications.length > 0 && (
           <div className="preview-section">
             <div className="preview-section-title">{t(language, 'preview.certificationsTitle')}</div>
             {cvData.certifications.map((cert) => (
@@ -221,7 +237,7 @@ export const CVPreview: React.FC<CVPreviewProps> = ({ cvData, optimizations, lan
         )}
         
         {/* Projects */}
-        {cvData.projects.length > 0 && (
+        {cvData.projects && cvData.projects.length > 0 && (
           <div className="preview-section">
             <div className="preview-section-title">{t(language, 'preview.projectsTitle')}</div>
             {cvData.projects.map((proj) => (
