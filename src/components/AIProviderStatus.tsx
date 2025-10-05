@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { t, Lang } from '../i18n';
 import { aiService } from '../utils/aiService';
 
@@ -6,31 +6,60 @@ interface AIProviderStatusProps {
   language: Lang;
   onConfigure?: () => void;
   compact?: boolean;
+  autoRefresh?: boolean;
+  refreshInterval?: number; // in milliseconds
+  showLastCheck?: boolean;
 }
 
 export const AIProviderStatus: React.FC<AIProviderStatusProps> = ({
   language,
   onConfigure,
   compact = false,
+  autoRefresh = false,
+  refreshInterval = 30000, // 30 seconds default
+  showLastCheck = true,
 }) => {
   const [isConfigured, setIsConfigured] = useState(false);
   const [isChecking, setIsChecking] = useState(true);
+  const [lastChecked, setLastChecked] = useState<Date | null>(null);
+  const [healthStatus, setHealthStatus] = useState<'healthy' | 'degraded' | 'unknown'>('unknown');
 
   useEffect(() => {
     checkConfiguration();
   }, []);
 
-  const checkConfiguration = () => {
+  const checkConfiguration = useCallback(() => {
     setIsChecking(true);
     try {
       const configured = aiService.isConfigured();
       setIsConfigured(configured);
+      setHealthStatus(configured ? 'healthy' : 'unknown');
+      setLastChecked(new Date());
     } catch (error) {
       console.error('Error checking AI configuration:', error);
       setIsConfigured(false);
+      setHealthStatus('degraded');
     } finally {
       setIsChecking(false);
     }
+  }, []);
+
+  useEffect(() => {
+    if (autoRefresh && refreshInterval > 0) {
+      const interval = setInterval(() => {
+        checkConfiguration();
+      }, refreshInterval);
+      return () => clearInterval(interval);
+    }
+  }, [autoRefresh, refreshInterval, checkConfiguration]);
+
+  const formatLastChecked = () => {
+    if (!lastChecked) return '';
+    const now = new Date();
+    const diff = Math.floor((now.getTime() - lastChecked.getTime()) / 1000);
+    if (diff < 60) return t(language, 'aiStatus.justNow');
+    if (diff < 3600) return `${Math.floor(diff / 60)}${t(language, 'time.minutesAgo')}`;
+    return `${Math.floor(diff / 3600)}${t(language, 'time.hoursAgo')}`;
   };
 
   if (isChecking) {
@@ -69,26 +98,57 @@ export const AIProviderStatus: React.FC<AIProviderStatusProps> = ({
             <p className="ai-status-description">
               {t(language, 'aiStatus.notConfiguredDesc')}
             </p>
+            {showLastCheck && lastChecked && (
+              <p className="ai-status-timestamp">
+                {t(language, 'aiStatus.lastChecked')}: {formatLastChecked()}
+              </p>
+            )}
           </div>
         </div>
-        {onConfigure && (
-          <button className="btn btn-primary btn-sm" onClick={onConfigure}>
-            ⚙️ {t(language, 'aiStatus.configure')}
+        <div className="ai-status-actions">
+          {onConfigure && (
+            <button className="btn btn-primary btn-sm" onClick={onConfigure}>
+              ⚙️ {t(language, 'aiStatus.configure')}
+            </button>
+          )}
+          <button 
+            className="btn btn-secondary btn-sm" 
+            onClick={checkConfiguration}
+            disabled={isChecking}
+          >
+            🔄 {t(language, 'aiStatus.refresh')}
           </button>
-        )}
+        </div>
         <style>{styles}</style>
       </div>
     );
   }
 
   return (
-    <div className="ai-status ai-status-ok">
+    <div className={`ai-status ai-status-ok ${healthStatus === 'degraded' ? 'ai-status-degraded' : ''}`}>
       <div className="ai-status-indicator">
-        <div className="ai-status-dot ai-status-dot-ok"></div>
+        <div className={`ai-status-dot ai-status-dot-${healthStatus === 'degraded' ? 'warning' : 'ok'}`}></div>
       </div>
-      <span className="ai-status-text">
-        ✓ {t(language, 'aiStatus.configured')}
-      </span>
+      <div className="ai-status-text-wrapper">
+        <span className="ai-status-text">
+          ✓ {t(language, 'aiStatus.configured')}
+        </span>
+        {showLastCheck && lastChecked && !compact && (
+          <span className="ai-status-timestamp">
+            {t(language, 'aiStatus.lastChecked')}: {formatLastChecked()}
+          </span>
+        )}
+      </div>
+      {!compact && (
+        <button 
+          className="btn-refresh-status" 
+          onClick={checkConfiguration}
+          disabled={isChecking}
+          title={t(language, 'aiStatus.refresh')}
+        >
+          🔄
+        </button>
+      )}
       <style>{styles}</style>
     </div>
   );
@@ -189,6 +249,50 @@ const styles = `
     font-size: 13px;
     color: #78716c;
     line-height: 1.4;
+  }
+
+  .ai-status-timestamp {
+    display: block;
+    margin-top: 4px;
+    font-size: 11px;
+    color: #9ca3af;
+  }
+
+  .ai-status-actions {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .ai-status-text-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .btn-refresh-status {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 4px;
+    font-size: 14px;
+    transition: all 0.2s;
+    margin-left: auto;
+  }
+
+  .btn-refresh-status:hover:not(:disabled) {
+    background: rgba(0, 0, 0, 0.05);
+  }
+
+  .btn-refresh-status:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  .ai-status-degraded {
+    background: #fffbeb;
+    border-color: #fed7aa;
   }
 
   .ai-status-text {
