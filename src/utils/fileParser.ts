@@ -6,10 +6,17 @@ import { logger } from './logger';
 
 // Configure pdf.js worker for the new version
 // pdfjs-dist v5+ uses ESM and requires different worker configuration
-pdfjsLib.GlobalWorkerOptions.workerSrc = new URL(
-  'pdfjs-dist/build/pdf.worker.min.mjs',
-  import.meta.url
-).toString();
+try {
+  // Use import.meta.url in browser/module context
+  // For Jest tests, this will be caught and use CDN fallback
+  pdfjsLib.GlobalWorkerOptions.workerSrc = new URL(
+    'pdfjs-dist/build/pdf.worker.min.mjs',
+    typeof import.meta !== 'undefined' && import.meta.url ? import.meta.url : 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/5.4.149/pdf.worker.min.mjs'
+  ).toString();
+} catch (e) {
+  // Fallback for test environment
+  pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/5.4.149/pdf.worker.min.mjs';
+}
 
 export class FileParser {
   /**

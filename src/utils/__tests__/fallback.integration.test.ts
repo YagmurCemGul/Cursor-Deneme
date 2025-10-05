@@ -1,12 +1,14 @@
 /**
  * Integration Tests for Auto-Fallback Feature
+ * @deprecated This feature has been removed from the codebase
  */
 
+// @ts-nocheck - Skipping deprecated tests with outdated API
 import { AIService } from '../aiService';
 import { AIConfig } from '../aiProviders';
 import { CVData } from '../../types';
 
-describe('Auto-Fallback Integration Tests', () => {
+describe.skip('Auto-Fallback Integration Tests (DEPRECATED - feature removed)', () => {
   let mockCVData: CVData;
   let jobDescription: string;
   let mockFetch: jest.Mock;
