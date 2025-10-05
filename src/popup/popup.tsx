@@ -46,6 +46,8 @@ export function Popup() {
   const [coverMd, setCoverMd] = useState<string>('');
   const [optimizations, setOptimizations] = useState<AtsOptimization[]>([]);
   const [extraPrompt, setExtraPrompt] = useState<string>('');
+  const [error, setError] = useState<string>('');
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     (async () => {
@@ -61,18 +63,40 @@ export function Popup() {
 
   async function handleGenerateResume() {
     if (!profile || !job.pastedText) return;
-    const result = await generateAtsResume(profile, job);
-    setResumeMd(result.text);
-    setOptimizations(result.optimizations);
-    await saveOptimizations(result.optimizations);
-    setActive('preview');
+    
+    setLoading(true);
+    setError('');
+    
+    try {
+      const result = await generateAtsResume(profile, job);
+      setResumeMd(result.text);
+      setOptimizations(result.optimizations);
+      await saveOptimizations(result.optimizations);
+      setActive('preview');
+    } catch (error: any) {
+      console.error('Resume generation error:', error);
+      setError(error.message || 'Failed to generate resume. Please check your API settings.');
+    } finally {
+      setLoading(false);
+    }
   }
 
   async function handleGenerateCoverLetter() {
     if (!profile || !job.pastedText) return;
-    const result = await generateCoverLetter(profile, job, extraPrompt);
-    setCoverMd(result.text);
-    setActive('cover');
+    
+    setLoading(true);
+    setError('');
+    
+    try {
+      const result = await generateCoverLetter(profile, job, extraPrompt);
+      setCoverMd(result.text);
+      setActive('cover');
+    } catch (error: any) {
+      console.error('Cover letter generation error:', error);
+      setError(error.message || 'Failed to generate cover letter. Please check your API settings.');
+    } finally {
+      setLoading(false);
+    }
   }
 
   async function handleRemoveOptimization(id: string) {
@@ -107,6 +131,28 @@ export function Popup() {
         <TabButton id="downloads" active={active} setActive={setActive}>Downloads</TabButton>
       </div>
 
+      {error && (
+        <div style={{ 
+          margin: '10px 0', 
+          padding: '10px', 
+          background: '#fee2e2', 
+          border: '1px solid #fecaca', 
+          borderRadius: '6px',
+          color: '#991b1b',
+          fontSize: '14px'
+        }}>
+          ⚠️ {error}
+          {error.includes('API') && (
+            <button 
+              style={{ marginLeft: '10px', textDecoration: 'underline', background: 'none', border: 'none', color: 'inherit', cursor: 'pointer' }}
+              onClick={() => chrome.runtime.openOptionsPage()}
+            >
+              Go to Settings
+            </button>
+          )}
+        </div>
+      )}
+
       {active === 'cv' && (
         <div className="col" style={{ gap: 10 }}>
           <SectionHeader title="Personal" />
@@ -139,7 +185,9 @@ export function Popup() {
             ))}
           </div>
           <div className="row" style={{ justifyContent: 'flex-end', marginTop: 10 }}>
-            <button className="btn" onClick={handleGenerateResume}>Generate ATS Resume</button>
+            <button className="btn" onClick={handleGenerateResume} disabled={loading}>
+              {loading ? '⏳ Generating...' : 'Generate ATS Resume'}
+            </button>
           </div>
           <div className="row" style={{ gap: 12 }}>
             {optimizations.map((o) => (
@@ -155,12 +203,16 @@ export function Popup() {
           <textarea className="textarea" value={job.pastedText} onChange={(e) => setJob({ ...job, pastedText: e.target.value })} placeholder="Paste job listing here" />
           <div className="row" style={{ justifyContent: 'space-between' }}>
             <button className="btn" onClick={() => saveJobPost(job)}>Save Job</button>
-            <button className="btn" onClick={handleGenerateResume}>Generate ATS Resume</button>
+            <button className="btn" onClick={handleGenerateResume} disabled={loading}>
+              {loading ? '⏳ Generating...' : 'Generate ATS Resume'}
+            </button>
           </div>
           <SectionHeader title="Cover Letter Extras" />
           <textarea className="textarea" value={extraPrompt} onChange={(e) => setExtraPrompt(e.target.value)} placeholder="Ekstra talimatlar (opsiyonel)" />
           <div className="row" style={{ justifyContent: 'flex-end' }}>
-            <button className="btn" onClick={handleGenerateCoverLetter}>Generate Cover Letter</button>
+            <button className="btn" onClick={handleGenerateCoverLetter} disabled={loading}>
+              {loading ? '⏳ Generating...' : 'Generate Cover Letter'}
+            </button>
           </div>
         </div>
       )}
@@ -202,6 +254,17 @@ export function Popup() {
       <div className="row" style={{ marginTop: 14, fontSize: 12, color: '#64748b' }}>
         <span>LinkedIn: {linkedInUrl}</span>
         <span>GitHub: {githubUrl}</span>
+      </div>
+      
+      {/* Settings button */}
+      <div className="row" style={{ justifyContent: 'flex-end', marginTop: 10 }}>
+        <button 
+          className="btn secondary" 
+          onClick={() => chrome.runtime.openOptionsPage()}
+          title="Configure AI settings"
+        >
+          ⚙️ Settings
+        </button>
       </div>
     </div>
   );
