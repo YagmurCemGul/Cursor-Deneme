@@ -1,9 +1,8 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Certification } from '../types';
 import { t, Lang } from '../i18n';
 import { RichTextEditor } from './RichTextEditor';
 import { LocationSelector } from './LocationSelector';
-import { validateCredentialUrl, ValidationResult } from '../utils/urlValidation';
 
 interface CertificationsFormProps {
   certifications: Certification[];
@@ -12,9 +11,6 @@ interface CertificationsFormProps {
 }
 
 export const CertificationsForm: React.FC<CertificationsFormProps> = ({ certifications, onChange, language }) => {
-  // Track validation state for each certification's credential URL
-  const [urlValidations, setUrlValidations] = useState<Record<string, ValidationResult>>({});
-
   const handleAdd = () => {
     const newCert: Certification = {
       id: Date.now().toString(),
@@ -35,12 +31,6 @@ export const CertificationsForm: React.FC<CertificationsFormProps> = ({ certific
   };
 
   const handleUpdate = (id: string, field: keyof Certification, value: string | string[] | boolean) => {
-    // Validate credential URL
-    if (field === 'credentialUrl' && typeof value === 'string') {
-      const validation = validateCredentialUrl(value);
-      setUrlValidations(prev => ({ ...prev, [id]: validation }));
-    }
-    
     onChange(certifications.map(cert => 
       cert.id === id ? { ...cert, [field]: value } : cert
     ));
@@ -163,16 +153,11 @@ export const CertificationsForm: React.FC<CertificationsFormProps> = ({ certific
                   <label className="form-label">{t(language, 'certs.credUrl')}</label>
                   <input
                     type="url"
-                    className={`form-input ${urlValidations[cert.id]?.type === 'error' ? 'error' : ''}`}
+                    className="form-input"
                     value={cert.credentialUrl}
                     onChange={(e) => handleUpdate(cert.id, 'credentialUrl', e.target.value)}
                     placeholder="https://..."
                   />
-                  {urlValidations[cert.id]?.message && (
-                    <div className={`validation-message ${urlValidations[cert.id]?.type || ''}`}>
-                      {urlValidations[cert.id]?.message}
-                    </div>
-                  )}
                 </div>
               </div>
 
