@@ -6,8 +6,10 @@ import { TabButton, TextRow, SectionHeader, Pill, Button } from '../components/u
 import { validateEmail, validatePhone, validateURL, validateLinkedIn, validateGitHub, formatPhoneNumber, calculateDateDuration, formatDate, calculateProfileCompletion, getSkillSuggestions, skillSuggestions } from '../lib/validation';
 import { CVPreview } from '../components/CVPreview';
 import { TemplateGallery } from '../components/TemplateGallery';
+import { ATSScoreCard } from '../components/ATSScoreCard';
 import { TemplateType, TemplateColors, TemplateFonts } from '../lib/templates';
 import { exportToPDF, exportToImage, printCV, generatePDFFilename } from '../lib/pdfExport';
+import { calculateATSScore, ATSScore } from '../lib/atsScoring';
 import '../styles/global.css';
 
 export function NewTab() {
@@ -37,6 +39,8 @@ export function NewTab() {
   const [customColors, setCustomColors] = useState<Partial<TemplateColors>>({});
   const [customFonts, setCustomFonts] = useState<Partial<TemplateFonts>>({});
   const [isExporting, setIsExporting] = useState(false);
+  const [atsScore, setAtsScore] = useState<ATSScore | null>(null);
+  const [showATSScore, setShowATSScore] = useState(false);
 
   useEffect(() => {
     (async () => {
@@ -164,6 +168,31 @@ export function NewTab() {
   function handlePrint() {
     printCV('cv-preview-content');
   }
+
+  // Calculate ATS Score
+  function calculateAndShowATSScore() {
+    if (!profile) {
+      alert('Please complete your profile first!');
+      return;
+    }
+    
+    if (!job.pastedText) {
+      alert('Please paste a job description in the Job tab first!');
+      return;
+    }
+    
+    const score = calculateATSScore(profile, job);
+    setAtsScore(score);
+    setShowATSScore(true);
+  }
+
+  // Auto-calculate ATS score when profile or job changes
+  useEffect(() => {
+    if (profile && job.pastedText && showATSScore) {
+      const score = calculateATSScore(profile, job);
+      setAtsScore(score);
+    }
+  }, [profile, job.pastedText, showATSScore]);
 
   const linkedInUrl = useMemo(() => profile?.personal.linkedin ? `https://www.linkedin.com/in/${profile.personal.linkedin}` : '', [profile]);
   const githubUrl = useMemo(() => profile?.personal.github ? `https://github.com/${profile.personal.github}` : '', [profile]);
@@ -578,7 +607,7 @@ Make it compelling, highlight key strengths, and use action-oriented language.`;
                 transition: 'flex 0.3s ease'
               }}>
                 {/* Preview Toggle Button */}
-                <div style={{ marginBottom: 16, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div style={{ marginBottom: 16, display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 8 }}>
                   <div style={{ display: 'flex', gap: 8 }}>
                     <Button 
                       variant={showPreview ? 'primary' : 'secondary'}
@@ -594,6 +623,19 @@ Make it compelling, highlight key strengths, and use action-oriented language.`;
                         🎨 Change Template
                       </Button>
                     )}
+                    <Button 
+                      variant={showATSScore ? 'primary' : 'secondary'}
+                      onClick={() => {
+                        if (!showATSScore) {
+                          calculateAndShowATSScore();
+                        } else {
+                          setShowATSScore(false);
+                        }
+                      }}
+                      disabled={!profile?.personal.firstName || !job.pastedText}
+                    >
+                      {showATSScore ? '📊 Hide ATS Score' : '📊 Check ATS Score'}
+                    </Button>
                   </div>
                   {showPreview && (
                     <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
@@ -602,7 +644,30 @@ Make it compelling, highlight key strengths, and use action-oriented language.`;
                       </span>
                     </div>
                   )}
+                  {showATSScore && atsScore && (
+                    <div style={{ 
+                      padding: '6px 12px', 
+                      background: atsScore.overallScore >= 70 ? '#10b98115' : '#f59e0b15',
+                      border: `1px solid ${atsScore.overallScore >= 70 ? '#10b98140' : '#f59e0b40'}`,
+                      borderRadius: 6,
+                      fontSize: 13,
+                      fontWeight: 600,
+                      color: atsScore.overallScore >= 70 ? '#10b981' : '#f59e0b',
+                    }}>
+                      ATS Score: {atsScore.overallScore}/100
+                    </div>
+                  )}
                 </div>
+
+                {/* ATS Score Card */}
+                {showATSScore && atsScore && (
+                  <div style={{ marginBottom: 24 }}>
+                    <ATSScoreCard 
+                      score={atsScore}
+                      onRefresh={calculateAndShowATSScore}
+                    />
+                  </div>
+                )}
 
             {active === 'cv' && (
               <div className="col" style={{ gap: 16 }}>
