@@ -31,7 +31,7 @@ export function Popup() {
     try {
       await generateAtsResume(profile, job);
       setStatus('✅ Resume generated! Open new tab to view.');
-      setTimeout(() => chrome.tabs.create({ url: chrome.runtime.getURL('src/newtab/index.html') }), 500);
+      setTimeout(() => chrome.tabs.create({ url: chrome.runtime.getURL('newtab.html') }), 500);
     } catch (error) {
       setStatus('❌ Error generating resume');
     } finally {
@@ -49,7 +49,7 @@ export function Popup() {
     try {
       await generateCoverLetter(profile, job, '');
       setStatus('✅ Cover letter generated! Open new tab to view.');
-      setTimeout(() => chrome.tabs.create({ url: chrome.runtime.getURL('src/newtab/index.html') }), 500);
+      setTimeout(() => chrome.tabs.create({ url: chrome.runtime.getURL('newtab.html') }), 500);
     } catch (error) {
       setStatus('❌ Error generating cover letter');
     } finally {
@@ -58,7 +58,7 @@ export function Popup() {
   }
 
   function openFullApp() {
-    chrome.tabs.create({ url: chrome.runtime.getURL('src/newtab/index.html') });
+    chrome.tabs.create({ url: chrome.runtime.getURL('newtab.html') });
   }
 
   return (
