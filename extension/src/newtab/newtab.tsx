@@ -9,6 +9,7 @@ import { TemplateGallery } from '../components/TemplateGallery';
 import { ATSScoreCard } from '../components/ATSScoreCard';
 import { LinkedInImport } from '../components/LinkedInImport';
 import { JobTracker } from '../components/JobTracker';
+import { ProfileManager } from '../components/ProfileManager';
 import { TemplateType, TemplateColors, TemplateFonts } from '../lib/templates';
 import { exportToPDF, exportToImage, printCV, generatePDFFilename } from '../lib/pdfExport';
 import { calculateATSScore, ATSScore } from '../lib/atsScoring';
@@ -45,9 +46,15 @@ export function NewTab() {
   const [atsScore, setAtsScore] = useState<ATSScore | null>(null);
   const [showATSScore, setShowATSScore] = useState(false);
   const [showLinkedInImport, setShowLinkedInImport] = useState(false);
+  const [showProfileManager, setShowProfileManager] = useState(false);
+  const [allProfiles, setAllProfiles] = useState<ResumeProfile[]>([]);
 
   useEffect(() => {
     (async () => {
+      // Load all profiles
+      const profiles = await storage.get<ResumeProfile[]>(storage.keys.PROFILES) || [];
+      setAllProfiles(profiles);
+      
       let p = await getActiveProfile();
       if (!p) {
         // Create default profile
@@ -266,9 +273,21 @@ export function NewTab() {
     try {
       await saveOrUpdateProfile(updated);
       setLastSaved(new Date());
+      
+      // Update profiles list
+      const profiles = await storage.get<ResumeProfile[]>(storage.keys.PROFILES) || [];
+      setAllProfiles(profiles);
     } finally {
       setTimeout(() => setIsSaving(false), 500);
     }
+  }
+
+  async function handleProfileSwitch(newProfile: ResumeProfile) {
+    setProfile(newProfile);
+    
+    // Update profiles list
+    const profiles = await storage.get<ResumeProfile[]>(storage.keys.PROFILES) || [];
+    setAllProfiles(profiles);
   }
 
   // Validate field with real-time feedback
@@ -549,19 +568,55 @@ Make it compelling, highlight key strengths, and use action-oriented language.`;
               <h1 style={{ margin: 0, fontSize: 28, color: '#1e293b', marginBottom: 8 }}>🚀 AI CV & Cover Letter Optimizer</h1>
               <p style={{ margin: 0, color: '#64748b', fontSize: 14 }}>Create ATS-optimized resumes and cover letters powered by AI</p>
             </div>
-            {/* Auto-save indicator */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 16px', background: isSaving ? '#fef3c7' : '#f0fdf4', borderRadius: 8, border: '1px solid ' + (isSaving ? '#fbbf24' : '#86efac') }}>
-              {isSaving ? (
-                <>
-                  <div style={{ width: 12, height: 12, border: '2px solid #f59e0b', borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 0.6s linear infinite' }} />
-                  <span style={{ fontSize: 13, color: '#92400e', fontWeight: 500 }}>Saving...</span>
-                </>
-              ) : lastSaved ? (
-                <>
-                  <span style={{ fontSize: 16 }}>✓</span>
-                  <span style={{ fontSize: 13, color: '#166534', fontWeight: 500 }}>Saved</span>
-                </>
-              ) : null}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+              {/* Profile Switcher */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <button
+                  onClick={() => setShowProfileManager(true)}
+                  style={{
+                    padding: '8px 16px',
+                    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: 8,
+                    cursor: 'pointer',
+                    fontSize: 13,
+                    fontWeight: 500,
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 6,
+                  }}
+                >
+                  <span>👤</span>
+                  <span>{profile?.profileName || 'My Profile'}</span>
+                  {allProfiles.length > 1 && (
+                    <span style={{
+                      marginLeft: 4,
+                      padding: '2px 6px',
+                      background: 'rgba(255,255,255,0.3)',
+                      borderRadius: 4,
+                      fontSize: 11,
+                    }}>
+                      {allProfiles.length}
+                    </span>
+                  )}
+                </button>
+              </div>
+              
+              {/* Auto-save indicator */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 16px', background: isSaving ? '#fef3c7' : '#f0fdf4', borderRadius: 8, border: '1px solid ' + (isSaving ? '#fbbf24' : '#86efac') }}>
+                {isSaving ? (
+                  <>
+                    <div style={{ width: 12, height: 12, border: '2px solid #f59e0b', borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 0.6s linear infinite' }} />
+                    <span style={{ fontSize: 13, color: '#92400e', fontWeight: 500 }}>Saving...</span>
+                  </>
+                ) : lastSaved ? (
+                  <>
+                    <span style={{ fontSize: 16 }}>✓</span>
+                    <span style={{ fontSize: 13, color: '#166534', fontWeight: 500 }}>Saved</span>
+                  </>
+                ) : null}
+              </div>
             </div>
           </div>
           
@@ -1704,6 +1759,15 @@ Make it compelling, highlight key strengths, and use action-oriented language.`;
           <LinkedInImport
             onImport={handleLinkedInImport}
             onClose={() => setShowLinkedInImport(false)}
+          />
+        )}
+
+        {/* Profile Manager Modal */}
+        {showProfileManager && profile && (
+          <ProfileManager
+            currentProfile={profile}
+            onSelectProfile={handleProfileSwitch}
+            onClose={() => setShowProfileManager(false)}
           />
         )}
 
