@@ -122,7 +122,7 @@ Optimized Description:
   try {
     return await AIService.generateText(prompt, apiKey, provider);
   } catch (error) {
-    console.error('Failed to optimize description:', error);
+    logger.error('Failed to optimize description:', error);
     throw error;
   }
 }
@@ -153,7 +153,7 @@ Provide a comma-separated list of keywords (10-15 keywords).
       .filter(Boolean)
       .slice(0, 15);
   } catch (error) {
-    console.error('Failed to extract keywords:', error);
+    logger.error('Failed to extract keywords:', error);
     throw error;
   }
 }
@@ -182,7 +182,7 @@ Focus on: company names, role titles, locations, departments, technologies, etc.
     const response = await AIService.generateText(prompt, apiKey, provider);
     return parseVariableSuggestions(response);
   } catch (error) {
-    console.error('Failed to suggest variables:', error);
+    logger.error('Failed to suggest variables:', error);
     return {};
   }
 }

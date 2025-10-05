@@ -1,4 +1,5 @@
 import { SavedJobDescription } from '../types';
+import { logger } from './logger';
 
 /**
  * Export job descriptions to JSON format
@@ -78,7 +79,7 @@ export function importFromCSV(csvString: string): SavedJobDescription[] {
       const fields = parseCSVLine(line);
       
       if (fields.length < 8) {
-        console.warn(`Skipping line ${index + 2}: insufficient fields`);
+        logger.warn(`Skipping line ${index + 2}: insufficient fields`);
         return;
       }
 
@@ -93,7 +94,7 @@ export function importFromCSV(csvString: string): SavedJobDescription[] {
         usageCount: parseInt(fields[7]) || 0
       });
     } catch (error) {
-      console.error(`Error parsing line ${index + 2}:`, error);
+      logger.error(`Error parsing line ${index + 2}:`, error);
     }
   });
 
@@ -283,7 +284,7 @@ export function parseSharedDescription(shareData: string): Partial<SavedJobDescr
       tags: data.tags
     };
   } catch (error) {
-    console.error('Failed to parse shared description:', error);
+    logger.error('Failed to parse shared description:', error);
     return null;
   }
 }

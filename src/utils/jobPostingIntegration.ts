@@ -3,6 +3,8 @@
  * Provides utilities to scrape and integrate with popular job posting sites
  */
 
+import { logger } from './logger';
+
 export interface JobPosting {
   title: string;
   company: string;
@@ -67,7 +69,7 @@ export function extractLinkedInJobData(): Partial<JobPosting> | null {
       source: 'linkedin',
     };
   } catch (error) {
-    console.error('Failed to extract LinkedIn job data:', error);
+    logger.error('Failed to extract LinkedIn job data:', error);
     return null;
   }
 }
@@ -107,7 +109,7 @@ export function extractIndeedJobData(): Partial<JobPosting> | null {
       source: 'indeed',
     };
   } catch (error) {
-    console.error('Failed to extract Indeed job data:', error);
+    logger.error('Failed to extract Indeed job data:', error);
     return null;
   }
 }
@@ -147,7 +149,7 @@ export function extractGlassdoorJobData(): Partial<JobPosting> | null {
       source: 'glassdoor',
     };
   } catch (error) {
-    console.error('Failed to extract Glassdoor job data:', error);
+    logger.error('Failed to extract Glassdoor job data:', error);
     return null;
   }
 }

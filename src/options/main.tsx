@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import { loadOptions, saveOptions } from '../lib/storage';
+import { toastService } from '../lib/toastService';
 
 function Options() {
   const [apiKey, setApiKey] = useState('');
@@ -17,8 +18,12 @@ function Options() {
   }, []);
 
   async function save() {
-    await saveOptions({ apiKey, apiProvider: provider, language });
-    // TODO: integrate toast service later
+    try {
+      await saveOptions({ apiKey, apiProvider: provider, language });
+      toastService.success('Settings saved successfully!');
+    } catch (error) {
+      toastService.error('Failed to save settings. Please try again.');
+    }
   }
 
   return (

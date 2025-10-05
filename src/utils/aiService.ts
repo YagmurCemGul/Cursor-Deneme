@@ -1,5 +1,6 @@
 import { CVData, ATSOptimization } from '../types';
 import { createAIProvider, AIConfig, AIProviderAdapter } from './aiProviders';
+import { logger } from './logger';
 
 export class AIService {
   private provider: AIProviderAdapter | null = null;
@@ -9,7 +10,7 @@ export class AIService {
       try {
         this.provider = createAIProvider(config);
       } catch (error) {
-        console.error('Failed to initialize AI provider:', error);
+        logger.error('Failed to initialize AI provider:', error);
         throw new Error('AI provider initialization failed. Please check your API configuration.');
       }
     }
@@ -22,7 +23,7 @@ export class AIService {
     try {
       this.provider = createAIProvider(config);
     } catch (error) {
-      console.error('Failed to update AI provider:', error);
+      logger.error('Failed to update AI provider:', error);
       throw error;
     }
   }
@@ -52,7 +53,7 @@ export class AIService {
     try {
       return await this.provider.optimizeCV(cvData, jobDescription);
     } catch (error) {
-      console.error('AI provider error during CV optimization:', error);
+      logger.error('AI provider error during CV optimization:', error);
       throw new Error(`Failed to optimize CV: ${error instanceof Error ? error.message : 'Unknown error'}. Please check your API key and try again.`);
     }
   }
@@ -75,7 +76,7 @@ export class AIService {
     try {
       return await this.provider.generateCoverLetter(cvData, jobDescription, extraPrompt);
     } catch (error) {
-      console.error('AI provider error during cover letter generation:', error);
+      logger.error('AI provider error during cover letter generation:', error);
       throw new Error(`Failed to generate cover letter: ${error instanceof Error ? error.message : 'Unknown error'}. Please check your API key and try again.`);
     }
   }

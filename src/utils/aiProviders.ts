@@ -4,6 +4,7 @@
  */
 
 import { CVData, ATSOptimization } from '../types';
+import { logger } from './logger';
 
 export type AIProvider = 'openai' | 'gemini' | 'claude';
 
@@ -108,7 +109,7 @@ Please analyze this CV against the job description and provide specific optimiza
         optimizations
       };
     } catch (error) {
-      console.error('OpenAI optimization error:', error);
+      logger.error('OpenAI optimization error:', error);
       throw error;
     }
   }
@@ -175,7 +176,7 @@ Return only the cover letter text, no additional formatting or explanations.`;
 
       return content.trim();
     } catch (error) {
-      console.error('OpenAI cover letter generation error:', error);
+      logger.error('OpenAI cover letter generation error:', error);
       throw error;
     }
   }
@@ -263,7 +264,7 @@ Provide your response as a JSON object with an "optimizations" array. Each optim
         optimizations
       };
     } catch (error) {
-      console.error('Gemini optimization error:', error);
+      logger.error('Gemini optimization error:', error);
       throw error;
     }
   }
@@ -325,7 +326,7 @@ Return only the cover letter text.`;
 
       return content.trim();
     } catch (error) {
-      console.error('Gemini cover letter generation error:', error);
+      logger.error('Gemini cover letter generation error:', error);
       throw error;
     }
   }
@@ -418,7 +419,7 @@ Respond with a JSON object containing an "optimizations" array. Each item should
         optimizations
       };
     } catch (error) {
-      console.error('Claude optimization error:', error);
+      logger.error('Claude optimization error:', error);
       throw error;
     }
   }
@@ -482,7 +483,7 @@ Return only the cover letter text, no additional commentary.`;
 
       return content.trim();
     } catch (error) {
-      console.error('Claude cover letter generation error:', error);
+      logger.error('Claude cover letter generation error:', error);
       throw error;
     }
   }

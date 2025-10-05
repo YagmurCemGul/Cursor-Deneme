@@ -1,4 +1,5 @@
 import { SavedJobDescription } from '../types';
+import { logger } from './logger';
 
 /**
  * Real-Time Collaboration
@@ -438,7 +439,7 @@ export function parseInviteLink(inviteData: string): {
     const decoded = atob(decodeURIComponent(inviteData));
     return JSON.parse(decoded);
   } catch (error) {
-    console.error('Failed to parse invite link:', error);
+    logger.error('Failed to parse invite link:', error);
     return null;
   }
 }
