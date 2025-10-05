@@ -12,6 +12,7 @@ import { JobTracker } from '../components/JobTracker';
 import { ProfileManager } from '../components/ProfileManager';
 import { DescriptionEnhancer } from '../components/DescriptionEnhancer';
 import { CoverLetterBuilder } from '../components/CoverLetterBuilder';
+import { EmailComposer } from '../components/EmailComposer';
 import { TemplateType, TemplateColors, TemplateFonts } from '../lib/templates';
 import { exportToPDF, exportToImage, printCV, generatePDFFilename } from '../lib/pdfExport';
 import { calculateATSScore, ATSScore } from '../lib/atsScoring';
@@ -63,6 +64,7 @@ export function NewTab() {
   const [cvLanguage, setCvLanguage] = useState<Language>('en');
   const [isGoogleDocsConnected, setIsGoogleDocsConnected] = useState(false);
   const [isExportingToDocs, setIsExportingToDocs] = useState(false);
+  const [showEmailComposer, setShowEmailComposer] = useState(false);
 
   useEffect(() => {
     (async () => {
@@ -1614,6 +1616,14 @@ Make it compelling, highlight key strengths, and use action-oriented language.`;
                           </>
                         )}
                       </Button>
+                      <Button 
+                        variant="secondary" 
+                        onClick={() => setShowEmailComposer(true)}
+                        style={{ fontSize: 13, display: 'flex', alignItems: 'center', gap: 6 }}
+                      >
+                        <span>📧</span>
+                        <span>Send via Email</span>
+                      </Button>
                     <Button 
                       variant="secondary" 
                       onClick={() => handleExportToImage('png')}
@@ -2121,6 +2131,17 @@ Make it compelling, highlight key strengths, and use action-oriented language.`;
               saveGeneratedCoverLetter(coverLetter);
             }}
             onClose={() => setShowCoverLetterBuilder(false)}
+          />
+        )}
+
+        {/* Email Composer Modal */}
+        {showEmailComposer && profile && (
+          <EmailComposer
+            profile={profile}
+            job={job}
+            language={currentLang}
+            cvElementId="cv-preview-content"
+            onClose={() => setShowEmailComposer(false)}
           />
         )}
 
