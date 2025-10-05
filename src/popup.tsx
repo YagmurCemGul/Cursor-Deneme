@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import ReactDOM from 'react-dom/client';
 import { CVData, ATSOptimization, CVProfile } from './types';
 import { CVUpload } from './components/CVUpload';
@@ -43,6 +43,8 @@ import { ShareDialog } from './components/ShareDialog';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { aiService } from './utils/aiService';
 import { StorageService } from './utils/storage';
+import { AIApiKeys } from './types/storage';
+import { AIProvider } from './utils/aiProviders';
 import { t } from './i18n';
 import './styles.css';
 
@@ -79,7 +81,6 @@ const App: React.FC = () => {
   const [isOptimizing, setIsOptimizing] = useState(false);
   const [isGeneratingCoverLetter, setIsGeneratingCoverLetter] = useState(false);
   const [profileName, setProfileName] = useState('');
-  const [, setApiKey] = useState('');
   const [theme, setTheme] = useState<Theme>('light');
   const [language, setLanguage] = useState<Language>('en');
   const [systemPrefersDark, setSystemPrefersDark] = useState(false);
@@ -89,8 +90,120 @@ const App: React.FC = () => {
   const [showShareDialog, setShowShareDialog] = useState(false);
   const [activeSubSection, setActiveSubSection] = useState<string>('');
 
+  const refreshAIProviderConfig = useCallback(async (
+    overrides: {
+      provider?: AIProvider;
+      apiKeys?: AIApiKeys;
+      model?: string | undefined;
+      temperature?: number | null | undefined;
+      legacyKey?: string | null;
+      language?: Language;
+    } = {}
+  ) => {
+    try {
+      const provider = overrides.provider ?? (await StorageService.getAIProvider());
+      const apiKeys = overrides.apiKeys ?? (await StorageService.getAPIKeys());
+      const model = overrides.model ?? (await StorageService.getAIModel());
+
+      const hasTemperatureOverride = Object.prototype.hasOwnProperty.call(overrides, 'temperature');
+      let temperature = overrides.temperature;
+      if (!hasTemperatureOverride) {
+        const settingsWithTemp = await StorageService.getSettings<{ aiTemperature?: number }>();
+        temperature = settingsWithTemp?.aiTemperature;
+      }
+
+      const hasLegacyKeyOverride = Object.prototype.hasOwnProperty.call(overrides, 'legacyKey');
+      const legacyKey = hasLegacyKeyOverride ? overrides.legacyKey ?? null : await StorageService.getAPIKey();
+
+      const providerApiKey = apiKeys?.[provider] ?? null;
+      const apiKey = providerApiKey ?? (provider === 'openai' ? legacyKey : null);
+
+      if (!apiKey) {
+        aiService.clearConfig();
+        return;
+      }
+
+      aiService.updateConfig({
+        provider,
+        apiKey,
+        model: model || undefined,
+        temperature: typeof temperature === 'number' ? temperature : undefined,
+      });
+    } catch (error) {
+      console.error('Failed to refresh AI provider config:', error);
+      const messageLanguage = overrides.language ?? language;
+      alert(t(messageLanguage, 'settings.configError'));
+      throw error;
+    }
+  }, [language]);
+
+  const loadInitial = async () => {
+    type StoredSettings = {
+      theme?: Theme;
+      language?: Language;
+      templateId?: string;
+      hasCompletedSetup?: boolean;
+      aiTemperature?: number;
+    };
+
+    const [provider, apiKeys, savedModel, settings, legacyKey] = await Promise.all<[
+      AIProvider,
+      AIApiKeys,
+      string | undefined,
+      StoredSettings | null,
+      string | null
+    ]>([
+      StorageService.getAIProvider(),
+      StorageService.getAPIKeys(),
+      StorageService.getAIModel(),
+      StorageService.getSettings<StoredSettings>(),
+      StorageService.getAPIKey()
+    ]);
+
+    const providerApiKey = apiKeys?.[provider] || '';
+    const currentApiKey = providerApiKey || (provider === 'openai' ? legacyKey || '' : '');
+
+    if (settings?.theme) setTheme(settings.theme);
+    if (settings?.language) setLanguage(settings.language);
+    if (settings?.templateId) setSelectedTemplateId(settings.templateId);
+
+    if (!settings?.hasCompletedSetup && !currentApiKey) {
+      setShowSetupWizard(true);
+      setActiveTab('help');
+      setActiveSubSection('wizard');
+    }
+
+    const draft = await StorageService.getDraft<{
+      activeTab: TabType;
+      jobDescription: string;
+      cvData: CVData;
+      optimizations: ATSOptimization[];
+      coverLetter: string;
+      profileName: string;
+    }>();
+    if (draft) {
+      setActiveTab(draft.activeTab || 'cv-info');
+      setJobDescription(draft.jobDescription || '');
+      setCVData(draft.cvData || cvData);
+      setOptimizations(draft.optimizations || []);
+      setCoverLetter(draft.coverLetter || '');
+      setProfileName(draft.profileName || '');
+    }
+
+    await refreshAIProviderConfig({
+      provider,
+      apiKeys,
+      model: savedModel,
+      temperature: settings?.aiTemperature,
+      legacyKey,
+      language: settings?.language
+    });
+  };
+
   useEffect(() => {
-    loadInitial();
+    loadInitial().catch(error => {
+      console.error('Failed to load initial data:', error);
+    });
   }, []);
 
   useEffect(() => {
@@ -116,47 +229,6 @@ const App: React.FC = () => {
       }
     };
   }, []);
-
-  const loadInitial = async () => {
-    const key = await StorageService.getAPIKey();
-    if (key) setApiKey(key);
-    
-    // Restore settings
-    const settings = await StorageService.getSettings<{ 
-      theme?: Theme; 
-      language?: Language; 
-      templateId?: string;
-      hasCompletedSetup?: boolean;
-    }>();
-    if (settings?.theme) setTheme(settings.theme);
-    if (settings?.language) setLanguage(settings.language);
-    if (settings?.templateId) setSelectedTemplateId(settings.templateId);
-    
-    // Show setup wizard if not completed
-    if (!settings?.hasCompletedSetup && !key) {
-      setShowSetupWizard(true);
-      setActiveTab('help');
-      setActiveSubSection('wizard');
-    }
-    
-    // Restore draft
-    const draft = await StorageService.getDraft<{
-      activeTab: TabType;
-      jobDescription: string;
-      cvData: CVData;
-      optimizations: ATSOptimization[];
-      coverLetter: string;
-      profileName: string;
-    }>();
-    if (draft) {
-      setActiveTab(draft.activeTab || 'cv-info');
-      setJobDescription(draft.jobDescription || '');
-      setCVData(draft.cvData || cvData);
-      setOptimizations(draft.optimizations || []);
-      setCoverLetter(draft.coverLetter || '');
-      setProfileName(draft.profileName || '');
-    }
-  };
 
   // Autosave draft when critical state changes
   useEffect(() => {
@@ -456,7 +528,9 @@ const App: React.FC = () => {
                 </button>
               </div>
               
-              {activeSubSection === 'ai' && <AISettings language={language} />}
+              {activeSubSection === 'ai' && (
+                <AISettings language={language} onConfigChange={refreshAIProviderConfig} />
+              )}
               {activeSubSection === 'drive' && <GoogleDriveSettings language={language} />}
               {activeSubSection === 'sync' && <AutoSyncSettings language={language} />}
               {activeSubSection === 'export' && <BatchExport cvData={cvData} language={language} />}

@@ -310,6 +310,7 @@ const dict: Record<string, Record<Lang, string>> = {
   'settings.aiTemperatureDesc': { en: 'Higher values make output more creative, lower values more focused', tr: 'Yüksek değerler çıktıyı daha yaratıcı, düşük değerler daha odaklı yapar' },
   'settings.saveSuccess': { en: 'Settings saved successfully!', tr: 'Ayarlar başarıyla kaydedildi!' },
   'settings.saveError': { en: 'Error saving settings. Please try again.', tr: 'Ayarlar kaydedilirken hata oluştu. Lütfen tekrar deneyin.' },
+  'settings.configError': { en: 'Failed to configure AI provider. Please verify your AI settings.', tr: 'YZ sağlayıcısı yapılandırılamadı. Lütfen YZ ayarlarınızı doğrulayın.' },
   'settings.testConnection': { en: 'Test Connection', tr: 'Bağlantıyı Test Et' },
   'settings.testing': { en: 'Testing...', tr: 'Test ediliyor...' },
   'settings.testSuccess': { en: 'Connection successful!', tr: 'Bağlantı başarılı!' },
