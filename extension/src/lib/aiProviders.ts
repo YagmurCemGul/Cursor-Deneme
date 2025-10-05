@@ -207,7 +207,7 @@ export function estimateTokens(text: string): number {
 }
 
 /**
- * Call OpenAI API
+ * Call OpenAI API with retry logic
  */
 async function callOpenAI(
   systemPrompt: string,
@@ -234,8 +234,18 @@ async function callOpenAI(
   });
 
   if (!response.ok) {
-    const error = await response.json();
-    throw new Error(`OpenAI API error: ${error.error?.message || 'Unknown error'}`);
+    const error = await response.json().catch(() => ({}));
+    
+    // Handle specific error types
+    if (response.status === 401) {
+      throw new Error('Invalid API key (401). Please check your OpenAI API key in settings.');
+    } else if (response.status === 429) {
+      throw new Error('OpenAI rate limit exceeded (429). Please wait and try again.');
+    } else if (response.status === 503) {
+      throw new Error('OpenAI service unavailable (503). Please try again later.');
+    }
+    
+    throw new Error(`OpenAI API error (${response.status}): ${error.error?.message || 'Unknown error'}`);
   }
 
   const data = await response.json();
@@ -382,37 +392,42 @@ export async function callAI(
 }
 
 /**
- * Get provider configuration from storage
+ * Get provider configuration from storage with encryption support
  */
 export async function getProviderConfig(preferredModel?: AIModel): Promise<AIProviderConfig> {
-  const stored = await chrome.storage.local.get(['openai_api_key', 'anthropic_api_key', 'google_api_key', 'preferred_model']);
+  // Try encrypted keys first
+  const stored = await chrome.storage.local.get([
+    'openai_api_key', 'anthropic_api_key', 'google_api_key',
+    'encrypted_openai_api_key', 'encrypted_anthropic_api_key', 'encrypted_google_api_key',
+    'preferred_model'
+  ]);
   
   // Determine which model to use
   let model: AIModel = preferredModel || stored.preferred_model || 'gpt-4-turbo';
   const modelConfig = AI_MODELS[model];
   
-  // Get API key for the provider
+  // Get API key for the provider (try encrypted first, fallback to unencrypted)
   let apiKey: string = '';
   switch (modelConfig.provider) {
     case 'openai':
-      apiKey = stored.openai_api_key || '';
+      apiKey = stored.encrypted_openai_api_key || stored.openai_api_key || '';
       break;
     case 'anthropic':
-      apiKey = stored.anthropic_api_key || '';
+      apiKey = stored.encrypted_anthropic_api_key || stored.anthropic_api_key || '';
       if (!apiKey) {
         // Fallback to OpenAI if Claude key not available
         console.warn('Anthropic API key not found, falling back to OpenAI');
         model = 'gpt-4-turbo';
-        apiKey = stored.openai_api_key || '';
+        apiKey = stored.encrypted_openai_api_key || stored.openai_api_key || '';
       }
       break;
     case 'google':
-      apiKey = stored.google_api_key || '';
+      apiKey = stored.encrypted_google_api_key || stored.google_api_key || '';
       if (!apiKey) {
         // Fallback to OpenAI if Gemini key not available
         console.warn('Google API key not found, falling back to OpenAI');
         model = 'gpt-4-turbo';
-        apiKey = stored.openai_api_key || '';
+        apiKey = stored.encrypted_openai_api_key || stored.openai_api_key || '';
       }
       break;
   }
