@@ -23,9 +23,25 @@ export function CareerPathVisualizer({ profile }: CareerPathVisualizerProps) {
     try {
       const result = await analyzeCareer(profile);
       setAnalysis(result);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Career analysis error:', error);
-      alert('Failed to analyze career');
+      
+      // Show helpful error message
+      let errorMessage = 'Failed to analyze career.';
+      
+      if (error.message) {
+        if (error.message.includes('No API key found')) {
+          errorMessage = '❌ No API key found.\n\nPlease configure your OpenAI API key in Settings (⚙️ button).';
+        } else if (error.message.includes('rate limit')) {
+          errorMessage = '⏱️ Rate limit exceeded.\n\nPlease wait a moment and try again.';
+        } else if (error.message.includes('quota')) {
+          errorMessage = '💳 API quota exceeded.\n\nPlease check your OpenAI account.';
+        } else {
+          errorMessage = '❌ Error: ' + error.message;
+        }
+      }
+      
+      alert(errorMessage);
     }
     setLoading(false);
   };
@@ -401,7 +417,7 @@ export function CareerPathVisualizer({ profile }: CareerPathVisualizerProps) {
           </div>
           <div>
             <div style={{ fontSize: 12, opacity: 0.9, marginBottom: 4 }}>KEY STRENGTHS</div>
-            <div style={{ fontSize: 20, fontWeight: 700 }}>{analysis.keyStrengths.length}</div>
+            <div style={{ fontSize: 20, fontWeight: 700 }}>{analysis.keyStrengths?.length || 0}</div>
           </div>
         </div>
       </div>
@@ -417,7 +433,7 @@ export function CareerPathVisualizer({ profile }: CareerPathVisualizerProps) {
       </div>
 
       {/* Skill Gaps */}
-      {analysis.skillGaps.length > 0 && (
+      {analysis.skillGaps && analysis.skillGaps.length > 0 && (
         <div style={{
           background: 'white',
           borderRadius: 12,

@@ -386,7 +386,7 @@ export function CoverLetterBuilder({ profile, job, onGenerate, onClose, language
                     fontSize: 11,
                     fontWeight: 500,
                   }}>
-                    {selectedTemplate.structure.body.length} paragraphs
+                    {selectedTemplate.structure?.body?.length || 0} paragraphs
                   </span>
                   <span style={{
                     padding: '4px 10px',

@@ -35,9 +35,23 @@ export function SalaryNegotiationUI({ profile, job }: SalaryNegotiationUIProps) 
       const result = await researchSalary(profile, job, location || 'United States');
       setResearch(result);
       setStep('strategy');
-    } catch (error) {
+    } catch (error: any) {
       console.error('Research error:', error);
-      alert('Failed to research salary');
+      
+      let errorMessage = 'Failed to research salary.';
+      if (error.message) {
+        if (error.message.includes('No API key found')) {
+          errorMessage = '❌ No API key found.\n\nPlease configure your OpenAI API key in Settings (⚙️ button).';
+        } else if (error.message.includes('rate limit')) {
+          errorMessage = '⏱️ Rate limit exceeded.\n\nPlease wait a moment and try again.';
+        } else if (error.message.includes('quota')) {
+          errorMessage = '💳 API quota exceeded.\n\nPlease check your OpenAI account.';
+        } else {
+          errorMessage = '❌ Error: ' + error.message;
+        }
+      }
+      
+      alert(errorMessage);
     }
     setLoading(false);
   };
@@ -53,9 +67,17 @@ export function SalaryNegotiationUI({ profile, job }: SalaryNegotiationUIProps) 
         currentSalary ? parseInt(currentSalary) : undefined
       );
       setStrategy(result);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Strategy error:', error);
-      alert('Failed to generate strategy');
+      
+      let errorMessage = 'Failed to generate strategy.';
+      if (error.message && error.message.includes('No API key')) {
+        errorMessage = 'No API key found. Please configure your API key in Settings.';
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      
+      alert(errorMessage);
     }
     setLoading(false);
   };
@@ -73,9 +95,17 @@ export function SalaryNegotiationUI({ profile, job }: SalaryNegotiationUIProps) 
         strengths: strategy.strengths.slice(0, 3)
       });
       setGeneratedEmail(result);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Email generation error:', error);
-      alert('Failed to generate email');
+      
+      let errorMessage = 'Failed to generate email.';
+      if (error.message && error.message.includes('No API key')) {
+        errorMessage = 'No API key found. Please configure your API key in Settings.';
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      
+      alert(errorMessage);
     }
     setLoading(false);
   };

@@ -58,13 +58,28 @@ export function AIChat({ profile, job, onProfileUpdate, onClose }: AIChatProps) 
       if (aiTurn.context?.changes && aiTurn.context.changes.length > 0) {
         setPendingChanges(aiTurn.context.changes);
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Chat error:', error);
-      // Add error message
+      
+      // Add error message with details
+      let errorMessage = '❌ Sorry, I encountered an error.';
+      
+      if (error.message) {
+        if (error.message.includes('No API key found')) {
+          errorMessage = '❌ No API key found.\n\nPlease configure your OpenAI API key:\n1. Click the ⚙️ Settings button\n2. Enter your API key\n3. Click Save and try again';
+        } else if (error.message.includes('rate limit')) {
+          errorMessage = '⏱️ Rate limit exceeded. Please wait 20-60 seconds and try again.';
+        } else if (error.message.includes('quota')) {
+          errorMessage = '💳 API quota exceeded. Please add credits to your OpenAI account.';
+        } else {
+          errorMessage = `❌ Error: ${error.message}`;
+        }
+      }
+      
       const errorTurn: ConversationTurn = {
         id: crypto.randomUUID(),
         role: 'assistant',
-        content: '❌ Sorry, I encountered an error. Please check your API settings and try again.',
+        content: errorMessage,
         timestamp: new Date()
       };
       setTurns([...turns, errorTurn]);
