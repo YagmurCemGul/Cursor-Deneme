@@ -1,13 +1,16 @@
 import React, { useState } from 'react';
 import { Experience } from '../types';
 import { countries, citiesByCountry } from '../data/locations';
+import { t, Lang } from '../i18n';
+import { RichTextEditor } from './RichTextEditor';
 
 interface ExperienceFormProps {
   experiences: Experience[];
   onChange: (experiences: Experience[]) => void;
+  language: Lang;
 }
 
-export const ExperienceForm: React.FC<ExperienceFormProps> = ({ experiences, onChange }) => {
+export const ExperienceForm: React.FC<ExperienceFormProps> = ({ experiences, onChange, language }) => {
   const [, setIsAdding] = useState(false);
 
   const handleAdd = () => {
@@ -57,16 +60,16 @@ export const ExperienceForm: React.FC<ExperienceFormProps> = ({ experiences, onC
   return (
     <div className="section">
       <h2 className="section-title">
-        💼 Experience
+        💼 {t(language, 'experience.section')}
         <button className="btn btn-primary btn-icon" onClick={handleAdd}>
-          + Add Experience
+          + {t(language, 'experience.add')}
         </button>
       </h2>
       
       {experiences.length === 0 ? (
         <div className="empty-state">
           <div className="empty-state-icon">💼</div>
-          <div className="empty-state-text">No work experience added yet. Click "Add Experience" to get started!</div>
+          <div className="empty-state-text">{t(language, 'experience.emptyState')}</div>
         </div>
       ) : (
         <div className="card-list">
@@ -74,19 +77,19 @@ export const ExperienceForm: React.FC<ExperienceFormProps> = ({ experiences, onC
             <div key={exp.id} className="experience-item">
               <div className="experience-item-header">
                 <span style={{ fontWeight: 600, color: '#64748b' }}>
-                  Experience #{index + 1}
+                  {t(language, 'experience.number')} #{index + 1}
                 </span>
                 <button 
                   className="btn btn-danger btn-icon"
                   onClick={() => handleRemove(exp.id)}
                 >
-                  🗑️ Remove
+                  🗑️ {t(language, 'common.remove')}
                 </button>
               </div>
               
               <div className="form-row">
                 <div className="form-group">
-                  <label className="form-label">Job Title *</label>
+                  <label className="form-label">{t(language, 'experience.jobTitle')} *</label>
                   <input
                     type="text"
                     className="form-input"
@@ -97,24 +100,24 @@ export const ExperienceForm: React.FC<ExperienceFormProps> = ({ experiences, onC
                 </div>
                 
                 <div className="form-group">
-                  <label className="form-label">Employment Type</label>
+                  <label className="form-label">{t(language, 'experience.employmentType')}</label>
                   <select
                     className="form-select"
                     value={exp.employmentType}
                     onChange={(e) => handleUpdate(exp.id, 'employmentType', e.target.value)}
                   >
-                    <option value="">Select Type</option>
-                    <option value="Full-time">Full-time</option>
-                    <option value="Part-time">Part-time</option>
-                    <option value="Contract">Contract</option>
-                    <option value="Freelance">Freelance</option>
-                    <option value="Internship">Internship</option>
+                    <option value="">{t(language, 'experience.selectType')}</option>
+                    <option value="Full-time">{t(language, 'experience.employmentTypes.fulltime')}</option>
+                    <option value="Part-time">{t(language, 'experience.employmentTypes.parttime')}</option>
+                    <option value="Contract">{t(language, 'experience.employmentTypes.contract')}</option>
+                    <option value="Freelance">{t(language, 'experience.employmentTypes.freelance')}</option>
+                    <option value="Internship">{t(language, 'experience.employmentTypes.internship')}</option>
                   </select>
                 </div>
               </div>
               
               <div className="form-group">
-                <label className="form-label">Company or Organization *</label>
+                <label className="form-label">{t(language, 'experience.company')} *</label>
                 <input
                   type="text"
                   className="form-input"
@@ -126,7 +129,7 @@ export const ExperienceForm: React.FC<ExperienceFormProps> = ({ experiences, onC
               
               <div className="form-row">
                 <div className="form-group">
-                  <label className="form-label">Start Date *</label>
+                  <label className="form-label">{t(language, 'experience.start')} *</label>
                   <input
                     type="month"
                     className="form-input"
@@ -136,20 +139,20 @@ export const ExperienceForm: React.FC<ExperienceFormProps> = ({ experiences, onC
                 </div>
                 
                 <div className="form-group">
-                  <label className="form-label">End Date</label>
+                  <label className="form-label">{t(language, 'experience.end')}</label>
                   <input
                     type="month"
                     className="form-input"
                     value={exp.endDate}
                     onChange={(e) => handleUpdate(exp.id, 'endDate', e.target.value)}
-                    placeholder="Present"
+                    placeholder={t(language, 'experience.present')}
                   />
                 </div>
               </div>
               
               <div className="form-row">
                 <div className="form-group">
-                  <label className="form-label">Country</label>
+                  <label className="form-label">{t(language, 'experience.country')}</label>
                   <select
                     className="form-select"
                     value={exp.country || ''}
@@ -161,14 +164,14 @@ export const ExperienceForm: React.FC<ExperienceFormProps> = ({ experiences, onC
                       handleUpdate(exp.id, 'location', country && firstCity ? `${firstCity}, ${country}` : country || '');
                     }}
                   >
-                    <option value="">Select Country</option>
+                    <option value="">{t(language, 'experience.selectCountry')}</option>
                     {countries.map((c) => (
                       <option key={c} value={c}>{c}</option>
                     ))}
                   </select>
                 </div>
                 <div className="form-group">
-                  <label className="form-label">City</label>
+                  <label className="form-label">{t(language, 'experience.city')}</label>
                   <select
                     className="form-select"
                     value={exp.city || ''}
@@ -179,7 +182,7 @@ export const ExperienceForm: React.FC<ExperienceFormProps> = ({ experiences, onC
                     }}
                     disabled={!exp.country}
                   >
-                    <option value="">{exp.country ? 'Select City' : 'Select Country First'}</option>
+                    <option value="">{exp.country ? t(language, 'experience.selectCity') : t(language, 'experience.selectCountryFirst')}</option>
                     {(exp.country ? citiesByCountry[exp.country] || [] : []).map((ct) => (
                       <option key={ct} value={ct}>{ct}</option>
                     ))}
@@ -188,52 +191,39 @@ export const ExperienceForm: React.FC<ExperienceFormProps> = ({ experiences, onC
               </div>
 
               <div className="form-group">
-                <label className="form-label">Location Type</label>
+                <label className="form-label">{t(language, 'experience.locationType')}</label>
                 <select
                   className="form-select"
                   value={exp.locationType}
                   onChange={(e) => handleUpdate(exp.id, 'locationType', e.target.value)}
                 >
-                  <option value="">Select Type</option>
-                  <option value="On-site">On-site</option>
-                  <option value="Remote">Remote</option>
-                  <option value="Hybrid">Hybrid</option>
+                  <option value="">{t(language, 'experience.selectType')}</option>
+                  <option value="On-site">{t(language, 'experience.locationTypes.onsite')}</option>
+                  <option value="Remote">{t(language, 'experience.locationTypes.remote')}</option>
+                  <option value="Hybrid">{t(language, 'experience.locationTypes.hybrid')}</option>
                 </select>
               </div>
               
               <div className="form-group">
-                <label className="form-label">Description</label>
-                <textarea
-                  className="form-textarea"
+                <label className="form-label">{t(language, 'experience.description')}</label>
+                <RichTextEditor
                   value={exp.description}
-                  onChange={(e) => handleUpdate(exp.id, 'description', e.target.value)}
-                  placeholder="Use bullets like: \n• Improved X by Y% \n• Led Z project"
-                  onPaste={(e) => {
-                    const text = e.clipboardData.getData('text');
-                    if (text.includes('•') || text.includes('\n- ') || text.includes('\n* ')) {
-                      e.preventDefault();
-                      const normalized = text
-                        .split(/\n|•|^-\s|^\*\s/m)
-                        .map(s => s.trim())
-                        .filter(Boolean)
-                        .map(s => `• ${s}`)
-                        .join('\n');
-                      handleUpdate(exp.id, 'description', (exp.description ? exp.description + '\n' : '') + normalized);
-                    }
-                  }}
+                  onChange={(value) => handleUpdate(exp.id, 'description', value)}
+                  placeholder={t(language, 'experience.descriptionPlaceholder')}
+                  language={language}
+                  maxLength={2000}
+                  showWordCount={true}
+                  templateType="experience"
                 />
-                <div>
-                  <button className="btn btn-secondary" onClick={(e) => { e.preventDefault(); handleUpdate(exp.id, 'description', (exp.description ? exp.description + '\n' : '') + '• '); }}>+ Add Bullet</button>
-                </div>
               </div>
               
               <div className="form-group">
-                <label className="form-label">Skills</label>
+                <label className="form-label">{t(language, 'experience.skills')}</label>
                 <div className="skills-input-container">
                   <input
                     type="text"
                     className="form-input"
-                    placeholder="Add a skill or paste: skill1, skill2"
+                    placeholder={t(language, 'experience.skillsPlaceholder')}
                     onKeyPress={(e) => {
                       if (e.key === 'Enter') {
                         e.preventDefault();
@@ -272,7 +262,7 @@ export const ExperienceForm: React.FC<ExperienceFormProps> = ({ experiences, onC
           ))}
           {/* Add button at the bottom of all experiences */}
           <div className="add-button-container">
-            <button className="btn btn-primary btn-icon" onClick={handleAdd}>+ Add Experience</button>
+            <button className="btn btn-primary btn-icon" onClick={handleAdd}>+ {t(language, 'experience.add')}</button>
           </div>
         </div>
       )}

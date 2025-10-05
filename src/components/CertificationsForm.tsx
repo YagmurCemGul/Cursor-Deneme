@@ -2,7 +2,6 @@ import React from 'react';
 import { Certification } from '../types';
 import { t, Lang } from '../i18n';
 import { RichTextEditor } from './RichTextEditor';
-import { LocationSelector } from './LocationSelector';
 
 interface CertificationsFormProps {
   certifications: Certification[];
@@ -22,10 +21,7 @@ export const CertificationsForm: React.FC<CertificationsFormProps> = ({ certific
       credentialId: '',
       credentialUrl: '',
       description: '',
-      skills: [],
-      country: '',
-      city: '',
-      location: ''
+      skills: []
     };
     onChange([...certifications, newCert]);
   };
@@ -160,20 +156,6 @@ export const CertificationsForm: React.FC<CertificationsFormProps> = ({ certific
                   />
                 </div>
               </div>
-
-              <LocationSelector
-                country={cert.country || ''}
-                city={cert.city || ''}
-                onCountryChange={(country) => {
-                  handleUpdate(cert.id, 'country', country);
-                  handleUpdate(cert.id, 'location', country && cert.city ? `${cert.city}, ${country}` : country || '');
-                }}
-                onCityChange={(city) => {
-                  handleUpdate(cert.id, 'city', city);
-                  handleUpdate(cert.id, 'location', cert.country && city ? `${city}, ${cert.country}` : cert.country || '');
-                }}
-                language={language}
-              />
 
               <div className="form-group">
                 <label className="form-label">{t(language, 'certs.description')}</label>

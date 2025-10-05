@@ -21,7 +21,7 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
   maxLength = 2000,
   showWordCount = true,
   onClear,
-  templateType,
+  templateType
 }) => {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const [cursorPos, setCursorPos] = useState<number>(0);
@@ -48,7 +48,7 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
 
     const newValue = currentValue.substring(0, start) + textToInsert + currentValue.substring(end);
     onChange(newValue);
-
+    
     // Set cursor position after the inserted text
     const newCursorPos = start + textToInsert.length;
     setCursorPos(newCursorPos);
@@ -60,12 +60,12 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
 
     const start = textarea.selectionStart;
     const currentValue = value;
-
+    
     // Check if we're at the start of a line
     const beforeCursor = currentValue.substring(0, start);
     const lastNewline = beforeCursor.lastIndexOf('\n');
     const currentLine = beforeCursor.substring(lastNewline + 1);
-
+    
     if (currentLine.trim() === '') {
       // At the start of a line or line is empty
       insertAtCursor('• ');
@@ -81,25 +81,25 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
 
     const start = textarea.selectionStart;
     const currentValue = value;
-
+    
     // Check if we're at the start of a line
     const beforeCursor = currentValue.substring(0, start);
     const lastNewline = beforeCursor.lastIndexOf('\n');
     const currentLine = beforeCursor.substring(lastNewline + 1);
-
+    
     // Count existing numbered items to determine next number
     const lines = beforeCursor.split('\n');
     let lastNumber = 0;
     for (let i = lines.length - 1; i >= 0; i--) {
-      const match = lines[i]?.match(/^(\d+)\.\s/);
-      if (match && match[1]) {
+      const match = lines[i].match(/^(\d+)\.\s/);
+      if (match) {
         lastNumber = parseInt(match[1]);
         break;
       }
     }
-
+    
     const nextNumber = lastNumber + 1;
-
+    
     if (currentLine.trim() === '') {
       insertAtCursor(`${nextNumber}. `);
     } else {
@@ -113,7 +113,7 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
 
     const start = textarea.selectionStart;
     const end = textarea.selectionEnd;
-
+    
     if (start === end) {
       // No selection, just insert markers
       insertAtCursor('****');
@@ -121,8 +121,7 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
     } else {
       // Wrap selection
       const selectedText = value.substring(start, end);
-      const newValue =
-        value.substring(0, start) + '**' + selectedText + '**' + value.substring(end);
+      const newValue = value.substring(0, start) + '**' + selectedText + '**' + value.substring(end);
       onChange(newValue);
       setCursorPos(end + 4);
     }
@@ -134,7 +133,7 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
 
     const start = textarea.selectionStart;
     const end = textarea.selectionEnd;
-
+    
     if (start === end) {
       // No selection, just insert markers
       insertAtCursor('__');
@@ -150,12 +149,12 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
 
   const handleClearFormatting = () => {
     // Remove markdown formatting
-    const cleanedValue = value
+    let cleanedValue = value
       .replace(/\*\*/g, '') // Remove bold
-      .replace(/_/g, '') // Remove italic
+      .replace(/_/g, '')     // Remove italic
       .replace(/^•\s/gm, '') // Remove bullets
       .replace(/^\d+\.\s/gm, ''); // Remove numbered lists
-
+    
     onChange(cleanedValue);
   };
 
@@ -169,15 +168,15 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
   const handlePaste = (e: React.ClipboardEvent) => {
     const text = e.clipboardData.getData('text');
     const html = e.clipboardData.getData('text/html');
-
+    
     // If HTML is available, try to extract formatted content
     if (html) {
       e.preventDefault();
-
+      
       // Extract list items from HTML
       const tempDiv = document.createElement('div');
       tempDiv.innerHTML = html;
-
+      
       const listItems = tempDiv.querySelectorAll('li');
       if (listItems.length > 0) {
         const lines: string[] = [];
@@ -194,27 +193,22 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
         insertAtCursor(lines.join('\n'));
         return;
       }
-
+      
       // Extract paragraphs
       const paragraphs = tempDiv.querySelectorAll('p');
       if (paragraphs.length > 0) {
-        const lines = Array.from(paragraphs).map((p) => p.textContent?.trim() || '');
+        const lines = Array.from(paragraphs).map(p => p.textContent?.trim() || '');
         insertAtCursor(lines.join('\n'));
         return;
       }
     }
-
+    
     // Fallback to text-based detection
-    if (
-      text.includes('•') ||
-      text.includes('\n- ') ||
-      text.includes('\n* ') ||
-      /^\d+\.\s/.test(text)
-    ) {
+    if (text.includes('•') || text.includes('\n- ') || text.includes('\n* ') || /^\d+\.\s/.test(text)) {
       e.preventDefault();
       const normalized = text
         .split(/\n/)
-        .map((line) => {
+        .map(line => {
           line = line.trim();
           // Handle different bullet formats
           if (line.startsWith('- ') || line.startsWith('* ')) {
@@ -233,7 +227,7 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
         })
         .filter(Boolean)
         .join('\n');
-
+      
       insertAtCursor(normalized);
     }
   };
@@ -250,51 +244,51 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
     <div className="rich-text-editor">
       <div className="editor-toolbar">
         <div className="toolbar-group">
-          <button
+          <button 
             type="button"
-            className="toolbar-btn"
+            className="toolbar-btn" 
             onClick={handleFormatBold}
             title={t(language, 'editor.bold')}
           >
             <strong>B</strong>
           </button>
-          <button
+          <button 
             type="button"
-            className="toolbar-btn"
+            className="toolbar-btn" 
             onClick={handleFormatItalic}
             title={t(language, 'editor.italic')}
           >
             <em>I</em>
           </button>
           <span className="toolbar-divider"></span>
-          <button
+          <button 
             type="button"
-            className="toolbar-btn"
+            className="toolbar-btn" 
             onClick={handleAddBullet}
             title={t(language, 'editor.bulletList')}
           >
             • {t(language, 'editor.bullet')}
           </button>
-          <button
+          <button 
             type="button"
-            className="toolbar-btn"
+            className="toolbar-btn" 
             onClick={handleAddNumberedList}
             title={t(language, 'editor.numberedList')}
           >
             1. {t(language, 'editor.numbered')}
           </button>
           <span className="toolbar-divider"></span>
-          <button
+          <button 
             type="button"
-            className="toolbar-btn toolbar-btn-warning"
+            className="toolbar-btn toolbar-btn-warning" 
             onClick={handleClearFormatting}
             title={t(language, 'editor.clearFormatting')}
           >
             {t(language, 'editor.clearFormat')}
           </button>
-          <button
+          <button 
             type="button"
-            className="toolbar-btn toolbar-btn-danger"
+            className="toolbar-btn toolbar-btn-danger" 
             onClick={handleClear}
             title={t(language, 'editor.clearAll')}
           >
@@ -309,7 +303,7 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
           />
         )}
       </div>
-
+      
       <textarea
         ref={textareaRef}
         className="form-textarea rich-textarea"
@@ -323,7 +317,7 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
           setCursorPos(target.selectionStart);
         }}
       />
-
+      
       {showWordCount && (
         <div className="editor-footer">
           <div className="editor-stats">
@@ -335,7 +329,9 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
             </span>
           </div>
           <div className="editor-hints">
-            <span className="hint-text">💡 {t(language, 'editor.hint')}</span>
+            <span className="hint-text">
+              💡 {t(language, 'editor.hint')}
+            </span>
           </div>
         </div>
       )}

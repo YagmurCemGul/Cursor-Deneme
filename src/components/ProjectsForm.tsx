@@ -2,7 +2,6 @@ import React from 'react';
 import { Project } from '../types';
 import { t, Lang } from '../i18n';
 import { RichTextEditor } from './RichTextEditor';
-import { LocationSelector } from './LocationSelector';
 
 interface ProjectsFormProps {
   projects: Project[];
@@ -20,10 +19,7 @@ export const ProjectsForm: React.FC<ProjectsFormProps> = ({ projects, onChange, 
       startDate: '',
       endDate: '',
       currentlyWorking: false,
-      associatedWith: '',
-      country: '',
-      city: '',
-      location: ''
+      associatedWith: ''
     };
     onChange([...projects, newProject]);
   };
@@ -154,20 +150,6 @@ export const ProjectsForm: React.FC<ProjectsFormProps> = ({ projects, onChange, 
                   placeholder={t(language, 'projects.associatedPlaceholder')}
                 />
               </div>
-
-              <LocationSelector
-                country={proj.country || ''}
-                city={proj.city || ''}
-                onCountryChange={(country) => {
-                  handleUpdate(proj.id, 'country', country);
-                  handleUpdate(proj.id, 'location', country && proj.city ? `${proj.city}, ${country}` : country || '');
-                }}
-                onCityChange={(city) => {
-                  handleUpdate(proj.id, 'city', city);
-                  handleUpdate(proj.id, 'location', proj.country && city ? `${city}, ${proj.country}` : proj.country || '');
-                }}
-                language={language}
-              />
               
               <div className="form-group">
                 <label className="form-label">{t(language, 'projects.skills')}</label>

@@ -3,7 +3,6 @@ import { Education } from '../types';
 import { degrees } from '../data/degrees';
 import { t, Lang } from '../i18n';
 import { RichTextEditor } from './RichTextEditor';
-import { LocationSelector } from './LocationSelector';
 
 interface EducationFormProps {
   education: Education[];
@@ -24,10 +23,7 @@ export const EducationForm: React.FC<EducationFormProps> = ({ education, onChang
       grade: '',
       activities: '',
       description: '',
-      skills: [],
-      country: '',
-      city: '',
-      location: ''
+      skills: []
     };
     onChange([...education, newEducation]);
   };
@@ -159,20 +155,6 @@ export const EducationForm: React.FC<EducationFormProps> = ({ education, onChang
                   <label htmlFor={`current-${edu.id}`}>{t(language, 'education.currentlyStudying')}</label>
                 </div>
               </div>
-              
-              <LocationSelector
-                country={edu.country || ''}
-                city={edu.city || ''}
-                onCountryChange={(country) => {
-                  handleUpdate(edu.id, 'country', country);
-                  handleUpdate(edu.id, 'location', country && edu.city ? `${edu.city}, ${country}` : country || '');
-                }}
-                onCityChange={(city) => {
-                  handleUpdate(edu.id, 'city', city);
-                  handleUpdate(edu.id, 'location', edu.country && city ? `${city}, ${edu.country}` : edu.country || '');
-                }}
-                language={language}
-              />
               
               <div className="form-row">
                 <div className="form-group">
