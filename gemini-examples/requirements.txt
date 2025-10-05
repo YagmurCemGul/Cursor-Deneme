@@ -1,0 +1,8 @@
+# Google Gemini Python API Requirements
+# pip install -r requirements.txt
+
+google-generativeai>=0.3.2
+python-dotenv>=1.0.0
+pillow>=10.1.0
+requests>=2.31.0
+rich>=13.7.0
