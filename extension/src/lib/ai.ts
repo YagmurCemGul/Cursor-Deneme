@@ -1,6 +1,8 @@
 import type { ResumeProfile, JobPost, AtsOptimization } from './types';
 import { loadOptions } from './storage';
 import { generateIndustryPrompt, suggestIndustry, getIndustryPrompt } from './promptLibrary';
+import { analyzeJobPosting } from './jobAnalyzer';
+import { tailorResumeToJob } from './resumeTailoring';
 
 export type GeneratedResume = {
   text: string;
@@ -70,6 +72,10 @@ export async function generateAtsResume(
   
   const industry = getIndustryPrompt(detectedIndustry);
   
+  // Analyze job context for intelligent tailoring
+  const jobContext = analyzeJobPosting(job.pastedText, job.title);
+  const tailoringResult = tailorResumeToJob(profile, job.pastedText, job.title, false);
+  
   // Create profile summary for context
   const profileSummary = `
 Name: ${profile.personal.firstName} ${profile.personal.lastName}
@@ -100,23 +106,44 @@ ${ACTION_VERBS}`;
 CANDIDATE FULL PROFILE:
 ${JSON.stringify(profile, null, 2)}
 
+CONTEXT-AWARE INSIGHTS:
+- Match Score: ${tailoringResult.analysis.overallMatchScore}%
+- Required Skills Present: ${tailoringResult.analysis.skillMatches.filter(m => m.importance === 'required' && m.userHasIt).length}/${tailoringResult.analysis.skillMatches.filter(m => m.importance === 'required').length}
+- Experience Level Required: ${jobContext.experienceLevel}
+- Company Culture: ${jobContext.companyCulture.join(', ')}
+- Must-Have Keywords: ${jobContext.mustHaveKeywords.slice(0, 10).join(', ')}
+- Key Strengths to Emphasize: ${tailoringResult.strengthAreas.slice(0, 5).join(', ')}
+- Important Phrases from Job: ${jobContext.importantPhrases.slice(0, 3).join('; ')}
+
+TAILORING PRIORITIES:
+${tailoringResult.suggestions.slice(0, 5).map((s, i) => `${i + 1}. ${s.title}: ${s.description}`).join('\n')}
+
 TASK:
 Generate a professional, ATS-optimized resume in Markdown format with these sections:
 1. Professional Summary (3-4 lines, focused on ${industry.resumeStructure.summaryFocus})
+   - MUST naturally incorporate: ${jobContext.mustHaveKeywords.slice(0, 5).join(', ')}
+   - Emphasize: ${tailoringResult.strengthAreas.slice(0, 3).join(', ')}
 2. Skills (${industry.resumeStructure.skillsPresentation})
+   - Prioritize required skills: ${jobContext.requiredSkills.slice(0, 8).join(', ')}
+   - Order: Required skills first, then preferred, then additional
 3. Work Experience (emphasis on: ${industry.resumeStructure.experienceEmphasis.join(', ')})
+   - Use language from job posting: ${jobContext.importantPhrases.slice(0, 2).join('; ')}
+   - Align with responsibilities mentioned in job
 4. Education
 5. Certifications/Licenses (if applicable)
 6. Projects (if applicable)
 
 Use ${industry.name}-appropriate terminology and include metrics like: ${industry.successMetrics.slice(0, 3).join(', ')}.
 
-IMPORTANT: 
+CRITICAL INSTRUCTIONS: 
 - Do NOT include a resume title or "RESUME" header
 - Use bullet points for experiences
-- Quantify achievements with numbers
-- Match keywords from job description naturally
-- Maintain ${Math.round(industry.keywordDensity * 100)}% keyword density`;
+- Quantify ALL achievements with specific numbers
+- Naturally weave in keywords: ${jobContext.mustHaveKeywords.slice(0, 8).join(', ')}
+- Match the tone and language of the job posting
+- Maintain ${Math.round(industry.keywordDensity * 100)}% keyword density
+- Emphasize candidate's strengths that match job requirements
+- Use action verbs that align with ${industry.name} roles`;
 
   const text = await callOpenAI(system, prompt, { temperature: 0.4 });
 
@@ -133,7 +160,21 @@ IMPORTANT:
       kind: 'enhancement', 
       section: 'Skills', 
       after: 'Prioritized relevant skills for ATS', 
-      rationale: `Keyword density: ${Math.round(industry.keywordDensity * 100)}%` 
+      rationale: `Keyword density: ${Math.round(industry.keywordDensity * 100)}%, Match score: ${tailoringResult.analysis.overallMatchScore}%` 
+    },
+    { 
+      id: crypto.randomUUID(), 
+      kind: 'addition', 
+      section: 'Context Awareness', 
+      after: `Tailored to job requirements with ${tailoringResult.analysis.overallMatchScore}% match`, 
+      rationale: `Incorporated ${jobContext.mustHaveKeywords.length} must-have keywords and emphasized ${tailoringResult.strengthAreas.length} key strengths` 
+    },
+    { 
+      id: crypto.randomUUID(), 
+      kind: 'enhancement', 
+      section: 'Experience', 
+      after: 'Aligned experience descriptions with job responsibilities', 
+      rationale: `Matched ${tailoringResult.analysis.skillMatches.filter(m => m.userHasIt).length}/${tailoringResult.analysis.skillMatches.length} required skills` 
     }
   ];
 

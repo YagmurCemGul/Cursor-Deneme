@@ -15,6 +15,7 @@ import { CoverLetterBuilder } from '../components/CoverLetterBuilder';
 import { EmailComposer } from '../components/EmailComposer';
 import { BackupManager } from '../components/BackupManager';
 import { JobRecommendations } from '../components/JobRecommendations';
+import { JobMatchAnalyzer } from '../components/JobMatchAnalyzer';
 import { TemplateType, TemplateColors, TemplateFonts } from '../lib/templates';
 import { exportToPDF, exportToImage, printCV, generatePDFFilename } from '../lib/pdfExport';
 import { calculateATSScore, ATSScore } from '../lib/atsScoring';
@@ -1886,6 +1887,21 @@ Make it compelling, highlight key strengths, and use action-oriented language.`;
                     placeholder="e.g., Google"
                   />
                 </div>
+                
+                {/* Job Match Analyzer */}
+                {profile && job.pastedText && job.pastedText.length >= 100 && (
+                  <div style={{ marginTop: 24, paddingTop: 24, borderTop: '1px solid #e5e7eb' }}>
+                    <SectionHeader title="🎯 AI Match Analysis" />
+                    <p style={{ margin: '0 0 16px', color: '#64748b', fontSize: 14 }}>
+                      Real-time analysis of how well your profile matches this job
+                    </p>
+                    <JobMatchAnalyzer
+                      profile={profile}
+                      jobText={job.pastedText}
+                      jobTitle={job.title}
+                    />
+                  </div>
+                )}
                 <div className="row" style={{ justifyContent: 'space-between', gap: 12 }}>
                   <Button variant="secondary" onClick={() => saveJobPost(job)}>
                     💾 Save Job
