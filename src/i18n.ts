@@ -9,6 +9,9 @@ const dict: Record<string, Record<Lang, string>> = {
   'tabs.cover': { en: 'Cover Letter', tr: 'Niyet Mektubu' },
   'tabs.profiles': { en: 'Profiles', tr: 'Profiller' },
   'tabs.settings': { en: 'Settings', tr: 'Ayarlar' },
+  'tabs.analytics': { en: 'Analytics', tr: 'Analitik' },
+  'tabs.tools': { en: 'Tools', tr: 'Araçlar' },
+  'tabs.help': { en: 'Help', tr: 'Yardım' },
 
   'common.add': { en: 'Add', tr: 'Ekle' },
   'common.remove': { en: 'Remove', tr: 'Kaldır' },
@@ -316,7 +319,41 @@ const dict: Record<string, Record<Lang, string>> = {
   'settings.geminiInfo': { en: 'Google Gemini - Fast and cost-effective', tr: 'Google Gemini - Hızlı ve uygun maliyetli' },
   'settings.claudeInfo': { en: 'Anthropic Claude - Great for detailed analysis', tr: 'Anthropic Claude - Detaylı analiz için harika' },
   'settings.mockMode': { en: 'Demo Mode (No API key required)', tr: 'Demo Modu (API anahtarı gerekmez)' },
-  'settings.mockModeDesc': { en: 'Currently running in demo mode with sample data', tr: 'Şu anda örnek verilerle demo modunda çalışıyor' }
+  'settings.mockModeDesc': { en: 'Currently running in demo mode with sample data', tr: 'Şu anda örnek verilerle demo modunda çalışıyor' },
+  
+  // Sub-sections
+  'subsection.aiSettings': { en: 'AI Settings', tr: 'YZ Ayarları' },
+  'subsection.googleDrive': { en: 'Google Drive', tr: 'Google Drive' },
+  'subsection.autoSync': { en: 'Auto Sync', tr: 'Otomatik Senkronizasyon' },
+  'subsection.export': { en: 'Export', tr: 'Dışa Aktar' },
+  'subsection.analytics': { en: 'Analytics', tr: 'Analitik' },
+  'subsection.errorMonitoring': { en: 'Error Monitoring', tr: 'Hata İzleme' },
+  'subsection.providerHealth': { en: 'Provider Health', tr: 'Sağlayıcı Sağlığı' },
+  'subsection.jobLibrary': { en: 'Job Library', tr: 'İş Kütüphanesi' },
+  'subsection.jobEditor': { en: 'Job Editor', tr: 'İş Editörü' },
+  'subsection.interviewQuestions': { en: 'Interview Questions', tr: 'Mülakat Soruları' },
+  'subsection.talentGap': { en: 'Talent Gap Analysis', tr: 'Yetenek Açığı Analizi' },
+  'subsection.jobTracker': { en: 'Job Tracker', tr: 'İş Takipçisi' },
+  'subsection.templates': { en: 'Template Manager', tr: 'Şablon Yöneticisi' },
+  'subsection.photoTools': { en: 'Photo Tools', tr: 'Fotoğraf Araçları' },
+  'subsection.photoComparison': { en: 'Photo Comparison', tr: 'Fotoğraf Karşılaştırma' },
+  'subsection.batchPhoto': { en: 'Batch Operations', tr: 'Toplu İşlemler' },
+  'subsection.cloudSync': { en: 'Cloud Sync', tr: 'Bulut Senkronizasyonu' },
+  'subsection.atsScore': { en: 'ATS Score', tr: 'ATS Skoru' },
+  'subsection.coverLetterSettings': { en: 'Cover Letter Settings', tr: 'Niyet Mektubu Ayarları' },
+  'subsection.coverLetterVersions': { en: 'Version History', tr: 'Versiyon Geçmişi' },
+  'subsection.setupWizard': { en: 'Setup Wizard', tr: 'Kurulum Sihirbazı' },
+  'subsection.guide': { en: 'Interactive Guide', tr: 'İnteraktif Rehber' },
+  'subsection.videoTutorial': { en: 'Video Tutorial', tr: 'Video Eğitim' },
+  'subsection.shortcuts': { en: 'Keyboard Shortcuts', tr: 'Klavye Kısayolları' },
+  'subsection.linkedinImport': { en: 'LinkedIn Import', tr: 'LinkedIn İçe Aktar' },
+  'subsection.share': { en: 'Share', tr: 'Paylaş' },
+  
+  // Button labels
+  'buttons.backToMain': { en: 'Back to Main Menu', tr: 'Ana Menüye Dön' },
+  'buttons.showWizard': { en: 'Show Setup Wizard', tr: 'Kurulum Sihirbazını Göster' },
+  'buttons.openGuide': { en: 'Open Guide', tr: 'Rehberi Aç' },
+  'buttons.viewAnalytics': { en: 'View Analytics', tr: 'Analitikleri Görüntüle' }
 };
 
 export function t(lang: Lang, key: string): string {

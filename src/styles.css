@@ -2504,3 +2504,81 @@ body:has(.app-container.dark) {
 .app-container.dark .location-search-input:focus {
   outline-color: #60a5fa;
 }
+
+/* Sub-section buttons */
+.sub-section-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 20px;
+  padding: 15px;
+  background: #f8fafc;
+  border-radius: 8px;
+}
+
+.app-container.dark .sub-section-buttons {
+  background: #0b1220;
+}
+
+.sub-section-btn {
+  padding: 10px 16px;
+  border: 2px solid #e2e8f0;
+  border-radius: 6px;
+  background: white;
+  color: #334155;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.sub-section-btn:hover {
+  background: #f1f5f9;
+  border-color: #2563eb;
+  color: #2563eb;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.1);
+}
+
+.sub-section-btn.active {
+  background: #2563eb;
+  border-color: #2563eb;
+  color: white;
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+}
+
+.app-container.dark .sub-section-btn {
+  background: #1f2937;
+  border-color: #374151;
+  color: #cbd5e1;
+}
+
+.app-container.dark .sub-section-btn:hover {
+  background: #374151;
+  border-color: #3b82f6;
+  color: #93c5fd;
+}
+
+.app-container.dark .sub-section-btn.active {
+  background: #3b82f6;
+  border-color: #3b82f6;
+  color: white;
+}
+
+/* Container styles for new tabs */
+.settings-container,
+.analytics-container,
+.tools-container,
+.help-container {
+  padding: 20px;
+}
+
+.settings-container .section,
+.analytics-container .section,
+.tools-container .section,
+.help-container .section {
+  margin-bottom: 0;
+}
