@@ -65,16 +65,16 @@
         "https://*.remote.co/*",
         "https://*.weworkremotely.com/*"
       ],
-      "js": ["src/content/content.ts"],
+      "js": ["content.js"],
       "run_at": "document_idle"
     }
   ],
   "background": {
-    "service_worker": "src/background/background.ts",
+    "service_worker": "background.js",
     "type": "module"
   },
   "action": {
-    "default_popup": "src/popup/index.html",
+    "default_popup": "popup.html",
     "default_icon": {
       "16": "icons/icon16.png",
       "48": "icons/icon48.png",
@@ -82,14 +82,14 @@
     }
   },
   "chrome_url_overrides": {
-    "newtab": "src/newtab/index.html"
+    "newtab": "newtab.html"
   },
   "icons": {
     "16": "icons/icon16.png",
     "48": "icons/icon48.png",
     "128": "icons/icon128.png"
   },
-  "options_page": "src/options/index.html",
+  "options_page": "options.html",
   "content_security_policy": {
     "extension_pages": "script-src 'self'; object-src 'self'"
   }
