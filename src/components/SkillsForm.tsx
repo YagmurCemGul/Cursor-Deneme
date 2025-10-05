@@ -18,7 +18,7 @@ export const SkillsForm: React.FC<SkillsFormProps> = ({ skills, onChange, langua
   };
 
   const handleRemoveSkill = (skillToRemove: string) => {
-    onChange(skills.filter((skill) => skill !== skillToRemove));
+    onChange(skills.filter(skill => skill !== skillToRemove));
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -30,8 +30,10 @@ export const SkillsForm: React.FC<SkillsFormProps> = ({ skills, onChange, langua
 
   return (
     <div className="section">
-      <h2 className="section-title">⚡ {t(language, 'skills.section')}</h2>
-
+      <h2 className="section-title">
+        ⚡ {t(language, 'skills.section')}
+      </h2>
+      
       <div className="skills-input-container">
         <input
           type="text"
@@ -44,10 +46,7 @@ export const SkillsForm: React.FC<SkillsFormProps> = ({ skills, onChange, langua
             const text = e.clipboardData.getData('text');
             if (text.includes(',') || text.includes(';') || text.includes('|')) {
               e.preventDefault();
-              const newOnes = text
-                .split(/[,;|]/)
-                .map((s) => s.trim())
-                .filter(Boolean);
+              const newOnes = text.split(/[,;|]/).map(s => s.trim()).filter(Boolean);
               const unique = Array.from(new Set([...skills, ...newOnes]));
               onChange(unique);
               setNewSkill('');
@@ -59,20 +58,23 @@ export const SkillsForm: React.FC<SkillsFormProps> = ({ skills, onChange, langua
           + {t(language, 'skills.addSkillBtn')}
         </button>
       </div>
-
+      
       {skills.length > 0 && (
         <div className="skills-tags">
           {skills.map((skill, index) => (
             <div key={index} className="skill-tag">
               {skill}
-              <span className="skill-tag-remove" onClick={() => handleRemoveSkill(skill)}>
+              <span 
+                className="skill-tag-remove" 
+                onClick={() => handleRemoveSkill(skill)}
+              >
                 ✕
               </span>
             </div>
           ))}
         </div>
       )}
-
+      
       {skills.length === 0 && (
         <div className="empty-state">
           <div className="empty-state-icon">⚡</div>
