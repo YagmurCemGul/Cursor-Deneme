@@ -1,53 +1,9 @@
 /**
  * Multi-AI Provider Support
  * Supports OpenAI, Google Gemini, and Anthropic Claude
- * 
- * Enhanced with:
- * - Timeout management
- * - Request caching
- * - Progress tracking
- * - Detailed logging
- * - Offline detection
  */
 
 import { CVData, ATSOptimization } from '../types';
-import { logger } from './logger';
-import { StorageService } from './storage';
-
-/**
- * Track provider usage and performance
- */
-async function trackProviderUsage(
-  provider: AIProvider,
-  operation: 'optimizeCV' | 'generateCoverLetter',
-  startTime: number,
-  success: boolean,
-  errorMessage?: string
-): Promise<void> {
-  const duration = Date.now() - startTime;
-  
-  // Save usage analytics
-  await StorageService.saveProviderUsage({
-    id: `${Date.now()}-${Math.random()}`,
-    provider,
-    operation,
-    timestamp: new Date().toISOString(),
-    success,
-    duration,
-    errorMessage,
-  });
-
-  // Save performance metrics
-  await StorageService.savePerformanceMetrics({
-    id: `${Date.now()}-${Math.random()}`,
-    provider,
-    operation,
-    timestamp: new Date().toISOString(),
-    duration,
-    success,
-    errorMessage,
-  });
-}
 
 /**
  * Retry helper for API calls with exponential backoff
@@ -58,13 +14,13 @@ async function retryWithBackoff<T>(
   initialDelay: number = 1000
 ): Promise<T> {
   let lastError: Error | null = null;
-
+  
   for (let attempt = 0; attempt <= maxRetries; attempt++) {
     try {
       return await fn();
     } catch (error: any) {
       lastError = error;
-
+      
       // Don't retry on authentication or validation errors
       if (
         error.message?.includes('Invalid API key') ||
@@ -74,26 +30,26 @@ async function retryWithBackoff<T>(
       ) {
         throw error;
       }
-
+      
       // Only retry on network errors or server errors
-      const shouldRetry =
+      const shouldRetry = 
         error.message?.includes('network') ||
         error.message?.includes('temporarily unavailable') ||
         error.message?.includes('503') ||
         error.message?.includes('502') ||
         error.message?.includes('504');
-
+      
       if (!shouldRetry || attempt === maxRetries) {
         throw error;
       }
-
+      
       // Exponential backoff
       const delay = initialDelay * Math.pow(2, attempt);
-      logger.info(`Retrying after ${delay}ms (attempt ${attempt + 1}/${maxRetries})...`);
-      await new Promise((resolve) => setTimeout(resolve, delay));
+      console.log(`Retrying after ${delay}ms (attempt ${attempt + 1}/${maxRetries})...`);
+      await new Promise(resolve => setTimeout(resolve, delay));
     }
   }
-
+  
   throw lastError || new Error('Retry failed');
 }
 
@@ -104,28 +60,11 @@ export interface AIConfig {
   apiKey: string;
   model?: string;
   temperature?: number;
-  timeout?: number; // Request timeout in milliseconds
-  enableCache?: boolean; // Enable response caching
-  cacheTTL?: number; // Cache time-to-live in milliseconds
-}
-
-export interface AIRequestOptions {
-  onProgress?: (progress: any) => void;
-  signal?: AbortSignal;
 }
 
 export interface AIProviderAdapter {
-  optimizeCV(
-    cvData: CVData,
-    jobDescription: string,
-    options?: AIRequestOptions
-  ): Promise<{ optimizedCV: CVData; optimizations: ATSOptimization[] }>;
-  generateCoverLetter(
-    cvData: CVData,
-    jobDescription: string,
-    extraPrompt?: string,
-    options?: AIRequestOptions
-  ): Promise<string>;
+  optimizeCV(cvData: CVData, jobDescription: string): Promise<{ optimizedCV: CVData; optimizations: ATSOptimization[] }>;
+  generateCoverLetter(cvData: CVData, jobDescription: string, extraPrompt?: string): Promise<string>;
 }
 
 /**
@@ -142,13 +81,10 @@ export class OpenAIProvider implements AIProviderAdapter {
     this.temperature = config.temperature || 0.3;
   }
 
-  async optimizeCV(
-    cvData: CVData,
-    jobDescription: string
-  ): Promise<{ optimizedCV: CVData; optimizations: ATSOptimization[] }> {
+  async optimizeCV(cvData: CVData, jobDescription: string): Promise<{ optimizedCV: CVData; optimizations: ATSOptimization[] }> {
     return retryWithBackoff(async () => {
       try {
-        const systemPrompt = `You are an expert ATS (Applicant Tracking System) optimizer and career consultant. 
+      const systemPrompt = `You are an expert ATS (Applicant Tracking System) optimizer and career consultant. 
 Your task is to analyze a CV against a job description and suggest specific, actionable optimizations that will:
 1. Increase keyword match with the job description
 2. Improve ATS compatibility
@@ -169,7 +105,7 @@ Return your response as a JSON object with this structure:
   ]
 }`;
 
-        const userPrompt = `Job Description:
+      const userPrompt = `Job Description:
 ${jobDescription}
 
 Current CV Data:
@@ -177,111 +113,93 @@ ${JSON.stringify(cvData, null, 2)}
 
 Please analyze this CV against the job description and provide specific optimizations.`;
 
-        const response = await fetch('https://api.openai.com/v1/chat/completions', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${this.apiKey}`,
-          },
-          body: JSON.stringify({
-            model: this.model,
-            messages: [
-              { role: 'system', content: systemPrompt },
-              { role: 'user', content: userPrompt },
-            ],
-            temperature: this.temperature,
-            response_format: { type: 'json_object' },
-          }),
-        });
+      const response = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${this.apiKey}`
+        },
+        body: JSON.stringify({
+          model: this.model,
+          messages: [
+            { role: 'system', content: systemPrompt },
+            { role: 'user', content: userPrompt }
+          ],
+          temperature: this.temperature,
+          response_format: { type: 'json_object' }
+        })
+      });
 
-        if (!response.ok) {
-          const errorText = await response.text();
-          let errorMessage = `OpenAI API error (${response.status})`;
-
-          try {
-            const errorData = JSON.parse(errorText);
-            if (errorData.error?.message) {
-              errorMessage += `: ${errorData.error.message}`;
-            }
-          } catch {
-            errorMessage += `: ${errorText.substring(0, 200)}`;
-          }
-
-          if (response.status === 401) {
-            throw new Error('Invalid API key. Please check your OpenAI API key in Settings.');
-          } else if (response.status === 429) {
-            throw new Error('API rate limit exceeded. Please wait a moment and try again.');
-          } else if (response.status === 400) {
-            throw new Error('Invalid request. Please check your CV data and job description.');
-          } else if (response.status >= 500) {
-            throw new Error('OpenAI service is temporarily unavailable. Please try again later.');
-          }
-
-          throw new Error(errorMessage);
-        }
-
-        const data = await response.json();
-        const content = data.choices?.[0]?.message?.content;
-
-        if (!content) {
-          throw new Error('No response from OpenAI. Please try again.');
-        }
-
-        let result;
+      if (!response.ok) {
+        const errorText = await response.text();
+        let errorMessage = `OpenAI API error (${response.status})`;
+        
         try {
-          result = JSON.parse(content);
-        } catch (parseError) {
-          logger.error('Failed to parse OpenAI response:', content);
-          throw new Error(
-            'Failed to parse AI response. The response format was invalid. Please try again.'
-          );
+          const errorData = JSON.parse(errorText);
+          if (errorData.error?.message) {
+            errorMessage += `: ${errorData.error.message}`;
+          }
+        } catch {
+          errorMessage += `: ${errorText.substring(0, 200)}`;
         }
-
-        if (!result.optimizations || !Array.isArray(result.optimizations)) {
-          throw new Error('Invalid response format from AI. Please try again.');
-        }
-
-        const optimizations: ATSOptimization[] = result.optimizations.map(
-          (opt: any, index: number) => ({
-            id: `opt-${Date.now()}-${index}`,
-            category: opt.category || 'General',
-            change: opt.change || 'Optimization',
-            originalText: opt.originalText || '',
-            optimizedText: opt.optimizedText || '',
-            applied: false,
-            section: opt.section || undefined,
-          })
-        );
-
-        // Track successful usage
-        await trackProviderUsage('openai', 'optimizeCV', startTime, true);
-
-        return {
-          optimizedCV: cvData,
-          optimizations,
-        };
-      } catch (error: any) {
-        logger.error('OpenAI optimization error:', error);
         
-        // Track failed usage
-        await trackProviderUsage('openai', 'optimizeCV', startTime, false, error.message);
-        
-        // Re-throw with more context if it's a generic error
-        if (error.message?.includes('fetch') || error.message?.includes('network')) {
-          throw new Error(
-            'Network error: Unable to connect to OpenAI API. Please check your internet connection.'
-          );
+        if (response.status === 401) {
+          throw new Error('Invalid API key. Please check your OpenAI API key in Settings.');
+        } else if (response.status === 429) {
+          throw new Error('API rate limit exceeded. Please wait a moment and try again.');
+        } else if (response.status === 400) {
+          throw new Error('Invalid request. Please check your CV data and job description.');
+        } else if (response.status >= 500) {
+          throw new Error('OpenAI service is temporarily unavailable. Please try again later.');
         }
-        throw error;
+        
+        throw new Error(errorMessage);
+      }
+
+      const data = await response.json();
+      const content = data.choices?.[0]?.message?.content;
+      
+      if (!content) {
+        throw new Error('No response from OpenAI. Please try again.');
+      }
+
+      let result;
+      try {
+        result = JSON.parse(content);
+      } catch (parseError) {
+        console.error('Failed to parse OpenAI response:', content);
+        throw new Error('Failed to parse AI response. The response format was invalid. Please try again.');
+      }
+
+      if (!result.optimizations || !Array.isArray(result.optimizations)) {
+        throw new Error('Invalid response format from AI. Please try again.');
+      }
+
+      const optimizations: ATSOptimization[] = result.optimizations.map((opt: any, index: number) => ({
+        id: `opt-${Date.now()}-${index}`,
+        category: opt.category || 'General',
+        change: opt.change || 'Optimization',
+        originalText: opt.originalText || '',
+        optimizedText: opt.optimizedText || '',
+        applied: false
+      }));
+
+      return {
+        optimizedCV: cvData,
+        optimizations
+      };
+    } catch (error: any) {
+      console.error('OpenAI optimization error:', error);
+      // Re-throw with more context if it's a generic error
+      if (error.message?.includes('fetch') || error.message?.includes('network')) {
+        throw new Error('Network error: Unable to connect to OpenAI API. Please check your internet connection.');
+      }
+      throw error;
       }
     });
   }
 
-  async generateCoverLetter(
-    cvData: CVData,
-    jobDescription: string,
-    extraPrompt?: string
-  ): Promise<string> {
+  async generateCoverLetter(cvData: CVData, jobDescription: string, extraPrompt?: string): Promise<string> {
     return retryWithBackoff(async () => {
       try {
         const systemPrompt = `You are an expert cover letter writer. Create compelling, personalized cover letters that:
@@ -293,7 +211,7 @@ Please analyze this CV against the job description and provide specific optimiza
 6. Avoid clichés and generic phrases
 7. Use a professional but engaging tone`;
 
-        const userPrompt = `Job Description:
+      const userPrompt = `Job Description:
 ${jobDescription}
 
 Candidate CV Data:
@@ -314,70 +232,61 @@ Please write a professional cover letter for this candidate. Include:
 
 Return only the cover letter text, no additional formatting or explanations.`;
 
-        const response = await fetch('https://api.openai.com/v1/chat/completions', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${this.apiKey}`,
-          },
-          body: JSON.stringify({
-            model: this.model,
-            messages: [
-              { role: 'system', content: systemPrompt },
-              { role: 'user', content: userPrompt },
-            ],
-            temperature: this.temperature,
-          }),
-        });
+      const response = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${this.apiKey}`
+        },
+        body: JSON.stringify({
+          model: this.model,
+          messages: [
+            { role: 'system', content: systemPrompt },
+            { role: 'user', content: userPrompt }
+          ],
+          temperature: this.temperature
+        })
+      });
 
-        if (!response.ok) {
-          const errorText = await response.text();
-          let errorMessage = `OpenAI API error (${response.status})`;
-
-          try {
-            const errorData = JSON.parse(errorText);
-            if (errorData.error?.message) {
-              errorMessage += `: ${errorData.error.message}`;
-            }
-          } catch {
-            errorMessage += `: ${errorText.substring(0, 200)}`;
+      if (!response.ok) {
+        const errorText = await response.text();
+        let errorMessage = `OpenAI API error (${response.status})`;
+        
+        try {
+          const errorData = JSON.parse(errorText);
+          if (errorData.error?.message) {
+            errorMessage += `: ${errorData.error.message}`;
           }
-
-          if (response.status === 401) {
-            throw new Error('Invalid API key. Please check your OpenAI API key in Settings.');
-          } else if (response.status === 429) {
-            throw new Error('API rate limit exceeded. Please wait a moment and try again.');
-          } else if (response.status === 400) {
-            throw new Error('Invalid request. Please check your CV data and job description.');
-          } else if (response.status >= 500) {
-            throw new Error('OpenAI service is temporarily unavailable. Please try again later.');
-          }
-
-          throw new Error(errorMessage);
+        } catch {
+          errorMessage += `: ${errorText.substring(0, 200)}`;
         }
-
-        const data = await response.json();
-        const content = data.choices?.[0]?.message?.content;
-
-        if (!content) {
-          throw new Error('No response from OpenAI. Please try again.');
+        
+        if (response.status === 401) {
+          throw new Error('Invalid API key. Please check your OpenAI API key in Settings.');
+        } else if (response.status === 429) {
+          throw new Error('API rate limit exceeded. Please wait a moment and try again.');
+        } else if (response.status === 400) {
+          throw new Error('Invalid request. Please check your CV data and job description.');
+        } else if (response.status >= 500) {
+          throw new Error('OpenAI service is temporarily unavailable. Please try again later.');
         }
+        
+        throw new Error(errorMessage);
+      }
 
-        // Track successful usage
-        await trackProviderUsage('openai', 'generateCoverLetter', startTime, true);
+      const data = await response.json();
+      const content = data.choices?.[0]?.message?.content;
+      
+      if (!content) {
+        throw new Error('No response from OpenAI. Please try again.');
+      }
 
-        return content.trim();
+      return content.trim();
       } catch (error: any) {
-        logger.error('OpenAI cover letter generation error:', error);
-        
-        // Track failed usage
-        await trackProviderUsage('openai', 'generateCoverLetter', startTime, false, error.message);
-        
+        console.error('OpenAI cover letter generation error:', error);
         // Re-throw with more context if it's a generic error
         if (error.message?.includes('fetch') || error.message?.includes('network')) {
-          throw new Error(
-            'Network error: Unable to connect to OpenAI API. Please check your internet connection.'
-          );
+          throw new Error('Network error: Unable to connect to OpenAI API. Please check your internet connection.');
         }
         throw error;
       }
@@ -399,14 +308,10 @@ export class GeminiProvider implements AIProviderAdapter {
     this.temperature = config.temperature || 0.3;
   }
 
-  async optimizeCV(
-    cvData: CVData,
-    jobDescription: string
-  ): Promise<{ optimizedCV: CVData; optimizations: ATSOptimization[] }> {
-    const startTime = Date.now();
+  async optimizeCV(cvData: CVData, jobDescription: string): Promise<{ optimizedCV: CVData; optimizations: ATSOptimization[] }> {
     return retryWithBackoff(async () => {
       try {
-        const prompt = `You are an expert ATS optimizer. Analyze this CV against the job description and provide specific optimizations.
+      const prompt = `You are an expert ATS optimizer. Analyze this CV against the job description and provide specific optimizations.
 
 Job Description:
 ${jobDescription}
@@ -421,137 +326,111 @@ Provide your response as a JSON object with an "optimizations" array. Each optim
 - optimizedText: The improved text
 - section: Which CV section this applies to`;
 
-        const response = await fetch(
-          `https://generativelanguage.googleapis.com/v1beta/models/${this.model}:generateContent?key=${this.apiKey}`,
-          {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              contents: [
-                {
-                  parts: [{ text: prompt }],
-                },
-              ],
-              generationConfig: {
-                temperature: this.temperature,
-                topK: 40,
-                topP: 0.95,
-              },
-            }),
+      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${this.model}:generateContent?key=${this.apiKey}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          contents: [{
+            parts: [{ text: prompt }]
+          }],
+          generationConfig: {
+            temperature: this.temperature,
+            topK: 40,
+            topP: 0.95,
           }
-        );
+        })
+      });
 
-        if (!response.ok) {
-          const errorText = await response.text();
-          let errorMessage = `Gemini API error (${response.status})`;
-
-          try {
-            const errorData = JSON.parse(errorText);
-            if (errorData.error?.message) {
-              errorMessage += `: ${errorData.error.message}`;
-            }
-          } catch {
-            errorMessage += `: ${errorText.substring(0, 200)}`;
-          }
-
-          if (response.status === 401 || response.status === 403) {
-            throw new Error('Invalid API key. Please check your Gemini API key in Settings.');
-          } else if (response.status === 429) {
-            throw new Error('API rate limit exceeded. Please wait a moment and try again.');
-          } else if (response.status >= 500) {
-            throw new Error('Gemini service is temporarily unavailable. Please try again later.');
-          }
-
-          throw new Error(errorMessage);
-        }
-
-        const data = await response.json();
-        const content = data.candidates?.[0]?.content?.parts?.[0]?.text;
-
-        if (!content) {
-          // Check for blocked content
-          if (data.candidates?.[0]?.finishReason === 'SAFETY') {
-            throw new Error(
-              'Content was blocked by safety filters. Please try with different content.'
-            );
-          }
-          throw new Error('No response from Gemini. Please check your input and try again.');
-        }
-
-        // Extract JSON from markdown code blocks if present
-        let jsonText = content;
-        const jsonMatch = content.match(/```(?:json)?\s*(\{[\s\S]*?\})\s*```/);
-        if (jsonMatch) {
-          jsonText = jsonMatch[1];
-        } else {
-          // Try to extract just the JSON object
-          const directJsonMatch = content.match(/\{[\s\S]*\}/);
-          if (directJsonMatch) {
-            jsonText = directJsonMatch[0];
-          }
-        }
-
-        let result;
+      if (!response.ok) {
+        const errorText = await response.text();
+        let errorMessage = `Gemini API error (${response.status})`;
+        
         try {
-          result = JSON.parse(jsonText);
-        } catch (parseError) {
-          logger.error('Failed to parse Gemini response:', content);
-          throw new Error(
-            'Failed to parse AI response. The response format was invalid. Please try again.'
-          );
+          const errorData = JSON.parse(errorText);
+          if (errorData.error?.message) {
+            errorMessage += `: ${errorData.error.message}`;
+          }
+        } catch {
+          errorMessage += `: ${errorText.substring(0, 200)}`;
         }
-
-        if (!result.optimizations || !Array.isArray(result.optimizations)) {
-          throw new Error('Invalid response format from AI. Please try again.');
+        
+        if (response.status === 401 || response.status === 403) {
+          throw new Error('Invalid API key. Please check your Gemini API key in Settings.');
+        } else if (response.status === 429) {
+          throw new Error('API rate limit exceeded. Please wait a moment and try again.');
+        } else if (response.status >= 500) {
+          throw new Error('Gemini service is temporarily unavailable. Please try again later.');
         }
+        
+        throw new Error(errorMessage);
+      }
 
-        const optimizations: ATSOptimization[] = result.optimizations.map(
-          (opt: any, index: number) => ({
-            id: `opt-${Date.now()}-${index}`,
-            category: opt.category || 'General',
-            change: opt.change || 'Optimization',
-            originalText: opt.originalText || '',
-            optimizedText: opt.optimizedText || '',
-            applied: false,
-            section: opt.section || undefined,
-          })
-        );
+      const data = await response.json();
+      const content = data.candidates?.[0]?.content?.parts?.[0]?.text;
+      
+      if (!content) {
+        // Check for blocked content
+        if (data.candidates?.[0]?.finishReason === 'SAFETY') {
+          throw new Error('Content was blocked by safety filters. Please try with different content.');
+        }
+        throw new Error('No response from Gemini. Please check your input and try again.');
+      }
 
-        // Track successful usage
-        await trackProviderUsage('gemini', 'optimizeCV', startTime, true);
+      // Extract JSON from markdown code blocks if present
+      let jsonText = content;
+      const jsonMatch = content.match(/```(?:json)?\s*(\{[\s\S]*?\})\s*```/);
+      if (jsonMatch) {
+        jsonText = jsonMatch[1];
+      } else {
+        // Try to extract just the JSON object
+        const directJsonMatch = content.match(/\{[\s\S]*\}/);
+        if (directJsonMatch) {
+          jsonText = directJsonMatch[0];
+        }
+      }
 
-        return {
-          optimizedCV: cvData,
-          optimizations,
-        };
+      let result;
+      try {
+        result = JSON.parse(jsonText);
+      } catch (parseError) {
+        console.error('Failed to parse Gemini response:', content);
+        throw new Error('Failed to parse AI response. The response format was invalid. Please try again.');
+      }
+
+      if (!result.optimizations || !Array.isArray(result.optimizations)) {
+        throw new Error('Invalid response format from AI. Please try again.');
+      }
+
+      const optimizations: ATSOptimization[] = result.optimizations.map((opt: any, index: number) => ({
+        id: `opt-${Date.now()}-${index}`,
+        category: opt.category || 'General',
+        change: opt.change || 'Optimization',
+        originalText: opt.originalText || '',
+        optimizedText: opt.optimizedText || '',
+        applied: false
+      }));
+
+      return {
+        optimizedCV: cvData,
+        optimizations
+      };
       } catch (error: any) {
-        logger.error('Gemini optimization error:', error);
-        
-        // Track failed usage
-        await trackProviderUsage('gemini', 'optimizeCV', startTime, false, error.message);
-        
+        console.error('Gemini optimization error:', error);
         // Re-throw with more context if it's a generic error
         if (error.message?.includes('fetch') || error.message?.includes('network')) {
-          throw new Error(
-            'Network error: Unable to connect to Gemini API. Please check your internet connection.'
-          );
+          throw new Error('Network error: Unable to connect to Gemini API. Please check your internet connection.');
         }
         throw error;
       }
     });
   }
 
-  async generateCoverLetter(
-    cvData: CVData,
-    jobDescription: string,
-    extraPrompt?: string
-  ): Promise<string> {
-    const startTime = Date.now();
+  async generateCoverLetter(cvData: CVData, jobDescription: string, extraPrompt?: string): Promise<string> {
     return retryWithBackoff(async () => {
       try {
-        const prompt = `You are an expert cover letter writer. Create a professional, compelling cover letter.
+      const prompt = `You are an expert cover letter writer. Create a professional, compelling cover letter.
 
 Job Description:
 ${jobDescription}
@@ -575,80 +454,64 @@ Write a professional cover letter (max 400 words) that:
 
 Return only the cover letter text.`;
 
-        const response = await fetch(
-          `https://generativelanguage.googleapis.com/v1beta/models/${this.model}:generateContent?key=${this.apiKey}`,
-          {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              contents: [
-                {
-                  parts: [{ text: prompt }],
-                },
-              ],
-              generationConfig: {
-                temperature: this.temperature,
-                topK: 40,
-                topP: 0.95,
-              },
-            }),
+      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${this.model}:generateContent?key=${this.apiKey}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          contents: [{
+            parts: [{ text: prompt }]
+          }],
+          generationConfig: {
+            temperature: this.temperature,
+            topK: 40,
+            topP: 0.95,
           }
-        );
+        })
+      });
 
-        if (!response.ok) {
-          const errorText = await response.text();
-          let errorMessage = `Gemini API error (${response.status})`;
-
-          try {
-            const errorData = JSON.parse(errorText);
-            if (errorData.error?.message) {
-              errorMessage += `: ${errorData.error.message}`;
-            }
-          } catch {
-            errorMessage += `: ${errorText.substring(0, 200)}`;
+      if (!response.ok) {
+        const errorText = await response.text();
+        let errorMessage = `Gemini API error (${response.status})`;
+        
+        try {
+          const errorData = JSON.parse(errorText);
+          if (errorData.error?.message) {
+            errorMessage += `: ${errorData.error.message}`;
           }
-
-          if (response.status === 401 || response.status === 403) {
-            throw new Error('Invalid API key. Please check your Gemini API key in Settings.');
-          } else if (response.status === 429) {
-            throw new Error('API rate limit exceeded. Please wait a moment and try again.');
-          } else if (response.status >= 500) {
-            throw new Error('Gemini service is temporarily unavailable. Please try again later.');
-          }
-
-          throw new Error(errorMessage);
+        } catch {
+          errorMessage += `: ${errorText.substring(0, 200)}`;
         }
-
-        const data = await response.json();
-        const content = data.candidates?.[0]?.content?.parts?.[0]?.text;
-
-        if (!content) {
-          // Check for blocked content
-          if (data.candidates?.[0]?.finishReason === 'SAFETY') {
-            throw new Error(
-              'Content was blocked by safety filters. Please try with different content.'
-            );
-          }
-          throw new Error('No response from Gemini. Please check your input and try again.');
+        
+        if (response.status === 401 || response.status === 403) {
+          throw new Error('Invalid API key. Please check your Gemini API key in Settings.');
+        } else if (response.status === 429) {
+          throw new Error('API rate limit exceeded. Please wait a moment and try again.');
+        } else if (response.status >= 500) {
+          throw new Error('Gemini service is temporarily unavailable. Please try again later.');
         }
+        
+        throw new Error(errorMessage);
+      }
 
-        // Track successful usage
-        await trackProviderUsage('gemini', 'generateCoverLetter', startTime, true);
+      const data = await response.json();
+      const content = data.candidates?.[0]?.content?.parts?.[0]?.text;
+      
+      if (!content) {
+        // Check for blocked content
+        if (data.candidates?.[0]?.finishReason === 'SAFETY') {
+          throw new Error('Content was blocked by safety filters. Please try with different content.');
+        }
+        throw new Error('No response from Gemini. Please check your input and try again.');
+      }
 
-        return content.trim();
+      return content.trim();
       } catch (error: any) {
-        logger.error('Gemini cover letter generation error:', error);
-        
-        // Track failed usage
-        await trackProviderUsage('gemini', 'generateCoverLetter', startTime, false, error.message);
-        
+        console.error('Gemini cover letter generation error:', error);
         // Re-throw with more context if it's a generic error
         if (error.message?.includes('fetch') || error.message?.includes('network')) {
-          throw new Error(
-            'Network error: Unable to connect to Gemini API. Please check your internet connection.'
-          );
+          throw new Error('Network error: Unable to connect to Gemini API. Please check your internet connection.');
         }
         throw error;
       }
@@ -670,16 +533,12 @@ export class ClaudeProvider implements AIProviderAdapter {
     this.temperature = config.temperature || 0.3;
   }
 
-  async optimizeCV(
-    cvData: CVData,
-    jobDescription: string
-  ): Promise<{ optimizedCV: CVData; optimizations: ATSOptimization[] }> {
-    const startTime = Date.now();
+  async optimizeCV(cvData: CVData, jobDescription: string): Promise<{ optimizedCV: CVData; optimizations: ATSOptimization[] }> {
     return retryWithBackoff(async () => {
       try {
-        const systemPrompt = `You are an expert ATS optimizer and career consultant. Analyze CVs and provide specific, actionable optimization suggestions in JSON format.`;
+      const systemPrompt = `You are an expert ATS optimizer and career consultant. Analyze CVs and provide specific, actionable optimization suggestions in JSON format.`;
 
-        const userPrompt = `Analyze this CV against the job description and provide optimizations.
+      const userPrompt = `Analyze this CV against the job description and provide optimizations.
 
 Job Description:
 ${jobDescription}
@@ -696,129 +555,112 @@ Respond with a JSON object containing an "optimizations" array. Each item should
   "section": "CV section name"
 }`;
 
-        const response = await fetch('https://api.anthropic.com/v1/messages', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'x-api-key': this.apiKey,
-            'anthropic-version': '2023-06-01',
-          },
-          body: JSON.stringify({
-            model: this.model,
-            max_tokens: 2000,
-            temperature: this.temperature,
-            system: systemPrompt,
-            messages: [{ role: 'user', content: userPrompt }],
-          }),
-        });
+      const response = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': this.apiKey,
+          'anthropic-version': '2023-06-01'
+        },
+        body: JSON.stringify({
+          model: this.model,
+          max_tokens: 2000,
+          temperature: this.temperature,
+          system: systemPrompt,
+          messages: [
+            { role: 'user', content: userPrompt }
+          ]
+        })
+      });
 
-        if (!response.ok) {
-          const errorText = await response.text();
-          let errorMessage = `Claude API error (${response.status})`;
-
-          try {
-            const errorData = JSON.parse(errorText);
-            if (errorData.error?.message) {
-              errorMessage += `: ${errorData.error.message}`;
-            }
-          } catch {
-            errorMessage += `: ${errorText.substring(0, 200)}`;
-          }
-
-          if (response.status === 401 || response.status === 403) {
-            throw new Error('Invalid API key. Please check your Claude API key in Settings.');
-          } else if (response.status === 429) {
-            throw new Error('API rate limit exceeded. Please wait a moment and try again.');
-          } else if (response.status === 400) {
-            throw new Error('Invalid request. Please check your CV data and job description.');
-          } else if (response.status >= 500) {
-            throw new Error('Claude service is temporarily unavailable. Please try again later.');
-          }
-
-          throw new Error(errorMessage);
-        }
-
-        const data = await response.json();
-        const content = data.content?.[0]?.text;
-
-        if (!content) {
-          throw new Error('No response from Claude. Please try again.');
-        }
-
-        // Extract JSON from markdown code blocks if present
-        let jsonText = content;
-        const jsonMatch = content.match(/```(?:json)?\s*(\{[\s\S]*?\})\s*```/);
-        if (jsonMatch) {
-          jsonText = jsonMatch[1];
-        } else {
-          // Try to extract just the JSON object
-          const directJsonMatch = content.match(/\{[\s\S]*\}/);
-          if (directJsonMatch) {
-            jsonText = directJsonMatch[0];
-          }
-        }
-
-        let result;
+      if (!response.ok) {
+        const errorText = await response.text();
+        let errorMessage = `Claude API error (${response.status})`;
+        
         try {
-          result = JSON.parse(jsonText);
-        } catch (parseError) {
-          logger.error('Failed to parse Claude response:', content);
-          throw new Error(
-            'Failed to parse AI response. The response format was invalid. Please try again.'
-          );
+          const errorData = JSON.parse(errorText);
+          if (errorData.error?.message) {
+            errorMessage += `: ${errorData.error.message}`;
+          }
+        } catch {
+          errorMessage += `: ${errorText.substring(0, 200)}`;
         }
-
-        if (!result.optimizations || !Array.isArray(result.optimizations)) {
-          throw new Error('Invalid response format from AI. Please try again.');
+        
+        if (response.status === 401 || response.status === 403) {
+          throw new Error('Invalid API key. Please check your Claude API key in Settings.');
+        } else if (response.status === 429) {
+          throw new Error('API rate limit exceeded. Please wait a moment and try again.');
+        } else if (response.status === 400) {
+          throw new Error('Invalid request. Please check your CV data and job description.');
+        } else if (response.status >= 500) {
+          throw new Error('Claude service is temporarily unavailable. Please try again later.');
         }
+        
+        throw new Error(errorMessage);
+      }
 
-        const optimizations: ATSOptimization[] = result.optimizations.map(
-          (opt: any, index: number) => ({
-            id: `opt-${Date.now()}-${index}`,
-            category: opt.category || 'General',
-            change: opt.change || 'Optimization',
-            originalText: opt.originalText || '',
-            optimizedText: opt.optimizedText || '',
-            applied: false,
-            section: opt.section || undefined,
-          })
-        );
+      const data = await response.json();
+      const content = data.content?.[0]?.text;
+      
+      if (!content) {
+        throw new Error('No response from Claude. Please try again.');
+      }
 
-        // Track successful usage
-        await trackProviderUsage('claude', 'optimizeCV', startTime, true);
+      // Extract JSON from markdown code blocks if present
+      let jsonText = content;
+      const jsonMatch = content.match(/```(?:json)?\s*(\{[\s\S]*?\})\s*```/);
+      if (jsonMatch) {
+        jsonText = jsonMatch[1];
+      } else {
+        // Try to extract just the JSON object
+        const directJsonMatch = content.match(/\{[\s\S]*\}/);
+        if (directJsonMatch) {
+          jsonText = directJsonMatch[0];
+        }
+      }
 
-        return {
-          optimizedCV: cvData,
-          optimizations,
-        };
+      let result;
+      try {
+        result = JSON.parse(jsonText);
+      } catch (parseError) {
+        console.error('Failed to parse Claude response:', content);
+        throw new Error('Failed to parse AI response. The response format was invalid. Please try again.');
+      }
+
+      if (!result.optimizations || !Array.isArray(result.optimizations)) {
+        throw new Error('Invalid response format from AI. Please try again.');
+      }
+
+      const optimizations: ATSOptimization[] = result.optimizations.map((opt: any, index: number) => ({
+        id: `opt-${Date.now()}-${index}`,
+        category: opt.category || 'General',
+        change: opt.change || 'Optimization',
+        originalText: opt.originalText || '',
+        optimizedText: opt.optimizedText || '',
+        applied: false
+      }));
+
+      return {
+        optimizedCV: cvData,
+        optimizations
+      };
       } catch (error: any) {
-        logger.error('Claude optimization error:', error);
-        
-        // Track failed usage
-        await trackProviderUsage('claude', 'optimizeCV', startTime, false, error.message);
-        
+        console.error('Claude optimization error:', error);
         // Re-throw with more context if it's a generic error
         if (error.message?.includes('fetch') || error.message?.includes('network')) {
-          throw new Error(
-            'Network error: Unable to connect to Claude API. Please check your internet connection.'
-          );
+          throw new Error('Network error: Unable to connect to Claude API. Please check your internet connection.');
         }
         throw error;
       }
     });
   }
 
-  async generateCoverLetter(
-    cvData: CVData,
-    jobDescription: string,
-    extraPrompt?: string
-  ): Promise<string> {
-    const startTime = Date.now();
+  async generateCoverLetter(cvData: CVData, jobDescription: string, extraPrompt?: string): Promise<string> {
     return retryWithBackoff(async () => {
       try {
-        const systemPrompt = `You are an expert cover letter writer specializing in creating compelling, personalized cover letters.`;
+      const systemPrompt = `You are an expert cover letter writer specializing in creating compelling, personalized cover letters.`;
 
-        const userPrompt = `Write a professional cover letter for this candidate.
+      const userPrompt = `Write a professional cover letter for this candidate.
 
 Job Description:
 ${jobDescription}
@@ -841,70 +683,63 @@ Create a professional cover letter (max 400 words) with:
 
 Return only the cover letter text, no additional commentary.`;
 
-        const response = await fetch('https://api.anthropic.com/v1/messages', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'x-api-key': this.apiKey,
-            'anthropic-version': '2023-06-01',
-          },
-          body: JSON.stringify({
-            model: this.model,
-            max_tokens: 1500,
-            temperature: this.temperature,
-            system: systemPrompt,
-            messages: [{ role: 'user', content: userPrompt }],
-          }),
-        });
+      const response = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': this.apiKey,
+          'anthropic-version': '2023-06-01'
+        },
+        body: JSON.stringify({
+          model: this.model,
+          max_tokens: 1500,
+          temperature: this.temperature,
+          system: systemPrompt,
+          messages: [
+            { role: 'user', content: userPrompt }
+          ]
+        })
+      });
 
-        if (!response.ok) {
-          const errorText = await response.text();
-          let errorMessage = `Claude API error (${response.status})`;
-
-          try {
-            const errorData = JSON.parse(errorText);
-            if (errorData.error?.message) {
-              errorMessage += `: ${errorData.error.message}`;
-            }
-          } catch {
-            errorMessage += `: ${errorText.substring(0, 200)}`;
+      if (!response.ok) {
+        const errorText = await response.text();
+        let errorMessage = `Claude API error (${response.status})`;
+        
+        try {
+          const errorData = JSON.parse(errorText);
+          if (errorData.error?.message) {
+            errorMessage += `: ${errorData.error.message}`;
           }
-
-          if (response.status === 401 || response.status === 403) {
-            throw new Error('Invalid API key. Please check your Claude API key in Settings.');
-          } else if (response.status === 429) {
-            throw new Error('API rate limit exceeded. Please wait a moment and try again.');
-          } else if (response.status === 400) {
-            throw new Error('Invalid request. Please check your CV data and job description.');
-          } else if (response.status >= 500) {
-            throw new Error('Claude service is temporarily unavailable. Please try again later.');
-          }
-
-          throw new Error(errorMessage);
+        } catch {
+          errorMessage += `: ${errorText.substring(0, 200)}`;
         }
-
-        const data = await response.json();
-        const content = data.content?.[0]?.text;
-
-        if (!content) {
-          throw new Error('No response from Claude. Please try again.');
+        
+        if (response.status === 401 || response.status === 403) {
+          throw new Error('Invalid API key. Please check your Claude API key in Settings.');
+        } else if (response.status === 429) {
+          throw new Error('API rate limit exceeded. Please wait a moment and try again.');
+        } else if (response.status === 400) {
+          throw new Error('Invalid request. Please check your CV data and job description.');
+        } else if (response.status >= 500) {
+          throw new Error('Claude service is temporarily unavailable. Please try again later.');
         }
+        
+        throw new Error(errorMessage);
+      }
 
-        // Track successful usage
-        await trackProviderUsage('claude', 'generateCoverLetter', startTime, true);
+      const data = await response.json();
+      const content = data.content?.[0]?.text;
+      
+      if (!content) {
+        throw new Error('No response from Claude. Please try again.');
+      }
 
-        return content.trim();
+      return content.trim();
       } catch (error: any) {
-        logger.error('Claude cover letter generation error:', error);
-        
-        // Track failed usage
-        await trackProviderUsage('claude', 'generateCoverLetter', startTime, false, error.message);
-        
+        console.error('Claude cover letter generation error:', error);
         // Re-throw with more context if it's a generic error
         if (error.message?.includes('fetch') || error.message?.includes('network')) {
-          throw new Error(
-            'Network error: Unable to connect to Claude API. Please check your internet connection.'
-          );
+          throw new Error('Network error: Unable to connect to Claude API. Please check your internet connection.');
         }
         throw error;
       }
@@ -926,144 +761,4 @@ export function createAIProvider(config: AIConfig): AIProviderAdapter {
     default:
       throw new Error(`Unsupported AI provider: ${config.provider}`);
   }
-}
-
-/**
- * Auto-fallback wrapper that tries alternative providers if the primary one fails
- */
-export class AutoFallbackProvider implements AIProviderAdapter {
-  private primaryProvider: AIProviderAdapter;
-  private fallbackProviders: AIProviderAdapter[];
-  private primaryConfig: AIConfig;
-
-  constructor(
-    primaryConfig: AIConfig,
-    fallbackConfigs: AIConfig[]
-  ) {
-    this.primaryConfig = primaryConfig;
-    this.primaryProvider = createAIProvider(primaryConfig);
-    this.fallbackProviders = fallbackConfigs.map(config => createAIProvider(config));
-  }
-
-  async optimizeCV(
-    cvData: CVData,
-    jobDescription: string
-  ): Promise<{ optimizedCV: CVData; optimizations: ATSOptimization[] }> {
-    // Try primary provider first
-    try {
-      logger.info(`Attempting CV optimization with primary provider: ${this.primaryConfig.provider}`);
-      return await this.primaryProvider.optimizeCV(cvData, jobDescription);
-    } catch (primaryError: any) {
-      logger.warn(`Primary provider (${this.primaryConfig.provider}) failed:`, primaryError.message);
-
-      // Try fallback providers
-      for (let i = 0; i < this.fallbackProviders.length; i++) {
-        const fallbackProvider = this.fallbackProviders[i];
-        const providerName = this.getProviderName(i);
-        
-        try {
-          logger.info(`Attempting CV optimization with fallback provider: ${providerName}`);
-          const result = await fallbackProvider.optimizeCV(cvData, jobDescription);
-          
-          // Add a notification that fallback was used
-          logger.info(`Successfully used fallback provider: ${providerName}`);
-          
-          return result;
-        } catch (fallbackError: any) {
-          logger.warn(`Fallback provider (${providerName}) failed:`, fallbackError.message);
-          
-          // If this was the last fallback, throw the original error
-          if (i === this.fallbackProviders.length - 1) {
-            throw new Error(
-              `All providers failed. Primary error: ${primaryError.message}. Please check your API keys and try again.`
-            );
-          }
-        }
-      }
-
-      // If no fallbacks configured, throw the primary error
-      throw primaryError;
-    }
-  }
-
-  async generateCoverLetter(
-    cvData: CVData,
-    jobDescription: string,
-    extraPrompt?: string
-  ): Promise<string> {
-    // Try primary provider first
-    try {
-      logger.info(`Attempting cover letter generation with primary provider: ${this.primaryConfig.provider}`);
-      return await this.primaryProvider.generateCoverLetter(cvData, jobDescription, extraPrompt);
-    } catch (primaryError: any) {
-      logger.warn(`Primary provider (${this.primaryConfig.provider}) failed:`, primaryError.message);
-
-      // Try fallback providers
-      for (let i = 0; i < this.fallbackProviders.length; i++) {
-        const fallbackProvider = this.fallbackProviders[i];
-        const providerName = this.getProviderName(i);
-        
-        try {
-          logger.info(`Attempting cover letter generation with fallback provider: ${providerName}`);
-          const result = await fallbackProvider.generateCoverLetter(cvData, jobDescription, extraPrompt);
-          
-          // Add a notification that fallback was used
-          logger.info(`Successfully used fallback provider: ${providerName}`);
-          
-          return result;
-        } catch (fallbackError: any) {
-          logger.warn(`Fallback provider (${providerName}) failed:`, fallbackError.message);
-          
-          // If this was the last fallback, throw the original error
-          if (i === this.fallbackProviders.length - 1) {
-            throw new Error(
-              `All providers failed. Primary error: ${primaryError.message}. Please check your API keys and try again.`
-            );
-          }
-        }
-      }
-
-      // If no fallbacks configured, throw the primary error
-      throw primaryError;
-    }
-  }
-
-  private getProviderName(index: number): string {
-    // This is a helper to get provider name from fallback index
-    // In a real implementation, you'd track this more explicitly
-    return `Fallback #${index + 1}`;
-  }
-}
-
-/**
- * Helper to create an auto-fallback provider with all available API keys
- */
-export async function createAutoFallbackProvider(
-  primaryProvider: AIProvider,
-  allApiKeys: { openai?: string; gemini?: string; claude?: string },
-  model?: string,
-  temperature?: number
-): Promise<AutoFallbackProvider> {
-  const primaryConfig: AIConfig = {
-    provider: primaryProvider,
-    apiKey: allApiKeys[primaryProvider] || '',
-    model,
-    temperature,
-  };
-
-  // Create fallback configs for providers with API keys
-  const fallbackConfigs: AIConfig[] = [];
-  const providers: AIProvider[] = ['openai', 'gemini', 'claude'];
-  
-  for (const provider of providers) {
-    if (provider !== primaryProvider && allApiKeys[provider]) {
-      fallbackConfigs.push({
-        provider,
-        apiKey: allApiKeys[provider]!,
-        temperature,
-      });
-    }
-  }
-
-  return new AutoFallbackProvider(primaryConfig, fallbackConfigs);
 }
