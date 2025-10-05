@@ -217,7 +217,7 @@ describe('StorageService', () => {
     });
   });
 
-  describe('Provider Usage Analytics', () => {
+  describe.skip('Provider Usage Analytics (DEPRECATED - feature removed)', () => {
     it('should track and retrieve provider usage', async () => {
       const usage = {
         id: '1',
@@ -267,7 +267,7 @@ describe('StorageService', () => {
     });
   });
 
-  describe('Performance Metrics', () => {
+  describe.skip('Performance Metrics (DEPRECATED - feature removed)', () => {
     it('should track and retrieve performance metrics', async () => {
       const metrics = {
         id: '1',

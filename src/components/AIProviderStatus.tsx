@@ -51,6 +51,7 @@ export const AIProviderStatus: React.FC<AIProviderStatusProps> = ({
       }, refreshInterval);
       return () => clearInterval(interval);
     }
+    return undefined;
   }, [autoRefresh, refreshInterval, checkConfiguration]);
 
   const formatLastChecked = () => {

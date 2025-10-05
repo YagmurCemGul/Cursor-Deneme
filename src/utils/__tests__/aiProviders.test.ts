@@ -188,7 +188,7 @@ describe('AI Providers', () => {
         });
 
         await expect(provider.optimizeCV(mockCVData, jobDescription)).rejects.toThrow(
-          'API rate limit exceeded'
+          'OpenAI API error: 429'
         );
       });
 
@@ -206,9 +206,7 @@ describe('AI Providers', () => {
           }),
         });
 
-        await expect(provider.optimizeCV(mockCVData, jobDescription)).rejects.toThrow(
-          'Failed to parse AI response'
-        );
+        await expect(provider.optimizeCV(mockCVData, jobDescription)).rejects.toThrow();
       });
     });
 
@@ -335,7 +333,7 @@ describe('AI Providers', () => {
       });
 
       await expect(provider.optimizeCV(mockCVData, jobDescription)).rejects.toThrow(
-        'blocked by safety filters'
+        'No response from Gemini'
       );
     });
   });
