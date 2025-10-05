@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CV Optimizer - Complete Feature Demo</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: var(--color-background, #f9fafb);
+      color: var(--color-text-primary, #111827);
+      transition: background 0.3s, color 0.3s;
+    }
+
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+
+    header {
+      background: white;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      margin-bottom: 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    h1 {
+      font-size: 28px;
+      color: #111827;
+    }
+
+    .header-controls {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .theme-selector, .provider-selector {
+      padding: 8px 12px;
+      border: 1px solid #e5e7eb;
+      border-radius: 6px;
+      background: white;
+      font-size: 14px;
+    }
+
+    .tabs {
+      display: flex;
+      gap: 8px;
+      background: white;
+      padding: 12px;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      margin-bottom: 24px;
+    }
+
+    .tab {
+      padding: 10px 20px;
+      border: none;
+      background: transparent;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 500;
+      transition: all 0.2s;
+    }
+
+    .tab:hover {
+      background: #f3f4f6;
+    }
+
+    .tab.active {
+      background: #3b82f6;
+      color: white;
+    }
+
+    .demo-section {
+      display: none;
+      background: white;
+      padding: 24px;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      margin-bottom: 24px;
+    }
+
+    .demo-section.active {
+      display: block;
+    }
+
+    .demo-section h2 {
+      margin-bottom: 16px;
+      font-size: 20px;
+    }
+
+    .demo-section p {
+      color: #6b7280;
+      margin-bottom: 20px;
+      line-height: 1.6;
+    }
+
+    .demo-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 16px;
+    }
+
+    .demo-card {
+      background: #f9fafb;
+      padding: 20px;
+      border-radius: 8px;
+      border: 1px solid #e5e7eb;
+    }
+
+    .demo-card h3 {
+      font-size: 16px;
+      margin-bottom: 12px;
+      color: #111827;
+    }
+
+    .demo-card .metric {
+      font-size: 32px;
+      font-weight: 700;
+      color: #3b82f6;
+      margin: 12px 0;
+    }
+
+    .demo-card .subtitle {
+      font-size: 13px;
+      color: #6b7280;
+    }
+
+    button {
+      padding: 10px 20px;
+      background: #3b82f6;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    button:hover {
+      background: #2563eb;
+    }
+
+    button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .button-secondary {
+      background: #6b7280;
+    }
+
+    .button-secondary:hover {
+      background: #4b5563;
+    }
+
+    .progress-bar {
+      height: 8px;
+      background: #e5e7eb;
+      border-radius: 4px;
+      overflow: hidden;
+      margin: 16px 0;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #3b82f6, #8b5cf6);
+      transition: width 0.3s;
+    }
+
+    .status-indicator {
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      margin-right: 8px;
+    }
+
+    .status-indicator.online {
+      background: #10b981;
+    }
+
+    .status-indicator.offline {
+      background: #ef4444;
+    }
+
+    .log-area {
+      background: #1f2937;
+      color: #f9fafb;
+      padding: 16px;
+      border-radius: 8px;
+      font-family: 'Monaco', 'Courier New', monospace;
+      font-size: 12px;
+      max-height: 300px;
+      overflow-y: auto;
+      margin-top: 16px;
+    }
+
+    .log-entry {
+      padding: 4px 0;
+      border-bottom: 1px solid #374151;
+    }
+
+    .log-entry:last-child {
+      border-bottom: none;
+    }
+
+    .notification {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background: white;
+      padding: 16px;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      max-width: 400px;
+      z-index: 1000;
+      animation: slideIn 0.3s ease;
+    }
+
+    @keyframes slideIn {
+      from {
+        transform: translateX(400px);
+        opacity: 0;
+      }
+      to {
+        transform: translateX(0);
+        opacity: 1;
+      }
+    }
+
+    .notification.success {
+      border-left: 4px solid #10b981;
+    }
+
+    .notification.error {
+      border-left: 4px solid #ef4444;
+    }
+
+    .notification.warning {
+      border-left: 4px solid #f59e0b;
+    }
+
+    .feature-badge {
+      display: inline-block;
+      padding: 4px 8px;
+      background: #dbeafe;
+      color: #1e40af;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 600;
+      margin-left: 8px;
+    }
+
+    .shortcuts-help {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: white;
+      padding: 24px;
+      border-radius: 12px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+      max-width: 600px;
+      max-height: 80vh;
+      overflow-y: auto;
+      z-index: 2000;
+      display: none;
+    }
+
+    .shortcuts-help.visible {
+      display: block;
+    }
+
+    .overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0,0,0,0.5);
+      z-index: 1999;
+      display: none;
+    }
+
+    .overlay.visible {
+      display: block;
+    }
+
+    kbd {
+      background: #f3f4f6;
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-family: monospace;
+      font-size: 12px;
+      border: 1px solid #d1d5db;
+    }
+  </style>
+</head>
+<body>
+  <div class="overlay" id="overlay"></div>
+  
+  <div class="shortcuts-help" id="shortcuts-help">
+    <h2>⌨️ Keyboard Shortcuts</h2>
+    <p style="color: #6b7280; margin-bottom: 20px;">Master these shortcuts for maximum productivity</p>
+    
+    <table style="width: 100%;">
+      <tr><td><kbd>Ctrl+/</kbd></td><td>Show this help</td></tr>
+      <tr><td><kbd>Ctrl+O</kbd></td><td>Start optimization</td></tr>
+      <tr><td><kbd>Ctrl+S</kbd></td><td>Simulate streaming</td></tr>
+      <tr><td><kbd>Ctrl+M</kbd></td><td>Run ML selection</td></tr>
+      <tr><td><kbd>j</kbd> / <kbd>k</kbd></td><td>Navigate tabs</td></tr>
+      <tr><td><kbd>ESC</kbd></td><td>Close modals</td></tr>
+    </table>
+    
+    <button style="margin-top: 20px;" onclick="hideShortcutsHelp()">Got it!</button>
+  </div>
+
+  <div class="container">
+    <header>
+      <div>
+        <h1>🚀 CV Optimizer - Complete Feature Demo</h1>
+        <p style="color: #6b7280; font-size: 14px; margin-top: 4px;">
+          Showcasing all 30+ enterprise features
+        </p>
+      </div>
+      <div class="header-controls">
+        <select class="theme-selector" id="theme-selector">
+          <option value="light">☀️ Light</option>
+          <option value="dark">🌙 Dark</option>
+          <option value="highContrast">⚡ High Contrast</option>
+          <option value="solarized">🎨 Solarized</option>
+        </select>
+        
+        <select class="provider-selector" id="provider-selector">
+          <option value="openai">OpenAI</option>
+          <option value="gemini">Gemini</option>
+          <option value="claude">Claude</option>
+        </select>
+        
+        <button onclick="showShortcutsHelp()">⌨️ Shortcuts</button>
+      </div>
+    </header>
+
+    <div class="tabs">
+      <button class="tab active" data-tab="streaming" onclick="switchTab('streaming')">
+        ⚡ Streaming
+      </button>
+      <button class="tab" data-tab="ml" onclick="switchTab('ml')">
+        🤖 ML Selection
+      </button>
+      <button class="tab" data-tab="workers" onclick="switchTab('workers')">
+        🔧 Web Workers
+      </button>
+      <button class="tab" data-tab="metrics" onclick="switchTab('metrics')">
+        📊 Metrics
+      </button>
+      <button class="tab" data-tab="security" onclick="switchTab('security')">
+        🔐 Security
+      </button>
+      <button class="tab" data-tab="plugins" onclick="switchTab('plugins')">
+        🔌 Plugins
+      </button>
+    </div>
+
+    <!-- Streaming Demo -->
+    <div class="demo-section active" id="streaming">
+      <h2>⚡ Real-time Streaming API</h2>
+      <p>Experience instant feedback with server-sent events. Watch as AI generates responses in real-time!</p>
+      
+      <div style="display: flex; gap: 12px; margin-bottom: 20px;">
+        <button id="start-streaming" onclick="startStreaming()">▶️ Start Streaming</button>
+        <button class="button-secondary" id="stop-streaming" onclick="stopStreaming()" disabled>⏹️ Stop</button>
+      </div>
+
+      <div class="progress-bar">
+        <div class="progress-fill" id="stream-progress" style="width: 0%"></div>
+      </div>
+
+      <div class="log-area" id="stream-output">
+        <div class="log-entry" style="color: #10b981;">✓ Ready to stream. Click "Start Streaming" to begin...</div>
+      </div>
+    </div>
+
+    <!-- ML Selection Demo -->
+    <div class="demo-section" id="ml">
+      <h2>🤖 ML-Powered Provider Selection</h2>
+      <p>Self-learning AI that automatically selects the best provider based on historical performance.</p>
+      
+      <div class="demo-grid">
+        <div class="demo-card">
+          <h3>Training Data</h3>
+          <div class="metric" id="ml-training-data">0</div>
+          <div class="subtitle">Historical requests</div>
+        </div>
+        
+        <div class="demo-card">
+          <h3>Best Provider</h3>
+          <div class="metric" id="ml-best-provider">—</div>
+          <div class="subtitle">Current recommendation</div>
+        </div>
+        
+        <div class="demo-card">
+          <h3>Confidence</h3>
+          <div class="metric" id="ml-confidence">0%</div>
+          <div class="subtitle">Selection accuracy</div>
+        </div>
+      </div>
+
+      <button onclick="runMLDemo()" style="margin-top: 20px;">🎯 Run ML Selection</button>
+      <button class="button-secondary" onclick="trainML()" style="margin-top: 20px;">📚 Train with Sample Data</button>
+
+      <div class="log-area" id="ml-output" style="margin-top: 20px;">
+        <div class="log-entry">ML system initialized. Train with sample data to see it in action.</div>
+      </div>
+    </div>
+
+    <!-- Web Workers Demo -->
+    <div class="demo-section" id="workers">
+      <h2>🔧 Web Workers - Background Processing</h2>
+      <p>Heavy processing without blocking the UI. Parse and analyze CVs in parallel.</p>
+      
+      <div class="demo-grid">
+        <div class="demo-card">
+          <h3>Main Thread</h3>
+          <div class="metric"><span class="status-indicator online"></span>Online</div>
+          <div class="subtitle">UI remains responsive</div>
+        </div>
+        
+        <div class="demo-card">
+          <h3>Worker Thread</h3>
+          <div class="metric" id="worker-status">Idle</div>
+          <div class="subtitle">Processing state</div>
+        </div>
+        
+        <div class="demo-card">
+          <h3>Processing Time</h3>
+          <div class="metric" id="worker-time">0ms</div>
+          <div class="subtitle">Last operation</div>
+        </div>
+      </div>
+
+      <button onclick="testWorker()" style="margin-top: 20px;">⚙️ Process Large File</button>
+      <button class="button-secondary" onclick="testMainThread()" style="margin-top: 20px;">🐌 Process on Main Thread</button>
+
+      <div class="log-area" id="worker-output" style="margin-top: 20px;">
+        <div class="log-entry">Worker ready. Click "Process Large File" to test parallel processing.</div>
+      </div>
+    </div>
+
+    <!-- Metrics Demo -->
+    <div class="demo-section" id="metrics">
+      <h2>📊 Real-time Metrics Dashboard</h2>
+      <p>Complete observability with latency, cost, and error tracking.</p>
+      
+      <div class="demo-grid">
+        <div class="demo-card">
+          <h3>Total Requests</h3>
+          <div class="metric" id="metrics-requests">1,250</div>
+          <div class="subtitle">95.8% success rate</div>
+        </div>
+        
+        <div class="demo-card">
+          <h3>Latency (P95)</h3>
+          <div class="metric" id="metrics-latency">3.2s</div>
+          <div class="subtitle">P50: 1.2s</div>
+        </div>
+        
+        <div class="demo-card">
+          <h3>Total Cost</h3>
+          <div class="metric" id="metrics-cost">$12.45</div>
+          <div class="subtitle">Last 24 hours</div>
+        </div>
+        
+        <div class="demo-card">
+          <h3>Cache Hit Rate</h3>
+          <div class="metric" id="metrics-cache">68%</div>
+          <div class="subtitle">850 hits, 400 misses</div>
+        </div>
+      </div>
+
+      <button onclick="refreshMetrics()" style="margin-top: 20px;">🔄 Refresh Metrics</button>
+    </div>
+
+    <!-- Security Demo -->
+    <div class="demo-section" id="security">
+      <h2>🔐 End-to-End Encryption</h2>
+      <p>Bank-level security with AES-GCM 256-bit encryption. Your data never leaves your device unencrypted.</p>
+      
+      <div style="max-width: 600px;">
+        <label style="display: block; margin-bottom: 8px; font-weight: 500;">Enter sensitive data:</label>
+        <textarea id="encrypt-input" style="width: 100%; padding: 12px; border: 1px solid #e5e7eb; border-radius: 6px; min-height: 100px; font-family: inherit;">
+{
+  "name": "John Doe",
+  "email": "john@example.com",
+  "salary": "$150,000"
+}
+        </textarea>
+
+        <label style="display: block; margin: 16px 0 8px; font-weight: 500;">Encryption password:</label>
+        <input type="password" id="encrypt-password" style="width: 100%; padding: 12px; border: 1px solid #e5e7eb; border-radius: 6px;" placeholder="Enter secure password" />
+
+        <div style="margin-top: 16px; display: flex; gap: 12px;">
+          <button onclick="encryptDemo()">🔒 Encrypt</button>
+          <button class="button-secondary" onclick="decryptDemo()">🔓 Decrypt</button>
+        </div>
+
+        <div class="log-area" id="encrypt-output" style="margin-top: 20px;">
+          <div class="log-entry">Enter data and password, then click Encrypt to see it in action.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Plugins Demo -->
+    <div class="demo-section" id="plugins">
+      <h2>🔌 Plugin System</h2>
+      <p>Extensible architecture. Load plugins to extend functionality on-the-fly.</p>
+      
+      <div class="demo-grid">
+        <div class="demo-card">
+          <h3>Grammar Check</h3>
+          <div class="subtitle">Status: <span id="plugin-grammar">Not loaded</span></div>
+          <button onclick="loadPlugin('grammar')" style="margin-top: 12px;">Load Plugin</button>
+        </div>
+        
+        <div class="demo-card">
+          <h3>ATS Analyzer</h3>
+          <div class="subtitle">Status: <span id="plugin-ats">Not loaded</span></div>
+          <button onclick="loadPlugin('ats')" style="margin-top: 12px;">Load Plugin</button>
+        </div>
+        
+        <div class="demo-card">
+          <h3>Custom Plugin</h3>
+          <div class="subtitle">Status: <span id="plugin-custom">Not loaded</span></div>
+          <button onclick="loadPlugin('custom')" style="margin-top: 12px;">Load Plugin</button>
+        </div>
+      </div>
+
+      <div class="log-area" id="plugin-output" style="margin-top: 20px;">
+        <div class="log-entry">Plugin system ready. Load plugins to extend functionality.</div>
+      </div>
+    </div>
+  </div>
+
+  <script src="./demo.js"></script>
+</body>
+</html>
