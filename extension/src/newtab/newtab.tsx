@@ -92,6 +92,38 @@ export function NewTab() {
         await performAutoBackupIfDue(profiles, apps, activeProf?.id);
       }
       
+      // Check for pending job application from context menu
+      const pendingData = await chrome.storage.local.get(['pendingJobApplication', 'extractedJobData', 'clipboardText']);
+      
+      if (pendingData.pendingJobApplication) {
+        const pending = pendingData.pendingJobApplication;
+        // Auto-fill job post
+        setJob({
+          id: crypto.randomUUID(),
+          pastedText: pending.description || '',
+          title: pending.title || '',
+          company: pending.company || '',
+        });
+        // Switch to Job tab
+        setActive('job');
+        // Clear pending data
+        await chrome.storage.local.remove(['pendingJobApplication']);
+        
+        // Show notification
+        setTimeout(() => {
+          alert('Job details loaded from browser! Review and save to applications.');
+        }, 500);
+      } else if (pendingData.extractedJobData) {
+        const extracted = pendingData.extractedJobData;
+        setJob({
+          id: crypto.randomUUID(),
+          pastedText: extracted.description || '',
+          title: extracted.title || '',
+          company: extracted.company || '',
+        });
+        await chrome.storage.local.remove(['extractedJobData']);
+      }
+      
       let p = await getActiveProfile();
       if (!p) {
         // Create default profile

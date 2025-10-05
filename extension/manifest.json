@@ -9,7 +9,9 @@
     "downloads",
     "identity",
     "scripting",
-    "tabs"
+    "tabs",
+    "contextMenus",
+    "notifications"
   ],
   "oauth2": {
     "client_id": "YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com",
@@ -26,14 +28,30 @@
     "https://docs.googleapis.com/*",
     "https://sheets.googleapis.com/*",
     "https://slides.googleapis.com/*",
-    "https://www.linkedin.com/*"
+    "https://www.linkedin.com/*",
+    "https://*.indeed.com/*",
+    "https://*.glassdoor.com/*",
+    "https://*.remote.co/*"
+  ],
+  "content_scripts": [
+    {
+      "matches": [
+        "https://www.linkedin.com/jobs/*",
+        "https://*.indeed.com/*",
+        "https://*.glassdoor.com/*",
+        "https://*.remote.co/*",
+        "https://*.weworkremotely.com/*"
+      ],
+      "js": ["src/content/content.ts"],
+      "run_at": "document_idle"
+    }
   ],
   "background": {
-    "service_worker": "background.js",
+    "service_worker": "src/background/background.ts",
     "type": "module"
   },
   "action": {
-    "default_popup": "popup.html",
+    "default_popup": "src/popup/index.html",
     "default_icon": {
       "16": "icons/icon16.png",
       "48": "icons/icon48.png",
@@ -41,15 +59,16 @@
     }
   },
   "chrome_url_overrides": {
-    "newtab": "newtab.html"
+    "newtab": "src/newtab/index.html"
   },
   "icons": {
     "16": "icons/icon16.png",
     "48": "icons/icon48.png",
     "128": "icons/icon128.png"
   },
-  "options_page": "options.html",
+  "options_page": "src/options/index.html",
   "content_security_policy": {
     "extension_pages": "script-src 'self'; object-src 'self'"
   }
 }
+
