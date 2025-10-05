@@ -1,4 +1,6 @@
-const manifest: chrome.runtime.ManifestV3 = {
+import { defineManifest } from '@crxjs/vite-plugin';
+
+export default defineManifest(async () => ({
   manifest_version: 3,
   name: "AI CV & Cover Letter Optimizer",
   version: "0.1.0",
@@ -16,17 +18,18 @@ const manifest: chrome.runtime.ManifestV3 = {
   host_permissions: [
     "https://api.openai.com/*",
     "https://*.openai.azure.com/*",
+    "https://generativelanguage.googleapis.com/*",
+    "https://api.anthropic.com/*",
     "http://localhost/*"
   ],
   web_accessible_resources: [
     {
       resources: [
         "src/styles/*",
-        "src/assets/*"
+        "src/assets/*",
+        "node_modules/pdfjs-dist/build/pdf.worker.min.mjs"
       ],
       matches: ["<all_urls>"]
     }
   ]
-};
-
-export default manifest;
+}));
