@@ -7,11 +7,15 @@ module.exports = (env, argv) => {
 
   return {
     entry: {
-      popup: './src/popup.tsx'
+      popup: './src/popup.tsx',
+      background: './src/background/index.ts'
     },
     output: {
       path: path.resolve(__dirname, 'dist'),
-      filename: '[name].[contenthash:8].js',
+      filename: (pathData) => {
+        // Use simple name for background script (required by manifest v3)
+        return pathData.chunk.name === 'background' ? '[name].js' : '[name].[contenthash:8].js';
+      },
       chunkFilename: '[name].[contenthash:8].chunk.js',
       clean: true
     },
@@ -55,7 +59,8 @@ module.exports = (env, argv) => {
           minifyJS: true,
           minifyCSS: true,
           minifyURLs: true
-        } : false
+        } : false,
+        inject: true
       }),
       new CopyWebpackPlugin({
         patterns: [
@@ -73,7 +78,10 @@ module.exports = (env, argv) => {
     optimization: {
       minimize: isProduction,
       splitChunks: {
-        chunks: 'all',
+        chunks: (chunk) => {
+          // Don't split chunks for background script
+          return chunk.name !== 'background';
+        },
         cacheGroups: {
           vendors: {
             test: /[\\/]node_modules[\\/]/,
@@ -102,7 +110,12 @@ module.exports = (env, argv) => {
           }
         }
       },
-      runtimeChunk: 'single',
+      runtimeChunk: {
+        name: (entrypoint) => {
+          // Background script shouldn't have runtime chunk
+          return entrypoint.name === 'background' ? false : 'runtime';
+        }
+      },
       usedExports: true,
       sideEffects: false
     },

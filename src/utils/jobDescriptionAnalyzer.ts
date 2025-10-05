@@ -1,5 +1,6 @@
 import { AIService } from './aiService';
 import { AIConfig } from './aiProviders';
+import { logger } from './logger';
 
 export interface AnalysisResult {
   grammarIssues: GrammarIssue[];
@@ -84,7 +85,7 @@ Return a JSON response with this structure:
         };
       }
     } catch (error) {
-      console.error('AI analysis failed, falling back to rules:', error);
+      logger.error('AI analysis failed, falling back to rules:', error);
     }
 
     return this.analyzeWithRules(text);
@@ -116,7 +117,7 @@ Return a JSON response with this structure:
         };
       }
     } catch (error) {
-      console.error('Failed to parse AI response:', error);
+      logger.error('Failed to parse AI response:', error);
     }
 
     return {

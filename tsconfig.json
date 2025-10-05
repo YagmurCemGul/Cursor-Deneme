@@ -8,22 +8,22 @@
     "resolveJsonModule": true,
     "allowJs": true,
     
-    // Strict Type Checking (temporarily disabled for build)
+    // Strict Type Checking (progressively enabled)
     "strict": false,
     "noImplicitAny": false,
     "strictNullChecks": false,
-    "strictFunctionTypes": false,
-    "strictBindCallApply": false,
+    "strictFunctionTypes": true,
+    "strictBindCallApply": true,
     "strictPropertyInitialization": false,
-    "noImplicitThis": false,
-    "alwaysStrict": false,
+    "noImplicitThis": true,
+    "alwaysStrict": true,
     
-    // Additional Checks (temporarily disabled for build)
+    // Additional Checks (progressively enabled)
     "noUnusedLocals": false,
     "noUnusedParameters": false,
     "exactOptionalPropertyTypes": false,
-    "noImplicitReturns": false,
-    "noFallthroughCasesInSwitch": false,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
     "noUncheckedIndexedAccess": false,
     
     // Module Resolution

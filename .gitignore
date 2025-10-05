@@ -41,3 +41,7 @@ coverage/
 .cache/
 temp/
 tmp/
+
+# Extension experimental build
+extension/dist/
+extension/node_modules/

@@ -1,5 +1,15 @@
 import { CVData } from '../types';
-// import { aiService } from './aiService'; // TODO: Add generateText method to aiService
+import { logger } from './logger';
+
+/**
+ * Interview Questions Generator
+ * 
+ * Currently uses a rule-based approach to generate relevant interview questions
+ * based on CV content. This provides immediate value without requiring AI API calls.
+ * 
+ * Future Enhancement: Can be upgraded to use AI for more personalized questions
+ * once the aiService.generateText() method is implemented.
+ */
 
 export interface InterviewQuestion {
   id: string;
@@ -18,32 +28,35 @@ export interface InterviewQuestionsResult {
 
 /**
  * Generate practical interview questions based on CV content
+ * 
+ * This function analyzes the CV data and generates relevant interview questions
+ * based on skills, experience, and education. The questions are categorized and
+ * rated by difficulty and relevance.
+ * 
+ * @param cvData - The CV data to analyze
+ * @param _jobDescription - Optional job description for context (reserved for future AI enhancement)
+ * @param numberOfQuestions - Number of questions to generate (default: 15)
+ * @returns Interview questions result with categorized questions
  */
 export async function generateInterviewQuestions(
   cvData: CVData,
   _jobDescription?: string,
   numberOfQuestions: number = 15
 ): Promise<InterviewQuestionsResult> {
-  // For now, use fallback questions since AI text generation isn't available yet
-  // Future enhancement: integrate with AI service when generateText method is available
-  // buildCVContext(cvData) and _jobDescription will be used for AI-powered generation
-  
   try {
-    // Direct fallback generation - AI integration pending
     return generateFallbackQuestions(cvData, numberOfQuestions);
   } catch (error) {
-    console.error('Error generating interview questions:', error);
-    // Return fallback questions on error
+    logger.error('Error generating interview questions:', error);
+    // Return default questions on error
     return generateFallbackQuestions(cvData, numberOfQuestions);
   }
 }
 
 /**
  * Build context string from CV data
- * TODO: Use this when AI integration is available
+ * Reserved for future AI-powered question generation
+ * @internal
  */
-// @ts-ignore - Reserved for future AI integration
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function buildCVContext(cvData: CVData): string {
   const parts: string[] = [];
   
@@ -100,10 +113,9 @@ function buildCVContext(cvData: CVData): string {
 
 /**
  * Parse questions from AI response
- * TODO: Use this when AI integration is available
+ * Reserved for future AI-powered question generation
+ * @internal
  */
-// @ts-ignore - Reserved for future AI integration
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function parseQuestionsFromResponse(response: string): Omit<InterviewQuestion, 'id'>[] {
   try {
     // Try to extract JSON from the response
@@ -116,13 +128,14 @@ function parseQuestionsFromResponse(response: string): Omit<InterviewQuestion, '
     // If no JSON found, try to parse line by line
     return [];
   } catch (error) {
-    console.error('Error parsing questions:', error);
+    logger.error('Error parsing questions:', error);
     return [];
   }
 }
 
 /**
- * Generate fallback questions when AI fails
+ * Generate interview questions using rule-based approach
+ * This provides immediate, relevant questions without requiring AI API calls
  */
 function generateFallbackQuestions(
   cvData: CVData,

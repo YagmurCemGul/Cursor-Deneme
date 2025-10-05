@@ -1,4 +1,5 @@
 import { AIService } from './aiService';
+import { logger } from './logger';
 
 /**
  * Generate AI-powered suggestions for job descriptions
@@ -20,7 +21,7 @@ export async function generateDescriptionSuggestions(
     const response = await AIService.generateText(prompt, apiKey, provider);
     return parseSuggestions(response);
   } catch (error) {
-    console.error('Failed to generate AI suggestions:', error);
+    logger.error('Failed to generate AI suggestions:', error);
     throw error;
   }
 }

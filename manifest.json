@@ -24,6 +24,10 @@
     "https://sheets.googleapis.com/*",
     "https://slides.googleapis.com/*"
   ],
+  "background": {
+    "service_worker": "background.js",
+    "type": "module"
+  },
   "action": {
     "default_popup": "popup.html",
     "default_icon": {
