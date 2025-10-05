@@ -24,6 +24,7 @@ import { CareerPathVisualizer } from '../components/CareerPathVisualizer';
 import { OnboardingWizard } from '../components/OnboardingWizard';
 import { TipsBanner } from '../components/TipsBanner';
 import { StatsDashboard } from '../components/StatsDashboard';
+import { ModelSelector } from '../components/ModelSelector';
 import { TemplateType, TemplateColors, TemplateFonts } from '../lib/templates';
 import { exportToPDF, exportToImage, printCV, generatePDFFilename } from '../lib/pdfExport';
 import { calculateATSScore, ATSScore } from '../lib/atsScoring';

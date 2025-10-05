@@ -27,9 +27,25 @@ export function InterviewPrepUI({ profile, job }: InterviewPrepUIProps) {
     try {
       const result = await generateInterviewPrepPlan(profile, job);
       setPlan(result);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to generate prep plan:', error);
-      alert('Failed to generate interview prep plan');
+      
+      // Show helpful error message
+      let errorMessage = 'Failed to generate interview prep plan.';
+      
+      if (error.message) {
+        if (error.message.includes('No API key found')) {
+          errorMessage = '❌ No API key found.\n\nPlease configure your OpenAI API key:\n1. Click the ⚙️ Settings button in the top navigation\n2. Enter your OpenAI API key\n3. Click Save\n\nGet your API key at: https://platform.openai.com/api-keys';
+        } else if (error.message.includes('rate limit')) {
+          errorMessage = '⏱️ Rate limit exceeded.\n\n' + error.message;
+        } else if (error.message.includes('quota')) {
+          errorMessage = '💳 API quota exceeded.\n\n' + error.message;
+        } else {
+          errorMessage = '❌ Error: ' + error.message;
+        }
+      }
+      
+      alert(errorMessage);
     }
     setLoading(false);
   };
@@ -41,9 +57,17 @@ export function InterviewPrepUI({ profile, job }: InterviewPrepUIProps) {
     try {
       const result = await practiceQuestion(currentQuestion, userAnswer, profile);
       setFeedback(result);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Practice error:', error);
-      alert('Failed to get feedback');
+      
+      let errorMessage = 'Failed to get feedback. ';
+      if (error.message && error.message.includes('No API key')) {
+        errorMessage += 'Please configure your API key in Settings.';
+      } else if (error.message) {
+        errorMessage += error.message;
+      }
+      
+      alert(errorMessage);
     }
     setSubmitting(false);
   };

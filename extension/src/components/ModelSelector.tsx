@@ -38,14 +38,26 @@ export function ModelSelector({ onClose }: ModelSelectorProps) {
   }, []);
 
   const loadSettings = async () => {
-    const config = await getProviderConfig();
-    const stored = await chrome.storage.local.get(['openai_api_key', 'anthropic_api_key', 'google_api_key', 'preferred_model']);
-    
-    setOpenaiKey(stored.openai_api_key || '');
-    setAnthropicKey(stored.anthropic_api_key || '');
-    setGoogleKey(stored.google_api_key || '');
-    setSelectedModel(stored.preferred_model || 'gpt-4-turbo');
-    setSelectedProvider(AI_MODELS[stored.preferred_model || 'gpt-4-turbo'].provider);
+    try {
+      const stored = await chrome.storage.local.get([
+        'openai_api_key', 'anthropic_api_key', 'google_api_key', 
+        'preferred_model', 'options'
+      ]);
+      
+      // Check for legacy options format
+      const legacyOptions = stored.options || {};
+      
+      setOpenaiKey(stored.openai_api_key || (legacyOptions.apiProvider === 'openai' ? legacyOptions.apiKey : '') || '');
+      setAnthropicKey(stored.anthropic_api_key || (legacyOptions.apiProvider === 'claude' ? legacyOptions.apiKey : '') || '');
+      setGoogleKey(stored.google_api_key || (legacyOptions.apiProvider === 'gemini' ? legacyOptions.apiKey : '') || '');
+      setSelectedModel(stored.preferred_model || 'gpt-4-turbo');
+      setSelectedProvider(AI_MODELS[stored.preferred_model || 'gpt-4-turbo'].provider);
+    } catch (error) {
+      console.error('Failed to load settings:', error);
+      // Use defaults if loading fails
+      setSelectedModel('gpt-4-turbo');
+      setSelectedProvider('openai');
+    }
   };
 
   const loadUsageStats = async () => {

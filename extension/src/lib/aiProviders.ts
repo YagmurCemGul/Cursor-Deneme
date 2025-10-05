@@ -419,41 +419,56 @@ export async function getProviderConfig(preferredModel?: AIModel): Promise<AIPro
   const stored = await chrome.storage.local.get([
     'openai_api_key', 'anthropic_api_key', 'google_api_key',
     'encrypted_openai_api_key', 'encrypted_anthropic_api_key', 'encrypted_google_api_key',
-    'preferred_model'
+    'preferred_model', 'options'
   ]);
+  
+  // Fallback to legacy options storage format
+  const legacyOptions = stored.options || {};
   
   // Determine which model to use
   let model: AIModel = preferredModel || stored.preferred_model || 'gpt-4-turbo';
   const modelConfig = AI_MODELS[model];
   
-  // Get API key for the provider (try encrypted first, fallback to unencrypted)
+  // Get API key for the provider (try encrypted first, fallback to unencrypted, then legacy)
   let apiKey: string = '';
   switch (modelConfig.provider) {
     case 'openai':
       apiKey = stored.encrypted_openai_api_key || stored.openai_api_key || '';
+      // Fallback to legacy storage if new format not found
+      if (!apiKey && (legacyOptions.apiProvider === 'openai' || legacyOptions.apiProvider === 'azure' || !legacyOptions.apiProvider)) {
+        apiKey = legacyOptions.apiKey || '';
+      }
       break;
     case 'anthropic':
       apiKey = stored.encrypted_anthropic_api_key || stored.anthropic_api_key || '';
+      // Fallback to legacy storage if available
+      if (!apiKey && legacyOptions.apiProvider === 'claude') {
+        apiKey = legacyOptions.apiKey || '';
+      }
       if (!apiKey) {
         // Fallback to OpenAI if Claude key not available
         console.warn('Anthropic API key not found, falling back to OpenAI');
         model = 'gpt-4-turbo';
-        apiKey = stored.encrypted_openai_api_key || stored.openai_api_key || '';
+        apiKey = stored.encrypted_openai_api_key || stored.openai_api_key || legacyOptions.apiKey || '';
       }
       break;
     case 'google':
       apiKey = stored.encrypted_google_api_key || stored.google_api_key || '';
+      // Fallback to legacy storage if available
+      if (!apiKey && legacyOptions.apiProvider === 'gemini') {
+        apiKey = legacyOptions.apiKey || '';
+      }
       if (!apiKey) {
         // Fallback to OpenAI if Gemini key not available
         console.warn('Google API key not found, falling back to OpenAI');
         model = 'gpt-4-turbo';
-        apiKey = stored.encrypted_openai_api_key || stored.openai_api_key || '';
+        apiKey = stored.encrypted_openai_api_key || stored.openai_api_key || legacyOptions.apiKey || '';
       }
       break;
   }
 
   if (!apiKey) {
-    throw new Error('No API key found. Please configure your API keys in settings.');
+    throw new Error('No API key found. Please configure your API keys in settings. Click the ⚙️ Settings button to add your OpenAI API key.');
   }
 
   return {
@@ -471,6 +486,22 @@ export async function getProviderConfig(preferredModel?: AIModel): Promise<AIPro
 export async function saveProviderConfig(provider: AIProvider, apiKey: string): Promise<void> {
   const key = `${provider}_api_key`;
   await chrome.storage.local.set({ [key]: apiKey });
+  
+  // Also update legacy options format for backward compatibility
+  const stored = await chrome.storage.local.get('options');
+  const legacyOptions = stored.options || {};
+  
+  // Map provider to legacy format
+  const legacyProviderMap: Record<AIProvider, string> = {
+    'openai': 'openai',
+    'anthropic': 'claude',
+    'google': 'gemini'
+  };
+  
+  legacyOptions.apiProvider = legacyProviderMap[provider];
+  legacyOptions.apiKey = apiKey;
+  
+  await chrome.storage.local.set({ options: legacyOptions });
 }
 
 /**
