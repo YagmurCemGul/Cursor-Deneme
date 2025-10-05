@@ -27,13 +27,13 @@ export class StorageService {
   static async saveProfile(profile: CVProfile): Promise<void> {
     const { profiles = [] } = await chrome.storage.local.get('profiles');
     const existingIndex = profiles.findIndex((p: CVProfile) => p.id === profile.id);
-
+    
     if (existingIndex >= 0) {
       profiles[existingIndex] = profile;
     } else {
       profiles.push(profile);
     }
-
+    
     await chrome.storage.local.set({ profiles });
   }
 
@@ -51,13 +51,13 @@ export class StorageService {
   static async saveTemplate(template: CVTemplate): Promise<void> {
     const { templates = [] } = await chrome.storage.local.get('templates');
     const existingIndex = templates.findIndex((t: CVTemplate) => t.id === template.id);
-
+    
     if (existingIndex >= 0) {
       templates[existingIndex] = template;
     } else {
       templates.push(template);
     }
-
+    
     await chrome.storage.local.set({ templates });
   }
 
@@ -69,13 +69,13 @@ export class StorageService {
   static async savePrompt(prompt: SavedPrompt): Promise<void> {
     const { prompts = [] } = await chrome.storage.local.get('prompts');
     const existingIndex = prompts.findIndex((p: SavedPrompt) => p.id === prompt.id);
-
+    
     if (existingIndex >= 0) {
       prompts[existingIndex] = prompt;
     } else {
       prompts.push(prompt);
     }
-
+    
     await chrome.storage.local.set({ prompts });
   }
 
@@ -90,15 +90,6 @@ export class StorageService {
     await chrome.storage.local.set({ prompts: filtered });
   }
 
-  /**
-   * Saves an API key to storage
-   * 
-   * @param {string} apiKey - The API key to save
-   * @returns {Promise<void>}
-   * @public
-   * @static
-   * @async
-   */
   static async saveAPIKey(apiKey: string): Promise<void> {
     await chrome.storage.local.set({ apiKey });
   }
@@ -119,151 +110,24 @@ export class StorageService {
   }
 
   static async saveAIProvider(provider: 'openai' | 'gemini' | 'claude'): Promise<void> {
-    const settings = (await this.getSettings()) || {};
+    const settings = await this.getSettings() || {};
     settings.aiProvider = provider;
     await this.saveSettings(settings);
   }
 
   static async getAIProvider(): Promise<'openai' | 'gemini' | 'claude'> {
-    const settings = (await this.getSettings()) as any;
+    const settings = await this.getSettings() as any;
     return settings?.aiProvider || 'openai';
   }
 
   static async saveAIModel(model: string): Promise<void> {
-    const settings = (await this.getSettings()) || {};
+    const settings = await this.getSettings() || {};
     (settings as any).aiModel = model;
     await this.saveSettings(settings);
   }
 
   static async getAIModel(): Promise<string | undefined> {
-    const settings = (await this.getSettings()) as any;
+    const settings = await this.getSettings() as any;
     return settings?.aiModel;
-  }
-
-  // Profile Version History
-  static async saveProfileVersion(version: import('../types').ProfileVersion): Promise<void> {
-    const { profileVersions = [] } = await chrome.storage.local.get('profileVersions');
-    profileVersions.push(version);
-    // Keep only last 20 versions per profile
-    const filteredVersions = profileVersions
-      .filter((v: any) => v.profileId === version.profileId)
-      .sort((a: any, b: any) => b.versionNumber - a.versionNumber)
-      .slice(0, 20);
-    
-    const otherVersions = profileVersions.filter((v: any) => v.profileId !== version.profileId);
-    await chrome.storage.local.set({ profileVersions: [...otherVersions, ...filteredVersions] });
-  }
-
-  static async getProfileVersions(profileId: string): Promise<import('../types').ProfileVersion[]> {
-    const { profileVersions = [] } = await chrome.storage.local.get('profileVersions');
-    return profileVersions
-      .filter((v: import('../types').ProfileVersion) => v.profileId === profileId)
-      .sort((a: import('../types').ProfileVersion, b: import('../types').ProfileVersion) => 
-        b.versionNumber - a.versionNumber
-      );
-  }
-
-  static async deleteProfileVersions(profileId: string): Promise<void> {
-    const { profileVersions = [] } = await chrome.storage.local.get('profileVersions');
-    const filtered = profileVersions.filter((v: import('../types').ProfileVersion) => v.profileId !== profileId);
-    await chrome.storage.local.set({ profileVersions: filtered });
-  }
-
-  // Optimization Analytics
-  static async saveAnalytics(analytics: import('../types').OptimizationAnalytics): Promise<void> {
-    const { analyticsData = [] } = await chrome.storage.local.get('analyticsData');
-    analyticsData.push(analytics);
-    // Keep only last 100 analytics entries
-    const trimmed = analyticsData.slice(-100);
-    await chrome.storage.local.set({ analyticsData: trimmed });
-  }
-
-  static async getAnalytics(): Promise<import('../types').OptimizationAnalytics[]> {
-    const { analyticsData = [] } = await chrome.storage.local.get('analyticsData');
-    return analyticsData.sort((a: import('../types').OptimizationAnalytics, b: import('../types').OptimizationAnalytics) => 
-      new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
-    );
-  }
-
-  static async clearAnalytics(): Promise<void> {
-    await chrome.storage.local.set({ analyticsData: [] });
-  }
-
-  // Job Description Library
-  static async saveJobDescription(jobDesc: import('../types').SavedJobDescription): Promise<void> {
-    const { jobDescriptions = [] } = await chrome.storage.local.get('jobDescriptions');
-    const existingIndex = jobDescriptions.findIndex((j: import('../types').SavedJobDescription) => j.id === jobDesc.id);
-
-    if (existingIndex >= 0) {
-      jobDescriptions[existingIndex] = { ...jobDesc, updatedAt: new Date().toISOString() };
-    } else {
-      jobDescriptions.push(jobDesc);
-    }
-
-    await chrome.storage.local.set({ jobDescriptions });
-  }
-
-  static async getJobDescriptions(): Promise<import('../types').SavedJobDescription[]> {
-    const { jobDescriptions = [] } = await chrome.storage.local.get('jobDescriptions');
-    return jobDescriptions.sort((a: import('../types').SavedJobDescription, b: import('../types').SavedJobDescription) => 
-      new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
-    );
-  }
-
-  static async deleteJobDescription(jobDescId: string): Promise<void> {
-    const { jobDescriptions = [] } = await chrome.storage.local.get('jobDescriptions');
-    const filtered = jobDescriptions.filter((j: import('../types').SavedJobDescription) => j.id !== jobDescId);
-    await chrome.storage.local.set({ jobDescriptions: filtered });
-  }
-
-  static async incrementJobDescriptionUsage(jobDescId: string): Promise<void> {
-    const { jobDescriptions = [] } = await chrome.storage.local.get('jobDescriptions');
-    const jobDesc = jobDescriptions.find((j: import('../types').SavedJobDescription) => j.id === jobDescId);
-    
-    if (jobDesc) {
-      jobDesc.usageCount = (jobDesc.usageCount || 0) + 1;
-      jobDesc.updatedAt = new Date().toISOString();
-      await chrome.storage.local.set({ jobDescriptions });
-    }
-  }
-
-  // Provider Usage Analytics
-  static async saveProviderUsage(usage: import('../types/storage').ProviderUsageAnalytics): Promise<void> {
-    const { providerAnalytics = [] } = await chrome.storage.local.get('providerAnalytics');
-    providerAnalytics.push(usage);
-    // Keep only last 100 entries
-    const trimmed = providerAnalytics.slice(-100);
-    await chrome.storage.local.set({ providerAnalytics: trimmed });
-  }
-
-  static async getProviderAnalytics(): Promise<import('../types/storage').ProviderUsageAnalytics[]> {
-    const { providerAnalytics = [] } = await chrome.storage.local.get('providerAnalytics');
-    return providerAnalytics.sort((a: import('../types/storage').ProviderUsageAnalytics, b: import('../types/storage').ProviderUsageAnalytics) => 
-      new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
-    );
-  }
-
-  static async clearProviderAnalytics(): Promise<void> {
-    await chrome.storage.local.set({ providerAnalytics: [] });
-  }
-
-  // Performance Metrics
-  static async savePerformanceMetrics(metrics: import('../types/storage').PerformanceMetrics): Promise<void> {
-    const { performanceMetrics = [] } = await chrome.storage.local.get('performanceMetrics');
-    performanceMetrics.push(metrics);
-    // Keep only last 100 entries
-    const trimmed = performanceMetrics.slice(-100);
-    await chrome.storage.local.set({ performanceMetrics: trimmed });
-  }
-
-  static async getPerformanceMetrics(): Promise<import('../types/storage').PerformanceMetrics[]> {
-    const { performanceMetrics = [] } = await chrome.storage.local.get('performanceMetrics');
-    return performanceMetrics.sort((a: import('../types/storage').PerformanceMetrics, b: import('../types/storage').PerformanceMetrics) => 
-      new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
-    );
-  }
-
-  static async clearPerformanceMetrics(): Promise<void> {
-    await chrome.storage.local.set({ performanceMetrics: [] });
   }
 }
