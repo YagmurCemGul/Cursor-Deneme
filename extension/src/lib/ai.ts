@@ -76,7 +76,8 @@ export async function generateCoverLetter(profile: ResumeProfile, job: JobPost, 
   return { text };
 }
 
-async function callOpenAI(system: string, user: string): Promise<string> {
+export async function callOpenAI(system: string, user: string, options?: { temperature?: number }): Promise<string> {
+  const temperature = options?.temperature ?? 0.3;
   const opts = await loadOptions();
   if (!opts?.apiKey) {
     return 'API key not set. Go to Options to configure.';
@@ -100,7 +101,7 @@ async function callOpenAI(system: string, user: string): Promise<string> {
             { role: 'system', content: system },
             { role: 'user', content: user }
           ],
-          temperature: 0.3,
+          temperature,
         })
       });
 
@@ -126,7 +127,7 @@ async function callOpenAI(system: string, user: string): Promise<string> {
             parts: [{ text: prompt }]
           }],
           generationConfig: {
-            temperature: 0.3,
+            temperature,
             topK: 40,
             topP: 0.95,
           }

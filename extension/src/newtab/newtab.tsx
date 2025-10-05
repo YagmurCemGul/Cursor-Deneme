@@ -10,6 +10,7 @@ import { ATSScoreCard } from '../components/ATSScoreCard';
 import { LinkedInImport } from '../components/LinkedInImport';
 import { JobTracker } from '../components/JobTracker';
 import { ProfileManager } from '../components/ProfileManager';
+import { DescriptionEnhancer } from '../components/DescriptionEnhancer';
 import { TemplateType, TemplateColors, TemplateFonts } from '../lib/templates';
 import { exportToPDF, exportToImage, printCV, generatePDFFilename } from '../lib/pdfExport';
 import { calculateATSScore, ATSScore } from '../lib/atsScoring';
@@ -48,6 +49,12 @@ export function NewTab() {
   const [showLinkedInImport, setShowLinkedInImport] = useState(false);
   const [showProfileManager, setShowProfileManager] = useState(false);
   const [allProfiles, setAllProfiles] = useState<ResumeProfile[]>([]);
+  const [enhancerState, setEnhancerState] = useState<{
+    show: boolean;
+    description: string;
+    context: any;
+    onApply: (enhanced: string) => void;
+  } | null>(null);
 
   useEffect(() => {
     (async () => {
@@ -909,17 +916,40 @@ Make it compelling, highlight key strengths, and use action-oriented language.`;
                           </Button>
                         </div>
                       </div>
-                      <textarea 
-                        className="textarea" 
-                        style={{ minHeight: 120 }}
-                        value={profile?.personal.summary ?? ''} 
-                        onChange={(e) => {
-                          const value = e.target.value.slice(0, 500);
-                          profile && saveProfile({ ...profile, personal: { ...profile.personal, summary: value } });
-                        }}
-                        placeholder="Write a brief professional summary highlighting your key strengths and experience... (Max 500 characters)"
-                        maxLength={500}
-                      />
+                      <div style={{ display: 'flex', gap: 8, alignItems: 'flex-start' }}>
+                        <textarea 
+                          className="textarea" 
+                          style={{ minHeight: 120, flex: 1 }}
+                          value={profile?.personal.summary ?? ''} 
+                          onChange={(e) => {
+                            const value = e.target.value.slice(0, 500);
+                            profile && saveProfile({ ...profile, personal: { ...profile.personal, summary: value } });
+                          }}
+                          placeholder="Write a brief professional summary highlighting your key strengths and experience... (Max 500 characters)"
+                          maxLength={500}
+                        />
+                        {profile?.personal.summary && (
+                          <Button
+                            variant="secondary"
+                            onClick={() => setEnhancerState({
+                              show: true,
+                              description: profile.personal.summary || '',
+                              context: {
+                                type: 'summary',
+                                role: profile.experience[0]?.title,
+                              },
+                              onApply: (enhanced) => {
+                                if (profile) {
+                                  saveProfile({ ...profile, personal: { ...profile.personal, summary: enhanced.slice(0, 500) } });
+                                }
+                              },
+                            })}
+                            style={{ fontSize: 12, padding: '8px 12px', whiteSpace: 'nowrap' }}
+                          >
+                            ✨ Enhance
+                          </Button>
+                        )}
+                      </div>
                       <div style={{ fontSize: 12, color: '#64748b', marginTop: 4 }}>
                         💡 Tip: Keep it concise (2-3 sentences) and highlight your unique value proposition
                       </div>
@@ -1142,9 +1172,29 @@ Make it compelling, highlight key strengths, and use action-oriented language.`;
                       <div className="col">
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
                           <span className="label">Description</span>
-                          <span style={{ fontSize: 12, color: '#64748b' }}>
-                            {(exp.description ?? '').length} characters
-                          </span>
+                          <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                            <span style={{ fontSize: 12, color: '#64748b' }}>
+                              {(exp.description ?? '').length} characters
+                            </span>
+                            {exp.description && (
+                              <Button
+                                variant="secondary"
+                                onClick={() => setEnhancerState({
+                                  show: true,
+                                  description: exp.description || '',
+                                  context: {
+                                    type: 'experience',
+                                    title: exp.title,
+                                    company: exp.company,
+                                  },
+                                  onApply: (enhanced) => updateExperience(i, 'description', enhanced),
+                                })}
+                                style={{ fontSize: 11, padding: '4px 10px' }}
+                              >
+                                ✨ Enhance
+                              </Button>
+                            )}
+                          </div>
                         </div>
                         <textarea 
                           className="textarea" 
@@ -1768,6 +1818,19 @@ Make it compelling, highlight key strengths, and use action-oriented language.`;
             currentProfile={profile}
             onSelectProfile={handleProfileSwitch}
             onClose={() => setShowProfileManager(false)}
+          />
+        )}
+
+        {/* Description Enhancer Modal */}
+        {enhancerState?.show && (
+          <DescriptionEnhancer
+            description={enhancerState.description}
+            context={enhancerState.context}
+            onApply={(enhanced) => {
+              enhancerState.onApply(enhanced);
+              setEnhancerState(null);
+            }}
+            onClose={() => setEnhancerState(null)}
           />
         )}
 
