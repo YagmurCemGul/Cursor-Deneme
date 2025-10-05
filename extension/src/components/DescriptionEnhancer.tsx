@@ -51,7 +51,24 @@ export function DescriptionEnhancer({
       const enhanced = await enhanceDescription(description, context, options);
       setResult(enhanced);
     } catch (err: any) {
-      setError(err.message || 'Failed to enhance description');
+      console.error('Enhancement error:', err);
+      
+      // Show helpful error message
+      let errorMessage = 'Failed to enhance description.';
+      
+      if (err.message) {
+        if (err.message.includes('No API key found')) {
+          errorMessage = 'No API key found. Please configure your OpenAI API key in Settings (⚙️ button).';
+        } else if (err.message.includes('rate limit')) {
+          errorMessage = 'Rate limit exceeded. Please wait a moment and try again.';
+        } else if (err.message.includes('quota')) {
+          errorMessage = 'API quota exceeded. Please check your OpenAI account.';
+        } else {
+          errorMessage = err.message;
+        }
+      }
+      
+      setError(errorMessage);
     } finally {
       setIsEnhancing(false);
     }

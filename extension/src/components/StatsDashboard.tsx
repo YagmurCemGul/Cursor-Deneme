@@ -221,7 +221,7 @@ export function StatsDashboard() {
             <StatCard
               icon="🔄"
               label="Total Requests"
-              value={Object.values(usageStats.byModel).reduce((sum: number, m: any) => sum + m.requests, 0).toString()}
+              value={usageStats.byModel ? Object.values(usageStats.byModel).reduce((sum: number, m: any) => sum + m.requests, 0).toString() : '0'}
               color="#8b5cf6"
             />
           </div>
@@ -232,7 +232,7 @@ export function StatsDashboard() {
               Usage by Model:
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-              {Object.entries(usageStats.byModel).map(([model, stats]: [string, any]) => (
+              {usageStats.byModel && Object.entries(usageStats.byModel).map(([model, stats]: [string, any]) => (
                 <div key={model} style={{
                   padding: 12,
                   background: '#f8fafc',

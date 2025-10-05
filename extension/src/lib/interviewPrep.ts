@@ -23,6 +23,10 @@ export interface InterviewPrepPlan {
   jobTitle: string;
   company: string;
   questions: InterviewQuestion[];
+  behavioralQuestions: InterviewQuestion[];
+  technicalQuestions: InterviewQuestion[];
+  situationalQuestions: InterviewQuestion[];
+  companySpecificQuestions: InterviewQuestion[];
   companyResearch: {
     keyFacts: string[];
     culture: string[];
@@ -88,6 +92,10 @@ export async function generateInterviewPrepPlan(
     jobTitle: job.title || jobContext.jobTitle,
     company: job.company || 'the company',
     questions: allQuestions,
+    behavioralQuestions: behavioralQs,
+    technicalQuestions: technicalQs,
+    situationalQuestions: situationalQs,
+    companySpecificQuestions: companyQs,
     companyResearch: research,
     preparationTips,
     storyBank: stories

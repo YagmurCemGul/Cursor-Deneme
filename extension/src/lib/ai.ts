@@ -214,10 +214,20 @@ export async function callOpenAI(
   } catch (error: any) {
     console.error('AI call error:', error);
     
+    // Re-throw the error if it contains helpful user messaging
+    if (error.message && (
+      error.message.includes('No API key found') ||
+      error.message.includes('rate limit') ||
+      error.message.includes('quota exceeded') ||
+      error.message.includes('Invalid API key')
+    )) {
+      throw error;
+    }
+    
     // Fallback to legacy system if new providers fail
     const opts = await loadOptions();
     if (!opts?.apiKey) {
-      return 'API key not set. Go to Options to configure.';
+      throw new Error('API key not set. Please go to Settings (⚙️ button) to configure your API key.');
     }
     
     const provider = opts.apiProvider || 'openai';
