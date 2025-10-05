@@ -1,7 +1,6 @@
 import { CVData, ATSOptimization } from '../types';
 import { createAIProvider, AIConfig, AIProviderAdapter } from './aiProviders';
 import { logger } from './logger';
-import { StorageService } from './storage';
 
 export class AIService {
   private provider: AIProviderAdapter | null = null;
@@ -15,26 +14,6 @@ export class AIService {
         throw new Error('AI provider initialization failed. Please check your API configuration.');
       }
     }
-  }
-
-  /**
-   * Initialize from storage (for use in popup/background)
-   */
-  static async initFromStorage(): Promise<AIService> {
-    const provider = await StorageService.getAIProvider();
-    const apiKeys = await StorageService.getAPIKeys();
-    const apiKey = apiKeys[provider];
-
-    if (!apiKey) {
-      throw new Error(`No API key found for ${provider}. Please configure your API key in settings.`);
-    }
-
-    const config: AIConfig = {
-      provider,
-      apiKey
-    };
-
-    return new AIService(config);
   }
 
   /**

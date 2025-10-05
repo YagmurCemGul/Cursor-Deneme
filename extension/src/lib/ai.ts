@@ -224,31 +224,103 @@ export async function callOpenAI(
       throw error;
     }
     
-    // Try AIService.generateText as fallback
-    try {
-      const opts = await loadOptions();
-      if (!opts?.apiKey) {
-        throw new Error('API key not set. Please go to Settings (⚙️ button) to configure your API key.');
+    // Fallback to legacy system if new providers fail
+    const opts = await loadOptions();
+    if (!opts?.apiKey) {
+      throw new Error('API key not set. Please go to Settings (⚙️ button) to configure your API key.');
+    }
+    
+    const provider = opts.apiProvider || 'openai';
+    
+    if (provider === 'openai' || provider === 'azure') {
+      const endpoint = provider === 'azure' ? 'https://example-azure-endpoint' : 'https://api.openai.com/v1/chat/completions';
+      
+      const res = await fetch(endpoint, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${opts.apiKey}`
+        },
+        body: JSON.stringify({
+          model: 'gpt-4o-mini',
+          messages: [
+            { role: 'system', content: system },
+            { role: 'user', content: user }
+          ],
+          temperature,
+        })
+      });
+
+      if (!res.ok) {
+        // Special handling for rate limit errors
+        if (res.status === 429) {
+          return `OpenAI rate limit exceeded (429). Please wait a moment and try again, or consider upgrading your API plan. ${res.statusText}`;
+        }
+        return `OpenAI error: ${res.status} ${res.statusText}`;
       }
-      
-      const provider = opts.apiProvider || 'openai';
-      if (provider === 'azure') {
-        throw new Error('Azure OpenAI is not supported yet. Please use OpenAI, Gemini, or Claude.');
-      }
-      
-      // Import AIService dynamically to avoid circular dependencies
-      const { AIService } = await import('../../../src/utils/aiService');
-      
+      const data = await res.json();
+      const content = data.choices?.[0]?.message?.content ?? '';
+      return content.trim();
+    } else if (provider === 'gemini') {
       const prompt = `${system}\n\n${user}`;
-      return await AIService.generateText(
-        prompt,
-        opts.apiKey,
-        provider as 'openai' | 'gemini' | 'claude',
-        { temperature }
-      );
-    } catch (fallbackError: any) {
-      console.error('Fallback AI call error:', fallbackError);
-      throw new Error(fallbackError.message || 'Failed to generate AI response. Please check your API settings.');
+      const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${opts.apiKey}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          contents: [{
+            parts: [{ text: prompt }]
+          }],
+          generationConfig: {
+            temperature,
+            topK: 40,
+            topP: 0.95,
+          }
+        })
+      });
+
+      if (!res.ok) {
+        // Special handling for rate limit errors
+        if (res.status === 429) {
+          return `Gemini rate limit exceeded (429). Please wait a moment and try again, or consider upgrading your API plan. ${res.statusText}`;
+        }
+        return `Gemini error: ${res.status} ${res.statusText}`;
+      }
+      const data = await res.json();
+      const content = data.candidates?.[0]?.content?.parts?.[0]?.text ?? '';
+      return content.trim();
+    } else if (provider === 'claude') {
+      const res = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': opts.apiKey,
+          'anthropic-version': '2023-06-01'
+        },
+        body: JSON.stringify({
+          model: 'claude-3-haiku-20240307',
+          max_tokens: 2000,
+          temperature: 0.3,
+          system: system,
+          messages: [
+            { role: 'user', content: user }
+          ]
+        })
+      });
+
+      if (!res.ok) {
+        // Special handling for rate limit errors
+        if (res.status === 429) {
+          return `Claude rate limit exceeded (429). Please wait a moment and try again, or consider upgrading your API plan. ${res.statusText}`;
+        }
+        return `Claude error: ${res.status} ${res.statusText}`;
+      }
+      const data = await res.json();
+      const content = data.content?.[0]?.text ?? '';
+      return content.trim();
+    } else {
+      return `Unsupported AI provider: ${provider}`;
     }
   }
 }
