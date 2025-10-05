@@ -1,8 +1,9 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState, useCallback } from 'react';
 import { ResumeProfile, JobPost, AtsOptimization, EmploymentType } from '../lib/types';
 import { getActiveProfile, loadOptimizations, saveJobPost, saveOptimizations, saveOrUpdateProfile, loadOptions, loadJobPost, loadGeneratedResume, loadGeneratedCoverLetter, saveGeneratedResume, saveGeneratedCoverLetter } from '../lib/storage';
 import { generateAtsResume, generateCoverLetter } from '../lib/ai';
 import { TabButton, TextRow, SectionHeader, Pill, Button } from '../components/ui';
+import { validateEmail, validatePhone, validateURL, validateLinkedIn, validateGitHub, formatPhoneNumber, calculateDateDuration, formatDate, calculateProfileCompletion, getSkillSuggestions, skillSuggestions } from '../lib/validation';
 import '../styles/global.css';
 
 export function NewTab() {
@@ -17,6 +18,15 @@ export function NewTab() {
   const [apiKey, setApiKey] = useState<string>('');
   const [apiProvider, setApiProvider] = useState<'openai' | 'azure' | 'gemini' | 'claude'>('openai');
   const [language, setLanguage] = useState<'tr' | 'en'>('en');
+  
+  // New states for improvements
+  const [isSaving, setIsSaving] = useState(false);
+  const [lastSaved, setLastSaved] = useState<Date | null>(null);
+  const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
+  const [collapsedSections, setCollapsedSections] = useState<Record<string, boolean>>({});
+  const [showSkillSuggestions, setShowSkillSuggestions] = useState(false);
+  const [skillSearchQuery, setSkillSearchQuery] = useState('');
+  const [isGeneratingSummary, setIsGeneratingSummary] = useState(false);
 
   useEffect(() => {
     (async () => {
@@ -120,10 +130,156 @@ export function NewTab() {
     return name.replace(/\s+/g, '_').replace(/[^a-zA-Z0-9_\-.]/g, '');
   }
 
+  // Auto-save profile with indicator
   async function saveProfile(updated: ResumeProfile) {
     setProfile(updated);
-    await saveOrUpdateProfile(updated);
+    setIsSaving(true);
+    try {
+      await saveOrUpdateProfile(updated);
+      setLastSaved(new Date());
+    } finally {
+      setTimeout(() => setIsSaving(false), 500);
+    }
   }
+
+  // Validate field with real-time feedback
+  function validateField(field: string, value: string) {
+    let result;
+    switch (field) {
+      case 'email':
+        result = validateEmail(value);
+        break;
+      case 'phone':
+        result = validatePhone(value);
+        break;
+      case 'portfolio':
+        result = validateURL(value);
+        break;
+      case 'linkedin':
+        result = validateLinkedIn(value);
+        break;
+      case 'github':
+        result = validateGitHub(value);
+        break;
+      default:
+        result = { isValid: true };
+    }
+    
+    if (!result.isValid && result.error) {
+      setValidationErrors(prev => ({ ...prev, [field]: result.error! }));
+    } else {
+      setValidationErrors(prev => {
+        const newErrors = { ...prev };
+        delete newErrors[field];
+        return newErrors;
+      });
+    }
+  }
+
+  // Calculate profile completion
+  const profileCompletion = useMemo(() => {
+    if (!profile) return { percentage: 0, missingFields: [] };
+    return calculateProfileCompletion(profile);
+  }, [profile]);
+
+  // Toggle section collapse
+  function toggleSection(section: string) {
+    setCollapsedSections(prev => ({ ...prev, [section]: !prev[section] }));
+  }
+
+  // Duplicate experience
+  function duplicateExperience(index: number) {
+    if (!profile) return;
+    const exp = { ...profile.experience[index] };
+    saveProfile({
+      ...profile,
+      experience: [...profile.experience.slice(0, index + 1), exp, ...profile.experience.slice(index + 1)]
+    });
+  }
+
+  // Duplicate education
+  function duplicateEducation(index: number) {
+    if (!profile) return;
+    const edu = { ...profile.education[index] };
+    saveProfile({
+      ...profile,
+      education: [...profile.education.slice(0, index + 1), edu, ...profile.education.slice(index + 1)]
+    });
+  }
+
+  // AI generate summary
+  async function generateAISummary() {
+    if (!profile || !apiKey) {
+      alert('Please set up your API key in Settings first!');
+      return;
+    }
+    
+    setIsGeneratingSummary(true);
+    try {
+      // Create a simple prompt based on profile data
+      const experienceText = profile.experience.map(exp => 
+        `${exp.title} at ${exp.company}`
+      ).join(', ');
+      
+      const skillsText = profile.skills.join(', ');
+      
+      const prompt = `Write a professional summary (2-3 sentences, max 150 words) for a resume based on this information:
+      
+Name: ${profile.personal.firstName} ${profile.personal.lastName}
+Experience: ${experienceText || 'Entry level'}
+Skills: ${skillsText || 'Various skills'}
+      
+Make it compelling, highlight key strengths, and use action-oriented language.`;
+
+      const response = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${apiKey}`
+        },
+        body: JSON.stringify({
+          model: 'gpt-3.5-turbo',
+          messages: [{ role: 'user', content: prompt }],
+          temperature: 0.7,
+          max_tokens: 200
+        })
+      });
+
+      if (!response.ok) throw new Error('Failed to generate summary');
+      
+      const data = await response.json();
+      const summary = data.choices[0].message.content.trim();
+      
+      saveProfile({
+        ...profile,
+        personal: { ...profile.personal, summary }
+      });
+    } catch (error) {
+      alert('Failed to generate summary. Please check your API key and try again.');
+    } finally {
+      setIsGeneratingSummary(false);
+    }
+  }
+
+  // Add skill from suggestions
+  function addSkillFromSuggestion(skill: string) {
+    if (!profile) return;
+    saveProfile({
+      ...profile,
+      skills: [...profile.skills, skill]
+    });
+    setSkillSearchQuery('');
+  }
+
+  // Get filtered skill suggestions
+  const filteredSkillSuggestions = useMemo(() => {
+    if (!profile) return [];
+    const suggestions = getSkillSuggestions(profile.skills);
+    if (!skillSearchQuery) return suggestions.slice(0, 20);
+    return suggestions.filter(s => 
+      s.toLowerCase().includes(skillSearchQuery.toLowerCase())
+    ).slice(0, 20);
+  }, [profile?.skills, skillSearchQuery]);
 
   function addExperience() {
     if (!profile) return;
@@ -259,9 +415,60 @@ export function NewTab() {
       <div style={{ maxWidth: 1200, margin: '0 auto', padding: '40px 20px' }}>
         {/* Header */}
         <div style={{ background: 'white', borderRadius: 16, padding: '24px 32px', marginBottom: 24, boxShadow: '0 10px 40px rgba(0,0,0,0.1)' }}>
-          <h1 style={{ margin: 0, fontSize: 28, color: '#1e293b', marginBottom: 8 }}>🚀 AI CV & Cover Letter Optimizer</h1>
-          <p style={{ margin: 0, color: '#64748b', fontSize: 14 }}>Create ATS-optimized resumes and cover letters powered by AI</p>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 16 }}>
+            <div>
+              <h1 style={{ margin: 0, fontSize: 28, color: '#1e293b', marginBottom: 8 }}>🚀 AI CV & Cover Letter Optimizer</h1>
+              <p style={{ margin: 0, color: '#64748b', fontSize: 14 }}>Create ATS-optimized resumes and cover letters powered by AI</p>
+            </div>
+            {/* Auto-save indicator */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 16px', background: isSaving ? '#fef3c7' : '#f0fdf4', borderRadius: 8, border: '1px solid ' + (isSaving ? '#fbbf24' : '#86efac') }}>
+              {isSaving ? (
+                <>
+                  <div style={{ width: 12, height: 12, border: '2px solid #f59e0b', borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 0.6s linear infinite' }} />
+                  <span style={{ fontSize: 13, color: '#92400e', fontWeight: 500 }}>Saving...</span>
+                </>
+              ) : lastSaved ? (
+                <>
+                  <span style={{ fontSize: 16 }}>✓</span>
+                  <span style={{ fontSize: 13, color: '#166534', fontWeight: 500 }}>Saved</span>
+                </>
+              ) : null}
+            </div>
+          </div>
+          
+          {/* Profile Completion Progress */}
+          {active === 'cv' && (
+            <div style={{ marginTop: 16, paddingTop: 16, borderTop: '1px solid #e5e7eb' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+                <span style={{ fontSize: 13, fontWeight: 600, color: '#1e293b' }}>Profile Completion</span>
+                <span style={{ fontSize: 13, fontWeight: 600, color: profileCompletion.percentage === 100 ? '#16a34a' : '#667eea' }}>
+                  {profileCompletion.percentage}%
+                </span>
+              </div>
+              <div style={{ width: '100%', height: 8, background: '#e5e7eb', borderRadius: 4, overflow: 'hidden' }}>
+                <div style={{ 
+                  width: `${profileCompletion.percentage}%`, 
+                  height: '100%', 
+                  background: profileCompletion.percentage === 100 ? '#16a34a' : 'linear-gradient(90deg, #667eea 0%, #764ba2 100%)',
+                  transition: 'width 0.3s ease'
+                }} />
+              </div>
+              {profileCompletion.missingFields.length > 0 && profileCompletion.percentage < 100 && (
+                <div style={{ marginTop: 8, fontSize: 12, color: '#64748b' }}>
+                  💡 Missing: {profileCompletion.missingFields.slice(0, 3).join(', ')}
+                  {profileCompletion.missingFields.length > 3 && ` and ${profileCompletion.missingFields.length - 3} more`}
+                </div>
+              )}
+            </div>
+          )}
         </div>
+        
+        {/* Add keyframe animation for spinner */}
+        <style>{`
+          @keyframes spin {
+            to { transform: rotate(360deg); }
+          }
+        `}</style>
 
         {/* Main Content */}
         <div style={{ background: 'white', borderRadius: 16, padding: 0, boxShadow: '0 10px 40px rgba(0,0,0,0.1)', overflow: 'hidden' }}>
@@ -277,93 +484,303 @@ export function NewTab() {
           <div style={{ padding: 32, maxHeight: 'calc(100vh - 300px)', overflowY: 'auto' }}>
             {active === 'cv' && (
               <div className="col" style={{ gap: 16 }}>
-                <SectionHeader title="Personal Information" />
-                <div className="row">
-                  <TextRow label="First name" value={profile?.personal.firstName ?? ''} onChange={(v) => profile && saveProfile({ ...profile, personal: { ...profile.personal, firstName: v } })} />
-                  <TextRow label="Middle name" value={profile?.personal.middleName ?? ''} onChange={(v) => profile && saveProfile({ ...profile, personal: { ...profile.personal, middleName: v } })} />
-                  <TextRow label="Last name" value={profile?.personal.lastName ?? ''} onChange={(v) => profile && saveProfile({ ...profile, personal: { ...profile.personal, lastName: v } })} />
-                </div>
-                <div className="row">
-                  <TextRow label="Email" value={profile?.personal.email ?? ''} onChange={(v) => profile && saveProfile({ ...profile, personal: { ...profile.personal, email: v } })} placeholder="name@domain.com" />
-                  <TextRow label="Phone" value={profile?.personal.phone ?? ''} onChange={(v) => profile && saveProfile({ ...profile, personal: { ...profile.personal, phone: v } })} placeholder="+90 ..." />
-                </div>
-                <div className="row">
-                  <TextRow label="LinkedIn" value={profile?.personal.linkedin ?? ''} onChange={(v) => profile && saveProfile({ ...profile, personal: { ...profile.personal, linkedin: v.replace('https://www.linkedin.com/in/', '').replace('https://linkedin.com/in/', '') } })} placeholder="username" />
-                  <TextRow label="GitHub" value={profile?.personal.github ?? ''} onChange={(v) => profile && saveProfile({ ...profile, personal: { ...profile.personal, github: v.replace('https://github.com/', '') } })} placeholder="username" />
-                </div>
-                <div className="row">
-                  <TextRow label="Portfolio" value={profile?.personal.portfolio ?? ''} onChange={(v) => profile && saveProfile({ ...profile, personal: { ...profile.personal, portfolio: v } })} placeholder="https://..." />
-                  <TextRow label="Location" value={profile?.personal.location ?? ''} onChange={(v) => profile && saveProfile({ ...profile, personal: { ...profile.personal, location: v } })} placeholder="City, Country" />
-                </div>
-                
-                <div className="col" style={{ marginTop: 12 }}>
-                  <span className="label">Professional Summary</span>
-                  <textarea 
-                    className="textarea" 
-                    style={{ minHeight: 120 }}
-                    value={profile?.personal.summary ?? ''} 
-                    onChange={(e) => profile && saveProfile({ ...profile, personal: { ...profile.personal, summary: e.target.value } })} 
-                    placeholder="Write a brief professional summary highlighting your key strengths and experience..."
-                  />
-                </div>
+                <SectionHeader 
+                  title="Personal Information" 
+                  actions={
+                    <Button variant="ghost" onClick={() => toggleSection('personal')}>
+                      {collapsedSections.personal ? '📂 Expand' : '📁 Collapse'}
+                    </Button>
+                  }
+                />
+                {!collapsedSections.personal && (
+                  <>
+                    <div className="row">
+                      <label className="col" style={{ minWidth: 220, flex: 1 }}>
+                        <span className="label">First name <span style={{ color: '#ef4444' }}>*</span></span>
+                        <input 
+                          className="text-input" 
+                          value={profile?.personal.firstName ?? ''} 
+                          onChange={(e) => profile && saveProfile({ ...profile, personal: { ...profile.personal, firstName: e.target.value } })} 
+                          placeholder="John"
+                          style={{ borderColor: !profile?.personal.firstName ? '#fca5a5' : undefined }}
+                        />
+                      </label>
+                      <TextRow label="Middle name" value={profile?.personal.middleName ?? ''} onChange={(v) => profile && saveProfile({ ...profile, personal: { ...profile.personal, middleName: v } })} />
+                      <label className="col" style={{ minWidth: 220, flex: 1 }}>
+                        <span className="label">Last name <span style={{ color: '#ef4444' }}>*</span></span>
+                        <input 
+                          className="text-input" 
+                          value={profile?.personal.lastName ?? ''} 
+                          onChange={(e) => profile && saveProfile({ ...profile, personal: { ...profile.personal, lastName: e.target.value } })} 
+                          placeholder="Doe"
+                          style={{ borderColor: !profile?.personal.lastName ? '#fca5a5' : undefined }}
+                        />
+                      </label>
+                    </div>
+                    <div className="row">
+                      <label className="col" style={{ minWidth: 220, flex: 1 }}>
+                        <span className="label">Email <span style={{ color: '#ef4444' }}>*</span></span>
+                        <input 
+                          className="text-input" 
+                          type="email"
+                          value={profile?.personal.email ?? ''} 
+                          onChange={(e) => {
+                            const value = e.target.value;
+                            profile && saveProfile({ ...profile, personal: { ...profile.personal, email: value } });
+                            validateField('email', value);
+                          }}
+                          onBlur={(e) => validateField('email', e.target.value)}
+                          placeholder="john.doe@example.com"
+                          style={{ borderColor: validationErrors.email ? '#ef4444' : (!profile?.personal.email ? '#fca5a5' : undefined) }}
+                        />
+                        {validationErrors.email && <span style={{ fontSize: 12, color: '#ef4444', marginTop: 4 }}>⚠️ {validationErrors.email}</span>}
+                      </label>
+                      <label className="col" style={{ minWidth: 220, flex: 1 }}>
+                        <span className="label">Phone</span>
+                        <input 
+                          className="text-input" 
+                          type="tel"
+                          value={profile?.personal.phone ?? ''} 
+                          onChange={(e) => {
+                            const value = e.target.value;
+                            profile && saveProfile({ ...profile, personal: { ...profile.personal, phone: value } });
+                            validateField('phone', value);
+                          }}
+                          onBlur={(e) => validateField('phone', e.target.value)}
+                          placeholder="+1 (555) 123-4567"
+                          style={{ borderColor: validationErrors.phone ? '#ef4444' : undefined }}
+                        />
+                        {validationErrors.phone && <span style={{ fontSize: 12, color: '#ef4444', marginTop: 4 }}>⚠️ {validationErrors.phone}</span>}
+                      </label>
+                    </div>
+                    <div className="row">
+                      <label className="col" style={{ minWidth: 220, flex: 1 }}>
+                        <span className="label">LinkedIn</span>
+                        <input 
+                          className="text-input" 
+                          value={profile?.personal.linkedin ?? ''} 
+                          onChange={(e) => {
+                            const value = e.target.value.replace('https://www.linkedin.com/in/', '').replace('https://linkedin.com/in/', '');
+                            profile && saveProfile({ ...profile, personal: { ...profile.personal, linkedin: value } });
+                            validateField('linkedin', value);
+                          }}
+                          placeholder="username or linkedin.com/in/username"
+                          style={{ borderColor: validationErrors.linkedin ? '#ef4444' : undefined }}
+                        />
+                        {validationErrors.linkedin && <span style={{ fontSize: 12, color: '#ef4444', marginTop: 4 }}>⚠️ {validationErrors.linkedin}</span>}
+                      </label>
+                      <label className="col" style={{ minWidth: 220, flex: 1 }}>
+                        <span className="label">GitHub</span>
+                        <input 
+                          className="text-input" 
+                          value={profile?.personal.github ?? ''} 
+                          onChange={(e) => {
+                            const value = e.target.value.replace('https://github.com/', '');
+                            profile && saveProfile({ ...profile, personal: { ...profile.personal, github: value } });
+                            validateField('github', value);
+                          }}
+                          placeholder="username or github.com/username"
+                          style={{ borderColor: validationErrors.github ? '#ef4444' : undefined }}
+                        />
+                        {validationErrors.github && <span style={{ fontSize: 12, color: '#ef4444', marginTop: 4 }}>⚠️ {validationErrors.github}</span>}
+                      </label>
+                    </div>
+                    <div className="row">
+                      <label className="col" style={{ minWidth: 220, flex: 1 }}>
+                        <span className="label">Portfolio Website</span>
+                        <input 
+                          className="text-input" 
+                          value={profile?.personal.portfolio ?? ''} 
+                          onChange={(e) => {
+                            const value = e.target.value;
+                            profile && saveProfile({ ...profile, personal: { ...profile.personal, portfolio: value } });
+                            validateField('portfolio', value);
+                          }}
+                          placeholder="https://yourwebsite.com"
+                          style={{ borderColor: validationErrors.portfolio ? '#ef4444' : undefined }}
+                        />
+                        {validationErrors.portfolio && <span style={{ fontSize: 12, color: '#ef4444', marginTop: 4 }}>⚠️ {validationErrors.portfolio}</span>}
+                      </label>
+                      <TextRow label="Location" value={profile?.personal.location ?? ''} onChange={(v) => profile && saveProfile({ ...profile, personal: { ...profile.personal, location: v } })} placeholder="San Francisco, CA" />
+                    </div>
+                    
+                    <div className="col" style={{ marginTop: 12 }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+                        <span className="label">Professional Summary</span>
+                        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                          <span style={{ fontSize: 12, color: '#64748b' }}>
+                            {(profile?.personal.summary ?? '').length}/500 characters
+                          </span>
+                          <Button 
+                            variant="secondary" 
+                            onClick={generateAISummary}
+                            disabled={isGeneratingSummary || !apiKey}
+                            style={{ fontSize: 12, padding: '6px 12px' }}
+                          >
+                            {isGeneratingSummary ? '⏳ Generating...' : '✨ AI Generate'}
+                          </Button>
+                        </div>
+                      </div>
+                      <textarea 
+                        className="textarea" 
+                        style={{ minHeight: 120 }}
+                        value={profile?.personal.summary ?? ''} 
+                        onChange={(e) => {
+                          const value = e.target.value.slice(0, 500);
+                          profile && saveProfile({ ...profile, personal: { ...profile.personal, summary: value } });
+                        }}
+                        placeholder="Write a brief professional summary highlighting your key strengths and experience... (Max 500 characters)"
+                        maxLength={500}
+                      />
+                      <div style={{ fontSize: 12, color: '#64748b', marginTop: 4 }}>
+                        💡 Tip: Keep it concise (2-3 sentences) and highlight your unique value proposition
+                      </div>
+                    </div>
+                  </>
+                )}
 
                 <div className="divider" />
 
                 <SectionHeader 
                   title="Skills" 
                   actions={
-                    <Button variant="secondary" onClick={() => profile && saveProfile({ ...profile, skills: [...(profile.skills ?? []), ''] })}>
-                      + Add Skill
-                    </Button>
+                    <div style={{ display: 'flex', gap: 8 }}>
+                      <Button variant="ghost" onClick={() => setShowSkillSuggestions(!showSkillSuggestions)}>
+                        {showSkillSuggestions ? '🔍 Hide Suggestions' : '💡 Show Suggestions'}
+                      </Button>
+                      <Button variant="secondary" onClick={() => profile && saveProfile({ ...profile, skills: [...(profile.skills ?? []), ''] })}>
+                        + Add Skill
+                      </Button>
+                      <Button variant="ghost" onClick={() => toggleSection('skills')}>
+                        {collapsedSections.skills ? '📂 Expand' : '📁 Collapse'}
+                      </Button>
+                    </div>
                   } 
                 />
-                <div className="col" style={{ gap: 8 }}>
-                  {(profile?.skills ?? []).length === 0 ? (
-                    <div className="empty-state">
-                      <p className="empty-state-text">No skills added yet. Click "Add Skill" to get started.</p>
-                    </div>
-                  ) : (
-                    (profile?.skills ?? []).map((s, i) => (
-                      <div className="row" key={i} style={{ alignItems: 'center' }}>
-                        <input 
-                          className="text-input" 
-                          value={s} 
-                          onChange={(e) => profile && saveProfile({ ...profile, skills: profile.skills.map((x, idx) => idx === i ? e.target.value : x) })} 
-                          placeholder="Enter skill (e.g., React, Python, Project Management)..."
-                        />
-                        <Button variant="ghost" onClick={() => profile && saveProfile({ ...profile, skills: profile.skills.filter((_, idx) => idx !== i) })}>
-                          🗑️ Remove
-                        </Button>
+                
+                {/* Skill Suggestions */}
+                {!collapsedSections.skills && showSkillSuggestions && (
+                  <div style={{ background: '#f8fafc', padding: 16, borderRadius: 8, border: '1px solid #e2e8f0' }}>
+                    <div style={{ marginBottom: 12 }}>
+                      <input 
+                        className="text-input" 
+                        value={skillSearchQuery}
+                        onChange={(e) => setSkillSearchQuery(e.target.value)}
+                        placeholder="Search skills... (e.g., React, Python, Leadership)"
+                        style={{ marginBottom: 8 }}
+                      />
+                      <div style={{ fontSize: 12, color: '#64748b', marginBottom: 8 }}>
+                        💡 Popular skills - Click to add:
                       </div>
-                    ))
-                  )}
-                </div>
+                    </div>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+                      {filteredSkillSuggestions.slice(0, 30).map((skill, idx) => (
+                        <button 
+                          key={idx}
+                          onClick={() => addSkillFromSuggestion(skill)}
+                          style={{
+                            padding: '6px 12px',
+                            background: 'white',
+                            border: '1px solid #cbd5e1',
+                            borderRadius: 6,
+                            fontSize: 13,
+                            cursor: 'pointer',
+                            transition: 'all 0.2s',
+                          }}
+                          onMouseOver={(e) => {
+                            e.currentTarget.style.background = '#667eea';
+                            e.currentTarget.style.color = 'white';
+                            e.currentTarget.style.borderColor = '#667eea';
+                          }}
+                          onMouseOut={(e) => {
+                            e.currentTarget.style.background = 'white';
+                            e.currentTarget.style.color = 'inherit';
+                            e.currentTarget.style.borderColor = '#cbd5e1';
+                          }}
+                        >
+                          + {skill}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                
+                {!collapsedSections.skills && (
+                  <div className="col" style={{ gap: 8 }}>
+                    {(profile?.skills ?? []).length === 0 ? (
+                      <div className="empty-state">
+                        <p className="empty-state-text">No skills added yet. Click "Add Skill" or "Show Suggestions" to get started.</p>
+                      </div>
+                    ) : (
+                      (profile?.skills ?? []).map((s, i) => (
+                        <div className="row" key={i} style={{ alignItems: 'center' }}>
+                          <input 
+                            className="text-input" 
+                            value={s} 
+                            onChange={(e) => profile && saveProfile({ ...profile, skills: profile.skills.map((x, idx) => idx === i ? e.target.value : x) })} 
+                            placeholder="Enter skill (e.g., React, Python, Project Management)..."
+                          />
+                          <Button variant="ghost" onClick={() => profile && saveProfile({ ...profile, skills: profile.skills.filter((_, idx) => idx !== i) })}>
+                            🗑️ Remove
+                          </Button>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                )}
 
                 <div className="divider" />
 
                 <SectionHeader 
                   title="Experience" 
                   actions={
-                    <Button variant="secondary" onClick={addExperience}>
-                      + Add Experience
-                    </Button>
+                    <div style={{ display: 'flex', gap: 8 }}>
+                      <Button variant="secondary" onClick={addExperience}>
+                        + Add Experience
+                      </Button>
+                      <Button variant="ghost" onClick={() => toggleSection('experience')}>
+                        {collapsedSections.experience ? '📂 Expand' : '📁 Collapse'}
+                      </Button>
+                    </div>
                   } 
                 />
-                {(profile?.experience ?? []).length === 0 ? (
-                  <div className="empty-state">
-                    <div className="empty-state-icon">💼</div>
-                    <p className="empty-state-title">No work experience added</p>
-                    <p className="empty-state-text">Add your professional experience to build a compelling resume</p>
-                  </div>
-                ) : (
-                  (profile?.experience ?? []).map((exp, i) => (
-                    <div key={i} className="card">
-                      <div className="row" style={{ marginBottom: 12, justifyContent: 'space-between' }}>
-                        <h4 style={{ margin: 0, color: '#1e293b' }}>Experience #{i + 1}</h4>
-                        <Button variant="danger" onClick={() => removeExperience(i)}>
-                          🗑️ Remove
-                        </Button>
+                {!collapsedSections.experience && (
+                  <>
+                    {(profile?.experience ?? []).length === 0 ? (
+                      <div className="empty-state">
+                        <div className="empty-state-icon">💼</div>
+                        <p className="empty-state-title">No work experience added</p>
+                        <p className="empty-state-text">Add your professional experience to build a compelling resume</p>
                       </div>
+                    ) : (
+                      (profile?.experience ?? []).map((exp, i) => (
+                        <div key={i} className="card">
+                          <div className="row" style={{ marginBottom: 12, justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                            <div>
+                              <h4 style={{ margin: 0, color: '#1e293b' }}>
+                                {exp.title || `Experience #${i + 1}`}
+                                {exp.company && ` @ ${exp.company}`}
+                              </h4>
+                              {exp.startDate && (
+                                <div style={{ fontSize: 12, color: '#64748b', marginTop: 4 }}>
+                                  📅 {formatDate(exp.startDate)} - {exp.isCurrent ? 'Present' : (exp.endDate ? formatDate(exp.endDate) : 'Present')}
+                                  {exp.startDate && (
+                                    <span style={{ marginLeft: 8, fontWeight: 500 }}>
+                                      ({calculateDateDuration(exp.startDate, exp.endDate, exp.isCurrent)})
+                                    </span>
+                                  )}
+                                </div>
+                              )}
+                            </div>
+                            <div style={{ display: 'flex', gap: 8 }}>
+                              <Button variant="secondary" onClick={() => duplicateExperience(i)} style={{ fontSize: 12, padding: '6px 12px' }}>
+                                📋 Duplicate
+                              </Button>
+                              <Button variant="danger" onClick={() => removeExperience(i)}>
+                                🗑️ Remove
+                              </Button>
+                            </div>
+                          </div>
                       <div className="row">
                         <TextRow 
                           label="Job Title" 
@@ -435,16 +852,27 @@ export function NewTab() {
                         </label>
                       </div>
                       <div className="col">
-                        <span className="label">Description</span>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
+                          <span className="label">Description</span>
+                          <span style={{ fontSize: 12, color: '#64748b' }}>
+                            {(exp.description ?? '').length} characters
+                          </span>
+                        </div>
                         <textarea 
                           className="textarea" 
                           value={exp.description ?? ''} 
                           onChange={(e) => updateExperience(i, 'description', e.target.value)} 
-                          placeholder="Describe your responsibilities and achievements..."
+                          placeholder="Describe your responsibilities and achievements... Use bullet points starting with strong action verbs."
+                          style={{ minHeight: 100 }}
                         />
+                        <div style={{ fontSize: 11, color: '#64748b', marginTop: 4 }}>
+                          💡 Tip: Use action verbs (Led, Developed, Managed) and quantify achievements (increased by 40%, reduced by 30%)
+                        </div>
                       </div>
                     </div>
                   ))
+                )}
+                  </>
                 )}
 
                 <div className="divider" />
@@ -452,26 +880,48 @@ export function NewTab() {
                 <SectionHeader 
                   title="Education" 
                   actions={
-                    <Button variant="secondary" onClick={addEducation}>
-                      + Add Education
-                    </Button>
+                    <div style={{ display: 'flex', gap: 8 }}>
+                      <Button variant="secondary" onClick={addEducation}>
+                        + Add Education
+                      </Button>
+                      <Button variant="ghost" onClick={() => toggleSection('education')}>
+                        {collapsedSections.education ? '📂 Expand' : '📁 Collapse'}
+                      </Button>
+                    </div>
                   } 
                 />
-                {(profile?.education ?? []).length === 0 ? (
-                  <div className="empty-state">
-                    <div className="empty-state-icon">🎓</div>
-                    <p className="empty-state-title">No education added</p>
-                    <p className="empty-state-text">Add your educational background</p>
-                  </div>
-                ) : (
-                  (profile?.education ?? []).map((edu, i) => (
-                    <div key={i} className="card">
-                      <div className="row" style={{ marginBottom: 12, justifyContent: 'space-between' }}>
-                        <h4 style={{ margin: 0, color: '#1e293b' }}>Education #{i + 1}</h4>
-                        <Button variant="danger" onClick={() => removeEducation(i)}>
-                          🗑️ Remove
-                        </Button>
+                {!collapsedSections.education && (
+                  <>
+                    {(profile?.education ?? []).length === 0 ? (
+                      <div className="empty-state">
+                        <div className="empty-state-icon">🎓</div>
+                        <p className="empty-state-title">No education added</p>
+                        <p className="empty-state-text">Add your educational background</p>
                       </div>
+                    ) : (
+                      (profile?.education ?? []).map((edu, i) => (
+                        <div key={i} className="card">
+                          <div className="row" style={{ marginBottom: 12, justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                            <div>
+                              <h4 style={{ margin: 0, color: '#1e293b' }}>
+                                {edu.degree || `Education #${i + 1}`}
+                                {edu.school && ` - ${edu.school}`}
+                              </h4>
+                              {edu.startDate && edu.endDate && (
+                                <div style={{ fontSize: 12, color: '#64748b', marginTop: 4 }}>
+                                  📅 {formatDate(edu.startDate)} - {formatDate(edu.endDate)}
+                                </div>
+                              )}
+                            </div>
+                            <div style={{ display: 'flex', gap: 8 }}>
+                              <Button variant="secondary" onClick={() => duplicateEducation(i)} style={{ fontSize: 12, padding: '6px 12px' }}>
+                                📋 Duplicate
+                              </Button>
+                              <Button variant="danger" onClick={() => removeEducation(i)}>
+                                🗑️ Remove
+                              </Button>
+                            </div>
+                          </div>
                       <div className="row">
                         <TextRow 
                           label="School/University" 
@@ -523,17 +973,26 @@ export function NewTab() {
                     </div>
                   ))
                 )}
+                  </>
+                )}
 
                 <div className="divider" />
 
                 <SectionHeader 
                   title="Projects" 
                   actions={
-                    <Button variant="secondary" onClick={addProject}>
-                      + Add Project
-                    </Button>
+                    <div style={{ display: 'flex', gap: 8 }}>
+                      <Button variant="secondary" onClick={addProject}>
+                        + Add Project
+                      </Button>
+                      <Button variant="ghost" onClick={() => toggleSection('projects')}>
+                        {collapsedSections.projects ? '📂 Expand' : '📁 Collapse'}
+                      </Button>
+                    </div>
                   } 
                 />
+                {!collapsedSections.projects && (
+                  <>
                 {(profile?.projects ?? []).length === 0 ? (
                   <div className="empty-state">
                     <div className="empty-state-icon">🔨</div>
@@ -567,17 +1026,26 @@ export function NewTab() {
                     </div>
                   ))
                 )}
+                  </>
+                )}
 
                 <div className="divider" />
 
                 <SectionHeader 
                   title="Licenses & Certifications" 
                   actions={
-                    <Button variant="secondary" onClick={addLicense}>
-                      + Add Certification
-                    </Button>
+                    <div style={{ display: 'flex', gap: 8 }}>
+                      <Button variant="secondary" onClick={addLicense}>
+                        + Add Certification
+                      </Button>
+                      <Button variant="ghost" onClick={() => toggleSection('certifications')}>
+                        {collapsedSections.certifications ? '📂 Expand' : '📁 Collapse'}
+                      </Button>
+                    </div>
                   } 
                 />
+                {!collapsedSections.certifications && (
+                  <>
                 {(profile?.licenses ?? []).length === 0 ? (
                   <div className="empty-state">
                     <div className="empty-state-icon">📜</div>
@@ -623,6 +1091,8 @@ export function NewTab() {
                       </div>
                     </div>
                   ))
+                )}
+                  </>
                 )}
 
                 {optimizations.length > 0 && (
