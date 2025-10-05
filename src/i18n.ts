@@ -326,6 +326,7 @@ const dict: Record<string, Record<Lang, string>> = {
   'questions.removeOption': { en: 'Remove option', tr: 'Seçeneği kaldır' },
   'questions.optionsRequired': { en: 'Please add at least one option for this question type', tr: 'Bu soru tipi için en az bir seçenek ekleyin' },
   'questions.optionsHelp': { en: 'Add options that users can choose from', tr: 'Kullanıcıların seçebileceği seçenekler ekleyin' },
+  'questions.multilineInput': { en: 'Multi-line text area', tr: 'Çok satırlı metin alanı' },
   
   // Rich Text Editor
   'editor.bold': { en: 'Bold', tr: 'Kalın' },
