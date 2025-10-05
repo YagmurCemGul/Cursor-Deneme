@@ -93,7 +93,13 @@ export function NewTab() {
       }
       
       // Check for pending job application from context menu
-      const pendingData = await chrome.storage.local.get(['pendingJobApplication', 'extractedJobData', 'clipboardText']);
+      const pendingData = await chrome.storage.local.get([
+        'pendingJobApplication', 
+        'extractedJobData', 
+        'clipboardText',
+        'clipboardType',
+        'pendingSkills'
+      ]);
       
       if (pendingData.pendingJobApplication) {
         const pending = pendingData.pendingJobApplication;
@@ -122,6 +128,36 @@ export function NewTab() {
           company: extracted.company || '',
         });
         await chrome.storage.local.remove(['extractedJobData']);
+      }
+      
+      // Handle pending skills from context menu
+      if (pendingData.pendingSkills && pendingData.pendingSkills.length > 0 && p) {
+        const existingSkills = new Set(p.skills.map(s => s.toLowerCase()));
+        const newSkills = pendingData.pendingSkills.filter(
+          (skill: string) => !existingSkills.has(skill.toLowerCase())
+        );
+        
+        if (newSkills.length > 0) {
+          const updatedProfile = {
+            ...p,
+            skills: [...p.skills, ...newSkills],
+          };
+          setProfile(updatedProfile);
+          await saveOrUpdateProfile(updatedProfile);
+          await chrome.storage.local.remove(['pendingSkills']);
+          
+          setTimeout(() => {
+            alert(`${newSkills.length} new skills added to your CV!`);
+          }, 500);
+        }
+      }
+      
+      // Handle clipboard data for experience
+      if (pendingData.clipboardType === 'experience' && pendingData.clipboardText) {
+        // Show notification for manual adding
+        setTimeout(() => {
+          alert('Experience description saved! Add it to your work experience in the CV tab.');
+        }, 500);
       }
       
       let p = await getActiveProfile();

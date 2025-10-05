@@ -5,26 +5,101 @@
 
 // Create context menus on installation
 chrome.runtime.onInstalled.addListener(() => {
-  // Context menu for selected text
+  // Parent menu
+  chrome.contextMenus.create({
+    id: 'cv-builder-main',
+    title: '📋 CV Builder',
+    contexts: ['all'],
+  });
+
+  // Job Application submenu
+  chrome.contextMenus.create({
+    id: 'job-submenu',
+    parentId: 'cv-builder-main',
+    title: '💼 Job Applications',
+    contexts: ['all'],
+  });
+
   chrome.contextMenus.create({
     id: 'add-to-applications',
-    title: 'Add to Job Applications',
-    contexts: ['selection', 'page'],
+    parentId: 'job-submenu',
+    title: 'Add to Applications',
+    contexts: ['selection', 'page', 'link'],
   });
 
   chrome.contextMenus.create({
     id: 'extract-job-data',
+    parentId: 'job-submenu',
     title: 'Extract Job Details',
     contexts: ['page'],
   });
 
   chrome.contextMenus.create({
+    id: 'quick-apply',
+    parentId: 'job-submenu',
+    title: 'Quick Apply',
+    contexts: ['page'],
+  });
+
+  // CV Management submenu
+  chrome.contextMenus.create({
+    id: 'cv-submenu',
+    parentId: 'cv-builder-main',
+    title: '📄 CV Management',
+    contexts: ['all'],
+  });
+
+  chrome.contextMenus.create({
     id: 'save-to-cv',
-    title: 'Save to CV Builder',
+    parentId: 'cv-submenu',
+    title: 'Save Selection to CV',
     contexts: ['selection'],
   });
 
-  console.log('CV Builder extension installed');
+  chrome.contextMenus.create({
+    id: 'add-to-experience',
+    parentId: 'cv-submenu',
+    title: 'Add to Experience',
+    contexts: ['selection'],
+  });
+
+  chrome.contextMenus.create({
+    id: 'add-to-skills',
+    parentId: 'cv-submenu',
+    title: 'Add to Skills',
+    contexts: ['selection'],
+  });
+
+  // Quick Actions
+  chrome.contextMenus.create({
+    id: 'separator-1',
+    parentId: 'cv-builder-main',
+    type: 'separator',
+    contexts: ['all'],
+  });
+
+  chrome.contextMenus.create({
+    id: 'open-cv-builder',
+    parentId: 'cv-builder-main',
+    title: '🚀 Open CV Builder',
+    contexts: ['all'],
+  });
+
+  chrome.contextMenus.create({
+    id: 'open-job-tracker',
+    parentId: 'cv-builder-main',
+    title: '📊 Open Job Tracker',
+    contexts: ['all'],
+  });
+
+  chrome.contextMenus.create({
+    id: 'view-analytics',
+    parentId: 'cv-builder-main',
+    title: '📈 View Analytics',
+    contexts: ['all'],
+  });
+
+  console.log('CV Builder extension installed with enhanced menus');
 });
 
 // Handle context menu clicks
@@ -38,8 +113,26 @@ chrome.contextMenus.onClicked.addListener((info, tab) => {
     case 'extract-job-data':
       handleExtractJobData(tab);
       break;
+    case 'quick-apply':
+      handleQuickApply(tab);
+      break;
     case 'save-to-cv':
       handleSaveToCV(info, tab);
+      break;
+    case 'add-to-experience':
+      handleAddToExperience(info, tab);
+      break;
+    case 'add-to-skills':
+      handleAddToSkills(info, tab);
+      break;
+    case 'open-cv-builder':
+      handleOpenCVBuilder();
+      break;
+    case 'open-job-tracker':
+      handleOpenJobTracker();
+      break;
+    case 'view-analytics':
+      handleViewAnalytics();
       break;
   }
 });
@@ -198,6 +291,7 @@ async function handleSaveToCV(info: chrome.contextMenus.OnClickData, tab: chrome
     await chrome.storage.local.set({
       clipboardText: selectedText,
       clipboardTimestamp: Date.now(),
+      clipboardType: 'general',
     });
 
     chrome.notifications.create({
@@ -208,6 +302,93 @@ async function handleSaveToCV(info: chrome.contextMenus.OnClickData, tab: chrome
       priority: 1,
     });
   }
+}
+
+/**
+ * Handle "Add to Experience" context menu
+ */
+async function handleAddToExperience(info: chrome.contextMenus.OnClickData, tab: chrome.tabs.Tab) {
+  const selectedText = info.selectionText;
+
+  if (selectedText) {
+    await chrome.storage.local.set({
+      clipboardText: selectedText,
+      clipboardTimestamp: Date.now(),
+      clipboardType: 'experience',
+    });
+
+    chrome.notifications.create({
+      type: 'basic',
+      iconUrl: chrome.runtime.getURL('icons/icon128.png'),
+      title: 'Added to Experience',
+      message: 'Description saved. Open CV Builder to add it to your experience.',
+      priority: 1,
+    });
+  }
+}
+
+/**
+ * Handle "Add to Skills" context menu
+ */
+async function handleAddToSkills(info: chrome.contextMenus.OnClickData, tab: chrome.tabs.Tab) {
+  const selectedText = info.selectionText;
+
+  if (selectedText) {
+    // Parse skills from text (comma-separated or newline-separated)
+    const skills = selectedText
+      .split(/[,\n•·]/)
+      .map(s => s.trim())
+      .filter(s => s.length > 0 && s.length < 50);
+
+    await chrome.storage.local.set({
+      pendingSkills: skills,
+      skillsTimestamp: Date.now(),
+    });
+
+    chrome.notifications.create({
+      type: 'basic',
+      iconUrl: chrome.runtime.getURL('icons/icon128.png'),
+      title: 'Skills Extracted',
+      message: `${skills.length} skills saved. Open CV Builder to add them.`,
+      priority: 1,
+    });
+  }
+}
+
+/**
+ * Handle "Quick Apply" - opens CV Builder with job data and goes to applications
+ */
+async function handleQuickApply(tab: chrome.tabs.Tab) {
+  // First extract job data
+  await handleExtractJobData(tab);
+  
+  // Then open CV Builder directly to tracker tab
+  const extensionUrl = chrome.runtime.getURL('newtab.html#tracker');
+  await chrome.tabs.create({ url: extensionUrl });
+}
+
+/**
+ * Handle "Open CV Builder"
+ */
+async function handleOpenCVBuilder() {
+  const extensionUrl = chrome.runtime.getURL('newtab.html');
+  await chrome.tabs.create({ url: extensionUrl });
+}
+
+/**
+ * Handle "Open Job Tracker"
+ */
+async function handleOpenJobTracker() {
+  const extensionUrl = chrome.runtime.getURL('newtab.html#tracker');
+  await chrome.tabs.create({ url: extensionUrl });
+}
+
+/**
+ * Handle "View Analytics"
+ */
+async function handleViewAnalytics() {
+  const extensionUrl = chrome.runtime.getURL('newtab.html#analytics');
+  await chrome.tabs.create({ url: extensionUrl });
 }
 
 // Listen for tab updates to show page action on job pages
@@ -229,6 +410,58 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
   }
 });
 
+// Handle keyboard shortcuts
+chrome.commands.onCommand.addListener((command) => {
+  switch (command) {
+    case 'quick-capture':
+      handleQuickCaptureShortcut();
+      break;
+    case 'open-tracker':
+      handleOpenJobTracker();
+      break;
+  }
+});
+
+/**
+ * Handle quick capture keyboard shortcut
+ */
+async function handleQuickCaptureShortcut() {
+  const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+  
+  if (tab?.id) {
+    // Check if it's a job page
+    const url = tab.url || '';
+    const isJobPage = 
+      url.includes('linkedin.com/jobs') ||
+      url.includes('indeed.com/viewjob') ||
+      url.includes('glassdoor.com/job');
+
+    if (isJobPage) {
+      await handleExtractJobData(tab);
+      chrome.notifications.create({
+        type: 'basic',
+        iconUrl: chrome.runtime.getURL('icons/icon128.png'),
+        title: 'Quick Capture',
+        message: 'Job details captured! Opening CV Builder...',
+        priority: 2,
+      });
+      
+      setTimeout(async () => {
+        const extensionUrl = chrome.runtime.getURL('newtab.html');
+        await chrome.tabs.create({ url: extensionUrl });
+      }, 500);
+    } else {
+      chrome.notifications.create({
+        type: 'basic',
+        iconUrl: chrome.runtime.getURL('icons/icon128.png'),
+        title: 'Not a Job Page',
+        message: 'Navigate to a job posting to use quick capture.',
+        priority: 1,
+      });
+    }
+  }
+}
+
 // Handle messages from content scripts
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.type === 'JOB_PAGE_DETECTED') {
@@ -244,6 +477,12 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
       sendResponse(result.extractedJobData || null);
     });
     return true; // Keep channel open for async response
+  } else if (request.type === 'SHOW_QUICK_EDIT') {
+    // Show quick edit popup
+    if (sender.tab?.id) {
+      chrome.action.openPopup();
+    }
+    sendResponse({ success: true });
   }
 });
 
