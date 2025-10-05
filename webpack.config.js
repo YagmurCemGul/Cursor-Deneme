@@ -7,9 +7,10 @@ module.exports = (env, argv) => {
 
   return {
     entry: {
-      popup: './src/popup.tsx',
-      newtab: './src/newtab/main.tsx',
-      background: './src/background/index.ts'
+      popup: './extension/src/popup/main.tsx',
+      newtab: './extension/src/newtab/main.tsx',
+      options: './extension/src/options/main.tsx',
+      background: './extension/src/background/index.ts'
     },
     output: {
       path: path.resolve(__dirname, 'dist'),
@@ -46,7 +47,7 @@ module.exports = (env, argv) => {
     },
     plugins: [
       new HtmlWebpackPlugin({
-        template: './src/popup/index.html',
+        template: './extension/src/popup/index.html',
         filename: 'popup.html',
         chunks: ['popup'],
         minify: isProduction ? {
@@ -64,9 +65,27 @@ module.exports = (env, argv) => {
         inject: true
       }),
       new HtmlWebpackPlugin({
-        template: './src/newtab/index.html',
+        template: './extension/src/newtab/index.html',
         filename: 'newtab.html',
         chunks: ['newtab'],
+        minify: isProduction ? {
+          removeComments: true,
+          collapseWhitespace: true,
+          removeRedundantAttributes: true,
+          useShortDoctype: true,
+          removeEmptyAttributes: true,
+          removeStyleLinkTypeAttributes: true,
+          keepClosingSlash: true,
+          minifyJS: true,
+          minifyCSS: true,
+          minifyURLs: true
+        } : false,
+        inject: true
+      }),
+      new HtmlWebpackPlugin({
+        template: './extension/src/options/index.html',
+        filename: 'options.html',
+        chunks: ['options'],
         minify: isProduction ? {
           removeComments: true,
           collapseWhitespace: true,
@@ -84,11 +103,11 @@ module.exports = (env, argv) => {
       new CopyWebpackPlugin({
         patterns: [
           {
-            from: 'manifest.json',
+            from: 'extension/manifest.json',
             to: 'manifest.json'
           },
           {
-            from: 'icons',
+            from: 'extension/icons',
             to: 'icons'
           }
         ]
