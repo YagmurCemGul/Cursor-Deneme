@@ -9,6 +9,7 @@ module.exports = (env, argv) => {
     entry: {
       popup: './extension/src/popup/main.tsx',
       newtab: './extension/src/newtab/main.tsx',
+      options: './extension/src/options/main.tsx',
       background: './extension/src/background/index.ts'
     },
     output: {
@@ -67,6 +68,24 @@ module.exports = (env, argv) => {
         template: './extension/src/newtab/index.html',
         filename: 'newtab.html',
         chunks: ['newtab'],
+        minify: isProduction ? {
+          removeComments: true,
+          collapseWhitespace: true,
+          removeRedundantAttributes: true,
+          useShortDoctype: true,
+          removeEmptyAttributes: true,
+          removeStyleLinkTypeAttributes: true,
+          keepClosingSlash: true,
+          minifyJS: true,
+          minifyCSS: true,
+          minifyURLs: true
+        } : false,
+        inject: true
+      }),
+      new HtmlWebpackPlugin({
+        template: './extension/src/options/index.html',
+        filename: 'options.html',
+        chunks: ['options'],
         minify: isProduction ? {
           removeComments: true,
           collapseWhitespace: true,

@@ -3,6 +3,7 @@ import { ResumeProfile, JobPost, AtsOptimization } from '../lib/types';
 import { getActiveProfile, loadOptimizations, saveJobPost } from '../lib/storage';
 import { generateAtsResume, generateCoverLetter } from '../lib/ai';
 import { Button } from '../components/ui';
+import '../styles/global.css';
 
 export function Popup() {
   const [profile, setProfile] = useState<ResumeProfile | undefined>();
