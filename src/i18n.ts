@@ -166,183 +166,129 @@ const dict: Record<string, Record<Lang, string>> = {
     en: 'Solution: Add your email as a test user in OAuth consent screen',
     tr: 'Çözüm: OAuth izin ekranında e-postanızı test kullanıcısı olarak ekleyin',
   },
+  'googleDrive.validateClientId': {
+    en: 'Validate Client ID',
+    tr: 'Client ID Doğrula',
+  },
+  'googleDrive.validating': {
+    en: 'Validating...',
+    tr: 'Doğrulanıyor...',
+  },
+  'googleDrive.validationSuccess': {
+    en: 'Client ID is valid!',
+    tr: 'Client ID geçerli!',
+  },
+  'googleDrive.validationFailed': {
+    en: 'Validation failed',
+    tr: 'Doğrulama başarısız',
+  },
+  'googleDrive.currentClientId': {
+    en: 'Current Client ID',
+    tr: 'Mevcut Client ID',
+  },
+  'googleDrive.validationDetails': {
+    en: 'Validation Details',
+    tr: 'Doğrulama Detayları',
+  },
+  'googleDrive.autoValidation': {
+    en: 'Automatic Client ID Validation',
+    tr: 'Otomatik Client ID Doğrulama',
+  },
+  'googleDrive.autoValidationDesc': {
+    en: 'Click the button below to verify your Google Client ID is properly configured with Google Cloud Console.',
+    tr: "Google Client ID'nizin Google Cloud Console ile düzgün yapılandırıldığını doğrulamak için aşağıdaki düğmeye tıklayın.",
+  },
+  'googleDrive.validationNote': {
+    en: 'Note: This will make a non-interactive API call to verify your credentials without requiring sign-in.',
+    tr: 'Not: Bu, kimlik bilgilerinizi giriş yapmadan doğrulamak için etkileşimli olmayan bir API çağrısı yapacaktır.',
+  },
+  'googleDrive.enhancedValidation': {
+    en: 'Enhanced Validation',
+    tr: 'Gelişmiş Doğrulama',
+  },
+  'googleDrive.runEnhancedValidation': {
+    en: 'Run Enhanced Validation',
+    tr: 'Gelişmiş Doğrulama Çalıştır',
+  },
+  'googleDrive.setupWizard': {
+    en: 'Setup Wizard',
+    tr: 'Kurulum Sihirbazı',
+  },
+  'googleDrive.launchWizard': {
+    en: 'Launch Setup Wizard',
+    tr: 'Kurulum Sihirbazını Başlat',
+  },
+  'googleDrive.healthMonitor': {
+    en: 'Health Monitor',
+    tr: 'Durum İzleyici',
+  },
+  'googleDrive.viewDashboard': {
+    en: 'View Health Dashboard',
+    tr: 'Durum Panosunu Görüntüle',
+  },
+  'googleDrive.videoTutorial': {
+    en: 'Video Tutorial',
+    tr: 'Video Eğitimi',
+  },
+  'googleDrive.watchTutorial': {
+    en: 'Watch Video Tutorial',
+    tr: 'Video Eğitimi İzle',
+  },
+  'googleDrive.interactiveGuide': {
+    en: 'Interactive Guide',
+    tr: 'Etkileşimli Kılavuz',
+  },
+  'googleDrive.startGuide': {
+    en: 'Start Interactive Guide',
+    tr: 'Etkileşimli Kılavuzu Başlat',
+  },
+  'googleDrive.advancedFeatures': {
+    en: 'Advanced Features',
+    tr: 'Gelişmiş Özellikler',
+  },
 
-  // Setup Wizard
+  // Setup Wizard (merged from both implementations)
   'wizard.title': { en: 'Google Drive Setup Wizard', tr: 'Google Drive Kurulum Sihirbazı' },
   'wizard.subtitle': {
     en: 'Follow these steps to configure Google Drive integration',
     tr: 'Google Drive entegrasyonunu yapılandırmak için bu adımları izleyin',
   },
-  'wizard.launchWizard': { en: 'Launch Setup Wizard', tr: 'Kurulum Sihirbazını Başlat' },
   'wizard.setupComplete': {
     en: 'Setup complete! Please reload the extension to apply changes.',
     tr: 'Kurulum tamamlandı! Değişiklikleri uygulamak için uzantıyı yeniden yükleyin.',
   },
-
-  // Wizard Steps
   'wizard.step1Title': { en: 'Create Google Cloud Project', tr: 'Google Cloud Projesi Oluştur' },
   'wizard.step1Desc': {
     en: 'First, create a new project in Google Cloud Console',
     tr: 'İlk olarak, Google Cloud Console\'da yeni bir proje oluşturun',
   },
-  'wizard.step1Sub1': {
-    en: 'Go to Google Cloud Console (console.cloud.google.com)',
-    tr: 'Google Cloud Console\'a gidin (console.cloud.google.com)',
-  },
-  'wizard.step1Sub2': {
-    en: 'Click "Select a project" dropdown at the top',
-    tr: 'Üstteki "Proje seç" açılır menüsüne tıklayın',
-  },
-  'wizard.step1Sub3': {
-    en: 'Click "NEW PROJECT" and give it a name (e.g., "CV Optimizer")',
-    tr: 'YENİ PROJE\'ye tıklayın ve bir isim verin (örn. "CV Optimizer")',
-  },
-
   'wizard.step2Title': { en: 'Enable Required APIs', tr: 'Gerekli API\'leri Etkinleştir' },
   'wizard.step2Desc': {
     en: 'Enable Google Drive and related APIs for your project',
     tr: 'Projeniz için Google Drive ve ilgili API\'leri etkinleştirin',
   },
-  'wizard.step2Sub1': {
-    en: 'Go to "APIs & Services" > "Library" in the left menu',
-    tr: 'Sol menüden "API\'ler ve Hizmetler" > "Kütüphane"ye gidin',
-  },
-  'wizard.step2Sub2': {
-    en: 'Search for and enable: "Google Drive API"',
-    tr: 'Arayın ve etkinleştirin: "Google Drive API"',
-  },
-  'wizard.step2Sub3': {
-    en: 'Search for and enable: "Google Docs API"',
-    tr: 'Arayın ve etkinleştirin: "Google Docs API"',
-  },
-  'wizard.step2Sub4': {
-    en: 'Search for and enable: "Google Sheets API" and "Google Slides API"',
-    tr: 'Arayın ve etkinleştirin: "Google Sheets API" ve "Google Slides API"',
-  },
-
-  'wizard.step3Title': { en: 'Create OAuth Credentials', tr: 'OAuth Kimlik Bilgileri Oluştur' },
+  'wizard.step3Title': { en: 'Configure OAuth Consent', tr: 'OAuth İzni Yapılandır' },
   'wizard.step3Desc': {
-    en: 'Create OAuth 2.0 Client ID for Chrome extension',
-    tr: 'Chrome uzantısı için OAuth 2.0 İstemci Kimliği oluşturun',
+    en: 'Set up OAuth consent screen for your application',
+    tr: 'Uygulamanız için OAuth izin ekranını ayarlayın',
   },
-  'wizard.step3Sub1': {
-    en: 'Go to "APIs & Services" > "Credentials"',
-    tr: '"API\'ler ve Hizmetler" > "Kimlik Bilgileri"ne gidin',
-  },
-  'wizard.step3Sub2': {
-    en: 'Click "CREATE CREDENTIALS" > "OAuth client ID"',
-    tr: '"KİMLİK BİLGİSİ OLUŞTUR" > "OAuth istemci kimliği"ne tıklayın',
-  },
-  'wizard.step3Sub3': {
-    en: 'Select "Chrome Extension" as application type',
-    tr: 'Uygulama türü olarak "Chrome Uzantısı" seçin',
-  },
-  'wizard.step3Sub4': {
-    en: 'Add your Chrome Extension ID (find it at chrome://extensions)',
-    tr: 'Chrome Uzantı Kimliğinizi ekleyin (chrome://extensions\'da bulabilirsiniz)',
-  },
-
-  'wizard.step4Title': { en: 'Configure & Validate', tr: 'Yapılandır ve Doğrula' },
+  'wizard.step4Title': { en: 'Create OAuth Client ID', tr: 'OAuth Client ID Oluştur' },
   'wizard.step4Desc': {
-    en: 'Copy your Client ID and validate the configuration',
-    tr: 'İstemci Kimliğinizi kopyalayın ve yapılandırmayı doğrulayın',
+    en: 'Generate OAuth credentials for Chrome Extension',
+    tr: 'Chrome Uzantısı için OAuth kimlik bilgileri oluşturun',
   },
-  'wizard.step4Sub1': {
-    en: 'Copy the Client ID from Google Cloud Console',
-    tr: 'Google Cloud Console\'dan İstemci Kimliğini kopyalayın',
+  'wizard.step5Title': { en: 'Update manifest.json', tr: 'manifest.json\'ı Güncelle' },
+  'wizard.step5Desc': {
+    en: 'Add your Client ID to the extension manifest',
+    tr: 'Client ID\'nizi uzantı manifest dosyasına ekleyin',
   },
-  'wizard.step4Sub2': {
-    en: 'Paste it below and click "Validate Client ID"',
-    tr: 'Aşağıya yapıştırın ve "İstemci Kimliğini Doğrula"ya tıklayın',
-  },
-  'wizard.step4Sub3': {
-    en: 'Update manifest.json with your Client ID and reload the extension',
-    tr: 'manifest.json dosyasını İstemci Kimliğinizle güncelleyin ve uzantıyı yeniden yükleyin',
-  },
-
-  // Wizard Actions
-  'wizard.openConsole': { en: 'Open Google Console', tr: 'Google Console\'u Aç' },
   'wizard.next': { en: 'Next', tr: 'İleri' },
   'wizard.previous': { en: 'Previous', tr: 'Geri' },
-  'wizard.complete': { en: 'Complete Setup', tr: 'Kurulumu Tamamla' },
-  'wizard.validateButton': { en: 'Validate Client ID', tr: 'İstemci Kimliğini Doğrula' },
-  'wizard.autoValidate': { en: 'Auto-validate as I type', tr: 'Yazarken otomatik doğrula' },
-  'wizard.copy': { en: 'Copy', tr: 'Kopyala' },
-  'wizard.copiedToClipboard': { en: 'Copied to clipboard!', tr: 'Panoya kopyalandı!' },
-
-  // Wizard Status
-  'wizard.statusCompleted': { en: 'Step completed', tr: 'Adım tamamlandı' },
-  'wizard.statusInProgress': { en: 'In progress', tr: 'Devam ediyor' },
-  'wizard.statusPending': { en: 'Not started', tr: 'Başlanmadı' },
-  'wizard.statusError': { en: 'Error occurred', tr: 'Hata oluştu' },
-
-  // Wizard Validation
+  'wizard.finish': { en: 'Finish', tr: 'Bitir' },
+  'wizard.skip': { en: 'Skip', tr: 'Atla' },
+  'wizard.validate': { en: 'Validate', tr: 'Doğrula' },
   'wizard.validating': { en: 'Validating...', tr: 'Doğrulanıyor...' },
-  'wizard.validationEmpty': {
-    en: 'Please enter a Client ID',
-    tr: 'Lütfen bir İstemci Kimliği girin',
-  },
-  'wizard.validationPlaceholder': {
-    en: 'This looks like a placeholder. Please use your actual Client ID from Google Cloud Console',
-    tr: 'Bu bir yer tutucu gibi görünüyor. Lütfen Google Cloud Console\'dan gerçek İstemci Kimliğinizi kullanın',
-  },
-  'wizard.validationFormat': {
-    en: 'Client ID must end with .apps.googleusercontent.com',
-    tr: 'İstemci Kimliği .apps.googleusercontent.com ile bitmelidir',
-  },
-  'wizard.validationNoNumbers': {
-    en: 'Client ID should contain numbers. Please check your Client ID',
-    tr: 'İstemci Kimliği sayı içermelidir. Lütfen İstemci Kimliğinizi kontrol edin',
-  },
-  'wizard.validationTooShort': {
-    en: 'Client ID seems too short. Please verify it\'s correct',
-    tr: 'İstemci Kimliği çok kısa görünüyor. Lütfen doğru olduğunu kontrol edin',
-  },
-  'wizard.validationSuccess': {
-    en: '✅ Valid Client ID format! Remember to update manifest.json',
-    tr: '✅ Geçerli İstemci Kimliği formatı! manifest.json dosyasını güncellemeyi unutmayın',
-  },
-  'wizard.validationError': {
-    en: 'Error during validation. Please try again',
-    tr: 'Doğrulama sırasında hata oluştu. Lütfen tekrar deneyin',
-  },
-
-  // Wizard Instructions
-  'wizard.clientIdLabel': { en: 'Your Google Client ID', tr: 'Google İstemci Kimliğiniz' },
-  'wizard.clientIdInstructions': {
-    en: 'Paste Your Client ID Here',
-    tr: 'İstemci Kimliğinizi Buraya Yapıştırın',
-  },
-  'wizard.clientIdInstructionsDesc': {
-    en: 'Copy the Client ID from Google Cloud Console credentials page and paste it here for validation',
-    tr: 'Google Cloud Console kimlik bilgileri sayfasından İstemci Kimliğini kopyalayın ve doğrulama için buraya yapıştırın',
-  },
-  'wizard.howToCopy': {
-    en: 'How to Update manifest.json',
-    tr: 'manifest.json Nasıl Güncellenir',
-  },
-  'wizard.updateManifestDesc': {
-    en: 'After validation, update this field in your manifest.json file:',
-    tr: 'Doğrulamadan sonra, manifest.json dosyanızdaki bu alanı güncelleyin:',
-  },
-  'wizard.extensionIdTitle': {
-    en: 'Find Your Extension ID',
-    tr: 'Uzantı Kimliğinizi Bulun',
-  },
-  'wizard.extensionIdDesc': {
-    en: 'Open chrome://extensions, enable Developer Mode, and copy your extension ID',
-    tr: 'chrome://extensions açın, Geliştirici Modunu etkinleştirin ve uzantı kimliğinizi kopyalayın',
-  },
-
-  // Wizard Help
-  'wizard.needHelp': { en: 'Need Help?', tr: 'Yardıma İhtiyacınız Var mı?' },
-  'wizard.helpText': {
-    en: 'Check out our documentation for detailed setup instructions:',
-    tr: 'Detaylı kurulum talimatları için dokümantasyonumuza göz atın:',
-  },
-  'wizard.quickStartGuide': { en: 'Quick Start Guide', tr: 'Hızlı Başlangıç Kılavuzu' },
-  'wizard.fullDocumentation': { en: 'Full Documentation', tr: 'Tam Dokümantasyon' },
-  'wizard.troubleshooting': { en: 'Troubleshooting Guide', tr: 'Sorun Giderme Kılavuzu' },
+  'wizard.openConsole': { en: 'Open Google Cloud Console', tr: 'Google Cloud Console\'u Aç' },
 
   'common.errorOptimizing': {
     en: 'Error optimizing CV. Please try again.',
@@ -862,18 +808,6 @@ const dict: Record<string, Record<Lang, string>> = {
     tr: 'Kullanıcıların seçebileceği seçenekler ekleyin',
   },
   'questions.multilineInput': { en: 'Multi-line text area', tr: 'Çok satırlı metin alanı' },
-  'questions.fileUpload': { en: 'File Upload', tr: 'Dosya Yükleme' },
-  'questions.required': { en: 'Required', tr: 'Zorunlu' },
-  'questions.makeRequired': { en: 'Make this question required', tr: 'Bu soruyu zorunlu yap' },
-  'questions.maxLength': { en: 'Character Limit', tr: 'Karakter Sınırı' },
-  'questions.charactersRemaining': { en: '{remaining} characters remaining', tr: '{remaining} karakter kaldı' },
-  'questions.charactersOver': { en: '{over} characters over limit', tr: 'Sınırın {over} karakter üzerinde' },
-  'questions.uploadFile': { en: 'Upload File', tr: 'Dosya Yükle' },
-  'questions.fileUploaded': { en: 'File uploaded: {name}', tr: 'Dosya yüklendi: {name}' },
-  'questions.removeFile': { en: 'Remove file', tr: 'Dosyayı kaldır' },
-  'questions.changeFile': { en: 'Change file', tr: 'Dosyayı değiştir' },
-  'questions.validationRequired': { en: 'This field is required', tr: 'Bu alan zorunludur' },
-  'questions.autoSaved': { en: 'Auto-saved', tr: 'Otomatik kaydedildi' },
 
   // Rich Text Editor
   'editor.bold': { en: 'Bold', tr: 'Kalın' },
@@ -895,85 +829,8 @@ const dict: Record<string, Record<Lang, string>> = {
     en: 'Use **text** for bold, _text_ for italic',
     tr: '**metin** kalın, _metin_ italik için',
   },
-  'editor.underline': { en: 'Underline', tr: 'Altı Çizili' },
-  'editor.strikethrough': { en: 'Strikethrough', tr: 'Üstü Çizili' },
-  'editor.link': { en: 'Insert Link', tr: 'Bağlantı Ekle' },
-  'editor.inlineCode': { en: 'Inline Code', tr: 'Satır İçi Kod' },
-  'editor.codeBlock': { en: 'Code Block', tr: 'Kod Bloğu' },
-  'editor.linkUrlPrompt': { en: 'Enter URL:', tr: 'URL Girin:' },
-  'editor.undo': { en: 'Undo', tr: 'Geri Al' },
-  'editor.redo': { en: 'Redo', tr: 'Yinele' },
   'editor.template': { en: 'Use Template', tr: 'Şablon Kullan' },
   'editor.templates': { en: 'Templates', tr: 'Şablonlar' },
-
-  // Job Editor
-  'jobEditor.title': { en: 'Job Description Editor', tr: 'İş Açıklaması Düzenleyici' },
-  'jobEditor.analyze': { en: 'AI Analyze', tr: 'YZ ile Analiz Et' },
-  'jobEditor.analyzing': { en: 'Analyzing...', tr: 'Analiz Ediliyor...' },
-  'jobEditor.preview': { en: 'Preview', tr: 'Önizleme' },
-  'jobEditor.edit': { en: 'Edit', tr: 'Düzenle' },
-  'jobEditor.readability': { en: 'Readability', tr: 'Okunabilirlik' },
-  'jobEditor.analysisResults': { en: 'Analysis Results', tr: 'Analiz Sonuçları' },
-  'jobEditor.toneAnalysis': { en: 'Tone Analysis', tr: 'Ton Analizi' },
-  'jobEditor.tone.professional': { en: 'Professional', tr: 'Profesyonel' },
-  'jobEditor.tone.casual': { en: 'Casual', tr: 'Günlük' },
-  'jobEditor.tone.formal': { en: 'Formal', tr: 'Resmi' },
-  'jobEditor.tone.technical': { en: 'Technical', tr: 'Teknik' },
-  'jobEditor.score': { en: 'Score', tr: 'Puan' },
-  'jobEditor.grammarIssues': { en: 'Grammar & Spelling', tr: 'Dil Bilgisi ve Yazım' },
-  'jobEditor.fix': { en: 'Fix', tr: 'Düzelt' },
-  'jobEditor.suggestions': { en: 'Suggestions', tr: 'Öneriler' },
-  'jobEditor.keywords': { en: 'Detected Keywords', tr: 'Tespit Edilen Anahtar Kelimeler' },
-
-  // Job Templates
-  'jobTemplates.title': { en: 'Job Description Templates', tr: 'İş Açıklaması Şablonları' },
-  'jobTemplates.create': { en: 'Create Template', tr: 'Şablon Oluştur' },
-  'jobTemplates.import': { en: 'Import Template', tr: 'Şablon İçe Aktar' },
-  'jobTemplates.search': { en: 'Search templates...', tr: 'Şablonları ara...' },
-  'jobTemplates.allCategories': { en: 'All Categories', tr: 'Tüm Kategoriler' },
-  'jobTemplates.noTemplates': { en: 'No templates found', tr: 'Şablon bulunamadı' },
-  'jobTemplates.used': { en: 'Used', tr: 'Kullanıldı' },
-  'jobTemplates.use': { en: 'Use Template', tr: 'Şablonu Kullan' },
-  'jobTemplates.confirmDelete': { en: 'Are you sure you want to delete this template?', tr: 'Bu şablonu silmek istediğinizden emin misiniz?' },
-  'jobTemplates.importError': { en: 'Failed to import template', tr: 'Şablon içe aktarılamadı' },
-  'jobTemplates.editTemplate': { en: 'Edit Template', tr: 'Şablonu Düzenle' },
-  'jobTemplates.createTemplate': { en: 'Create New Template', tr: 'Yeni Şablon Oluştur' },
-  'jobTemplates.name': { en: 'Template Name', tr: 'Şablon Adı' },
-  'jobTemplates.namePlaceholder': { en: 'e.g., Software Engineer', tr: 'örn., Yazılım Mühendisi' },
-  'jobTemplates.description': { en: 'Description', tr: 'Açıklama' },
-  'jobTemplates.descriptionPlaceholder': { en: 'Brief description of the template', tr: 'Şablonun kısa açıklaması' },
-  'jobTemplates.category': { en: 'Category', tr: 'Kategori' },
-  'jobTemplates.categoryPlaceholder': { en: 'e.g., Engineering, Marketing', tr: 'örn., Mühendislik, Pazarlama' },
-  'jobTemplates.tags': { en: 'Tags', tr: 'Etiketler' },
-  'jobTemplates.tagsPlaceholder': { en: 'Comma separated tags', tr: 'Virgülle ayrılmış etiketler' },
-  'jobTemplates.content': { en: 'Template Content', tr: 'Şablon İçeriği' },
-  'jobTemplates.contentPlaceholder': { en: 'Enter the job description template...', tr: 'İş açıklaması şablonunu girin...' },
-
-  // LinkedIn Import
-  'linkedinImport.title': { en: 'Import from LinkedIn', tr: "LinkedIn'den İçe Aktar" },
-  'linkedinImport.howTo': { en: 'How to import:', tr: 'İçe aktarma:' },
-  'linkedinImport.step1': { en: 'Copy the LinkedIn job URL', tr: 'LinkedIn iş URL\'sini kopyalayın' },
-  'linkedinImport.step2': { en: 'Or copy the job description directly', tr: 'Veya iş açıklamasını doğrudan kopyalayın' },
-  'linkedinImport.step3': { en: 'Paste it here to import', tr: 'İçe aktarmak için buraya yapıştırın' },
-  'linkedinImport.method1': { en: 'Method 1: From URL', tr: 'Yöntem 1: URL\'den' },
-  'linkedinImport.urlLabel': { en: 'LinkedIn Job URL', tr: 'LinkedIn İş URL\'si' },
-  'linkedinImport.urlRequired': { en: 'Please enter a URL', tr: 'Lütfen bir URL girin' },
-  'linkedinImport.invalidUrl': { en: 'Invalid LinkedIn URL', tr: 'Geçersiz LinkedIn URL\'si' },
-  'linkedinImport.useManualCopy': { en: 'Please manually copy the job description from the opened page', tr: 'Lütfen açılan sayfadan iş açıklamasını manuel olarak kopyalayın' },
-  'linkedinImport.importError': { en: 'Failed to import from LinkedIn', tr: "LinkedIn'den içe aktarılamadı" },
-  'linkedinImport.opening': { en: 'Opening...', tr: 'Açılıyor...' },
-  'linkedinImport.openJob': { en: 'Open Job Posting', tr: 'İş İlanını Aç' },
-  'linkedinImport.method2': { en: 'Method 2: Paste Content', tr: 'Yöntem 2: İçeriği Yapıştır' },
-  'linkedinImport.pasteLabel': { en: 'Job Description Content', tr: 'İş Açıklaması İçeriği' },
-  'linkedinImport.pasteFromClipboard': { en: 'Paste from Clipboard', tr: 'Panodan Yapıştır' },
-  'linkedinImport.pastePlaceholder': { en: 'Paste the job description here...', tr: 'İş açıklamasını buraya yapıştırın...' },
-  'linkedinImport.contentRequired': { en: 'Please paste content', tr: 'Lütfen içerik yapıştırın' },
-  'linkedinImport.import': { en: 'Import', tr: 'İçe Aktar' },
-  'linkedinImport.clipboardError': { en: 'Could not access clipboard', tr: 'Panoya erişilemedi' },
-  'linkedinImport.tips': { en: 'Tips', tr: 'İpuçları' },
-  'linkedinImport.tip1': { en: 'You can import from any LinkedIn job posting', tr: 'Herhangi bir LinkedIn iş ilanından içe aktarabilirsiniz' },
-  'linkedinImport.tip2': { en: 'The importer will clean up formatting automatically', tr: 'İçe aktarıcı biçimlendirmeyi otomatik olarak temizler' },
-  'linkedinImport.tip3': { en: 'Review and edit the imported content as needed', tr: 'İçe aktarılan içeriği gerektiği gibi gözden geçirin ve düzenleyin' },
 
   // Description Templates - Experience
   'templates.experience.improved': {

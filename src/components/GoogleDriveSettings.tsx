@@ -3,10 +3,15 @@ import { GoogleDriveService, GoogleDriveFile } from '../utils/googleDriveService
 import { logger } from '../utils/logger';
 import { t, Lang } from '../i18n';
 import { SetupWizard } from './SetupWizard';
+import { HealthMonitorDashboard } from './HealthMonitorDashboard';
+import { VideoTutorial } from './VideoTutorial';
+import { InteractiveGuide } from './InteractiveGuide';
 
 interface GoogleDriveSettingsProps {
   language: Lang;
 }
+
+type ViewMode = 'main' | 'wizard' | 'health' | 'video' | 'guide';
 
 export const GoogleDriveSettings: React.FC<GoogleDriveSettingsProps> = ({ language }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -16,7 +21,15 @@ export const GoogleDriveSettings: React.FC<GoogleDriveSettingsProps> = ({ langua
   const [showFileManager, setShowFileManager] = useState(false);
   const [setupRequired, setSetupRequired] = useState(false);
   const [showTroubleshooting, setShowTroubleshooting] = useState(false);
-  const [showWizard, setShowWizard] = useState(false);
+  const [validating, setValidating] = useState(false);
+  const [validationResult, setValidationResult] = useState<{
+    valid: boolean;
+    error?: string;
+    details?: string;
+  } | null>(null);
+  const [showValidation, setShowValidation] = useState(false);
+  const [viewMode, setViewMode] = useState<ViewMode>('main');
+  const [showInteractiveGuide, setShowInteractiveGuide] = useState(false);
 
   useEffect(() => {
     checkAuthStatus();
@@ -142,6 +155,39 @@ export const GoogleDriveSettings: React.FC<GoogleDriveSettingsProps> = ({ langua
     }
   };
 
+  const handleValidateClientId = async () => {
+    setValidating(true);
+    setValidationResult(null);
+    setError(null);
+
+    try {
+      const result = await GoogleDriveService.validateClientIdWithAPI();
+      setValidationResult(result);
+      setShowValidation(true);
+
+      if (result.valid) {
+        setSetupRequired(false);
+        alert(
+          `✅ ${t(language, 'googleDrive.validationSuccess')}\n\n${result.details || 'Your Google Client ID is properly configured.'}`
+        );
+      } else {
+        alert(
+          `❌ ${t(language, 'googleDrive.validationFailed')}\n\n${result.error || 'Unknown error'}\n\n${result.details || ''}`
+        );
+      }
+    } catch (err: any) {
+      const errorMsg = err.message || 'Validation failed';
+      setValidationResult({
+        valid: false,
+        error: errorMsg,
+        details: 'An unexpected error occurred during validation.',
+      });
+      setError(errorMsg);
+    } finally {
+      setValidating(false);
+    }
+  };
+
   const getFileIcon = (mimeType: string) => {
     if (mimeType.includes('document')) return '📄';
     if (mimeType.includes('spreadsheet')) return '📊';
@@ -150,23 +196,105 @@ export const GoogleDriveSettings: React.FC<GoogleDriveSettingsProps> = ({ langua
     return '📎';
   };
 
+  // Render different views based on viewMode
+  if (viewMode === 'wizard') {
+    return (
+      <SetupWizard
+        language={language}
+        onComplete={() => {
+          setViewMode('main');
+          checkAuthStatus();
+        }}
+        onCancel={() => setViewMode('main')}
+      />
+    );
+  }
+
+  if (viewMode === 'health') {
+    return (
+      <div className="section">
+        <button
+          className="btn btn-secondary btn-sm"
+          onClick={() => setViewMode('main')}
+          style={{ marginBottom: '20px' }}
+        >
+          ← {t(language, 'common.back') || 'Back'}
+        </button>
+        <HealthMonitorDashboard language={language} />
+      </div>
+    );
+  }
+
+  if (viewMode === 'video') {
+    return (
+      <div className="section">
+        <button
+          className="btn btn-secondary btn-sm"
+          onClick={() => setViewMode('main')}
+          style={{ marginBottom: '20px' }}
+        >
+          ← {t(language, 'common.back') || 'Back'}
+        </button>
+        <VideoTutorial language={language} />
+      </div>
+    );
+  }
+
   return (
-    <>
-      {showWizard && (
-        <SetupWizard
+    <div className="section">
+      <h2 className="section-title">☁️ {t(language, 'googleDrive.title')}</h2>
+
+      {/* Interactive Guide */}
+      {showInteractiveGuide && (
+        <InteractiveGuide
           language={language}
-          onComplete={() => {
-            setShowWizard(false);
-            setSetupRequired(false);
-            checkSetupStatus();
-            alert(t(language, 'wizard.setupComplete'));
-          }}
-          onClose={() => setShowWizard(false)}
+          onComplete={() => setShowInteractiveGuide(false)}
+          onSkip={() => setShowInteractiveGuide(false)}
         />
       )}
-      
-      <div className="section">
-        <h2 className="section-title">☁️ {t(language, 'googleDrive.title')}</h2>
+
+      {/* Advanced Features Toolbar */}
+      <div
+        className="advanced-features-toolbar"
+        style={{
+          display: 'flex',
+          gap: '10px',
+          flexWrap: 'wrap',
+          marginBottom: '20px',
+          padding: '15px',
+          background: '#f9f9f9',
+          borderRadius: '8px',
+        }}
+      >
+        <button
+          className="btn btn-secondary btn-sm"
+          onClick={() => setViewMode('wizard')}
+          title={t(language, 'googleDrive.setupWizard')}
+        >
+          🧙 {t(language, 'googleDrive.launchWizard')}
+        </button>
+        <button
+          className="btn btn-secondary btn-sm"
+          onClick={() => setViewMode('health')}
+          title={t(language, 'googleDrive.healthMonitor')}
+        >
+          📊 {t(language, 'googleDrive.viewDashboard')}
+        </button>
+        <button
+          className="btn btn-secondary btn-sm"
+          onClick={() => setViewMode('video')}
+          title={t(language, 'googleDrive.videoTutorial')}
+        >
+          📹 {t(language, 'googleDrive.watchTutorial')}
+        </button>
+        <button
+          className="btn btn-secondary btn-sm"
+          onClick={() => setShowInteractiveGuide(true)}
+          title={t(language, 'googleDrive.interactiveGuide')}
+        >
+          📚 {t(language, 'googleDrive.startGuide')}
+        </button>
+      </div>
 
       {setupRequired && (
         <div className="alert alert-warning" style={{ marginBottom: '20px' }}>
@@ -180,18 +308,11 @@ export const GoogleDriveSettings: React.FC<GoogleDriveSettingsProps> = ({ langua
             <li>{t(language, 'googleDrive.setupStep3')}</li>
           </ol>
           <div style={{ marginTop: '15px' }}>
-            <button
-              className="btn btn-primary btn-sm"
-              onClick={() => setShowWizard(true)}
-              style={{ marginRight: '10px' }}
-            >
-              🚀 {t(language, 'wizard.launchWizard')}
-            </button>
             <a
               href="https://console.cloud.google.com/apis/credentials"
               target="_blank"
               rel="noopener noreferrer"
-              className="btn btn-secondary btn-sm"
+              className="btn btn-primary btn-sm"
               style={{ marginRight: '10px' }}
             >
               🔗 {t(language, 'googleDrive.openConsole')}
@@ -299,22 +420,104 @@ export const GoogleDriveSettings: React.FC<GoogleDriveSettingsProps> = ({ langua
       )}
 
       {!isAuthenticated && (
-        <div className="google-drive-setup">
-          <h3 className="subsection-title">⚙️ {t(language, 'googleDrive.setupTitle')}</h3>
-          <div className="info-text">
-            <p>{t(language, 'googleDrive.setupStep1')}</p>
-            <p>{t(language, 'googleDrive.setupStep2')}</p>
-            <p>{t(language, 'googleDrive.setupStep3')}</p>
-            <a
-              href="https://console.cloud.google.com/apis/credentials"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="btn btn-link"
-            >
-              🔗 {t(language, 'googleDrive.openConsole')}
-            </a>
+        <>
+          <div className="google-drive-setup">
+            <h3 className="subsection-title">⚙️ {t(language, 'googleDrive.setupTitle')}</h3>
+            <div className="info-text">
+              <p>{t(language, 'googleDrive.setupStep1')}</p>
+              <p>{t(language, 'googleDrive.setupStep2')}</p>
+              <p>{t(language, 'googleDrive.setupStep3')}</p>
+              <a
+                href="https://console.cloud.google.com/apis/credentials"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="btn btn-link"
+              >
+                🔗 {t(language, 'googleDrive.openConsole')}
+              </a>
+            </div>
           </div>
-        </div>
+
+          {/* Client ID Validation Section */}
+          <div
+            className="google-drive-validation"
+            style={{
+              marginTop: '20px',
+              padding: '20px',
+              border: '1px solid #e0e0e0',
+              borderRadius: '8px',
+              backgroundColor: '#f9f9f9',
+            }}
+          >
+            <h3 className="subsection-title">🔍 {t(language, 'googleDrive.autoValidation')}</h3>
+            <p style={{ marginBottom: '15px', color: '#666' }}>
+              {t(language, 'googleDrive.autoValidationDesc')}
+            </p>
+
+            {/* Display Current Client ID */}
+            <div style={{ marginBottom: '15px' }}>
+              <strong>{t(language, 'googleDrive.currentClientId')}:</strong>
+              <code
+                style={{
+                  display: 'block',
+                  marginTop: '5px',
+                  padding: '10px',
+                  backgroundColor: '#fff',
+                  border: '1px solid #ddd',
+                  borderRadius: '4px',
+                  fontSize: '12px',
+                  wordBreak: 'break-all',
+                }}
+              >
+                {GoogleDriveService.getClientId() || 'Not configured'}
+              </code>
+            </div>
+
+            {/* Validation Button */}
+            <button
+              className="btn btn-primary"
+              onClick={handleValidateClientId}
+              disabled={validating || setupRequired}
+              style={{ marginBottom: '15px' }}
+            >
+              {validating ? '⏳ ' + t(language, 'googleDrive.validating') : '✓ ' + t(language, 'googleDrive.validateClientId')}
+            </button>
+
+            {/* Validation Result */}
+            {showValidation && validationResult && (
+              <div
+                className={`alert ${validationResult.valid ? 'alert-success' : 'alert-error'}`}
+                style={{ marginTop: '15px' }}
+              >
+                <div style={{ marginBottom: '10px' }}>
+                  <strong>
+                    {validationResult.valid ? '✅ ' : '❌ '}
+                    {validationResult.valid
+                      ? t(language, 'googleDrive.validationSuccess')
+                      : t(language, 'googleDrive.validationFailed')}
+                  </strong>
+                </div>
+                {validationResult.error && (
+                  <div style={{ color: '#d32f2f', marginBottom: '5px' }}>
+                    <strong>Error:</strong> {validationResult.error}
+                  </div>
+                )}
+                {validationResult.details && (
+                  <div style={{ fontSize: '14px', marginTop: '5px' }}>
+                    <strong>{t(language, 'googleDrive.validationDetails')}:</strong>
+                    <div style={{ marginTop: '5px', color: '#666' }}>
+                      {validationResult.details}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            <p style={{ fontSize: '12px', color: '#999', marginTop: '10px' }}>
+              {t(language, 'googleDrive.validationNote')}
+            </p>
+          </div>
+        </>
       )}
 
       {showTroubleshooting && (
@@ -343,7 +546,6 @@ export const GoogleDriveSettings: React.FC<GoogleDriveSettingsProps> = ({ langua
           </div>
         </div>
       )}
-      </div>
-    </>
+    </div>
   );
 };
