@@ -1,7 +1,9 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Certification } from '../types';
 import { t, Lang } from '../i18n';
 import { RichTextEditor } from './RichTextEditor';
+import { LocationSelector } from './LocationSelector';
+import { validateCredentialUrl, ValidationResult } from '../utils/urlValidation';
 
 interface CertificationsFormProps {
   certifications: Certification[];
@@ -9,7 +11,14 @@ interface CertificationsFormProps {
   language: Lang;
 }
 
-export const CertificationsForm: React.FC<CertificationsFormProps> = ({ certifications, onChange, language }) => {
+export const CertificationsForm: React.FC<CertificationsFormProps> = ({
+  certifications,
+  onChange,
+  language,
+}) => {
+  // Track validation state for each certification's credential URL
+  const [urlValidations, setUrlValidations] = useState<Record<string, ValidationResult>>({});
+
   const handleAdd = () => {
     const newCert: Certification = {
       id: Date.now().toString(),
@@ -21,25 +30,38 @@ export const CertificationsForm: React.FC<CertificationsFormProps> = ({ certific
       credentialId: '',
       credentialUrl: '',
       description: '',
-      skills: []
+      skills: [],
+      country: '',
+      city: '',
+      location: '',
     };
     onChange([...certifications, newCert]);
   };
 
-  const handleUpdate = (id: string, field: keyof Certification, value: string | string[] | boolean) => {
-    onChange(certifications.map(cert => 
-      cert.id === id ? { ...cert, [field]: value } : cert
-    ));
+  const handleUpdate = (
+    id: string,
+    field: keyof Certification,
+    value: string | string[] | boolean
+  ) => {
+    // Validate credential URL
+    if (field === 'credentialUrl' && typeof value === 'string') {
+      const validation = validateCredentialUrl(value);
+      setUrlValidations((prev) => ({ ...prev, [id]: validation }));
+    }
+
+    onChange(certifications.map((cert) => (cert.id === id ? { ...cert, [field]: value } : cert)));
   };
 
   const handleRemove = (id: string) => {
-    onChange(certifications.filter(cert => cert.id !== id));
+    onChange(certifications.filter((cert) => cert.id !== id));
   };
 
   const removeSkill = (id: string, skillToRemove: string) => {
-    const cert = certifications.find(c => c.id === id);
+    const cert = certifications.find((c) => c.id === id);
     if (!cert) return;
-    const updated = certifications.map(c => c.id === id ? { ...c, skills: c.skills.filter(s => s !== skillToRemove) } : c);
+    const updated = certifications.map((c) =>
+      c.id === id ? { ...c, skills: c.skills.filter((s) => s !== skillToRemove) } : c
+    );
     onChange(updated);
   };
 
@@ -51,7 +73,7 @@ export const CertificationsForm: React.FC<CertificationsFormProps> = ({ certific
           + {t(language, 'certs.add')}
         </button>
       </h2>
-      
+
       {certifications.length === 0 ? (
         <div className="empty-state">
           <div className="empty-state-icon">📜</div>
@@ -65,14 +87,11 @@ export const CertificationsForm: React.FC<CertificationsFormProps> = ({ certific
                 <span style={{ fontWeight: 600, color: '#64748b' }}>
                   {t(language, 'certs.number')} #{index + 1}
                 </span>
-                <button 
-                  className="btn btn-danger btn-icon"
-                  onClick={() => handleRemove(cert.id)}
-                >
+                <button className="btn btn-danger btn-icon" onClick={() => handleRemove(cert.id)}>
                   🗑️ {t(language, 'common.remove')}
                 </button>
               </div>
-              
+
               <div className="form-row">
                 <div className="form-group">
                   <label className="form-label">{t(language, 'certs.name')} *</label>
@@ -84,7 +103,7 @@ export const CertificationsForm: React.FC<CertificationsFormProps> = ({ certific
                     placeholder="AWS Certified Solutions Architect"
                   />
                 </div>
-                
+
                 <div className="form-group">
                   <label className="form-label">{t(language, 'certs.org')} *</label>
                   <input
@@ -96,7 +115,7 @@ export const CertificationsForm: React.FC<CertificationsFormProps> = ({ certific
                   />
                 </div>
               </div>
-              
+
               <div className="form-row">
                 <div className="form-group">
                   <label className="form-label">{t(language, 'certs.issue')}</label>
@@ -107,7 +126,7 @@ export const CertificationsForm: React.FC<CertificationsFormProps> = ({ certific
                     onChange={(e) => handleUpdate(cert.id, 'issueDate', e.target.value)}
                   />
                 </div>
-                
+
                 <div className="form-group">
                   <label className="form-label">{t(language, 'certs.expiration')}</label>
                   <input
@@ -132,7 +151,7 @@ export const CertificationsForm: React.FC<CertificationsFormProps> = ({ certific
                   <label htmlFor={`noexp-${cert.id}`}>{t(language, 'certs.noExpiration')}</label>
                 </div>
               </div>
-              
+
               <div className="form-row">
                 <div className="form-group">
                   <label className="form-label">{t(language, 'certs.credId')}</label>
@@ -144,18 +163,45 @@ export const CertificationsForm: React.FC<CertificationsFormProps> = ({ certific
                     placeholder="ABC123XYZ"
                   />
                 </div>
-                
+
                 <div className="form-group">
                   <label className="form-label">{t(language, 'certs.credUrl')}</label>
                   <input
                     type="url"
-                    className="form-input"
+                    className={`form-input ${urlValidations[cert.id]?.type === 'error' ? 'error' : ''}`}
                     value={cert.credentialUrl}
                     onChange={(e) => handleUpdate(cert.id, 'credentialUrl', e.target.value)}
                     placeholder="https://..."
                   />
+                  {urlValidations[cert.id]?.message && (
+                    <div className={`validation-message ${urlValidations[cert.id]?.type || ''}`}>
+                      {urlValidations[cert.id]?.message}
+                    </div>
+                  )}
                 </div>
               </div>
+
+              <LocationSelector
+                country={cert.country || ''}
+                city={cert.city || ''}
+                onCountryChange={(country) => {
+                  handleUpdate(cert.id, 'country', country);
+                  handleUpdate(
+                    cert.id,
+                    'location',
+                    country && cert.city ? `${cert.city}, ${country}` : country || ''
+                  );
+                }}
+                onCityChange={(city) => {
+                  handleUpdate(cert.id, 'city', city);
+                  handleUpdate(
+                    cert.id,
+                    'location',
+                    cert.country && city ? `${city}, ${cert.country}` : cert.country || ''
+                  );
+                }}
+                language={language}
+              />
 
               <div className="form-group">
                 <label className="form-label">{t(language, 'certs.description')}</label>
@@ -181,7 +227,10 @@ export const CertificationsForm: React.FC<CertificationsFormProps> = ({ certific
                       if (e.key === 'Enter') {
                         e.preventDefault();
                         const value = (e.target as HTMLInputElement).value;
-                        const newSkills = value.split(/[,;|]/).map(s => s.trim()).filter(Boolean);
+                        const newSkills = value
+                          .split(/[,;|]/)
+                          .map((s) => s.trim())
+                          .filter(Boolean);
                         const uniqueSkills = Array.from(new Set([...cert.skills, ...newSkills]));
                         handleUpdate(cert.id, 'skills', uniqueSkills);
                         (e.target as HTMLInputElement).value = '';
@@ -191,7 +240,10 @@ export const CertificationsForm: React.FC<CertificationsFormProps> = ({ certific
                       const text = e.clipboardData.getData('text');
                       if (text.includes(',') || text.includes(';') || text.includes('|')) {
                         e.preventDefault();
-                        const newSkills = text.split(/[,;|]/).map(s => s.trim()).filter(Boolean);
+                        const newSkills = text
+                          .split(/[,;|]/)
+                          .map((s) => s.trim())
+                          .filter(Boolean);
                         const uniqueSkills = Array.from(new Set([...cert.skills, ...newSkills]));
                         handleUpdate(cert.id, 'skills', uniqueSkills);
                         (e.target as HTMLInputElement).value = '';
@@ -205,7 +257,12 @@ export const CertificationsForm: React.FC<CertificationsFormProps> = ({ certific
                     {cert.skills.map((skill, idx) => (
                       <div key={idx} className="skill-tag">
                         {skill}
-                        <span className="skill-tag-remove" onClick={() => removeSkill(cert.id, skill)}>✕</span>
+                        <span
+                          className="skill-tag-remove"
+                          onClick={() => removeSkill(cert.id, skill)}
+                        >
+                          ✕
+                        </span>
                       </div>
                     ))}
                   </div>
@@ -215,7 +272,9 @@ export const CertificationsForm: React.FC<CertificationsFormProps> = ({ certific
           ))}
           {certifications.length > 0 && (
             <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-              <button className="btn btn-primary btn-icon" onClick={handleAdd}>+ {t(language, 'certs.add')}</button>
+              <button className="btn btn-primary btn-icon" onClick={handleAdd}>
+                + {t(language, 'certs.add')}
+              </button>
             </div>
           )}
         </div>

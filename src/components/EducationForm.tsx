@@ -1,8 +1,10 @@
 import React from 'react';
 import { Education } from '../types';
-import { degrees } from '../data/degrees';
+import { getDegrees } from '../data/degreesI18n';
 import { t, Lang } from '../i18n';
 import { RichTextEditor } from './RichTextEditor';
+import { LocationSelector } from './LocationSelector';
+import { DateInput } from './DateInput';
 
 interface EducationFormProps {
   education: Education[];
@@ -11,6 +13,8 @@ interface EducationFormProps {
 }
 
 export const EducationForm: React.FC<EducationFormProps> = ({ education, onChange, language }) => {
+  const degrees = getDegrees(language);
+
   const handleAdd = () => {
     const newEducation: Education = {
       id: Date.now().toString(),
@@ -23,33 +27,38 @@ export const EducationForm: React.FC<EducationFormProps> = ({ education, onChang
       grade: '',
       activities: '',
       description: '',
-      skills: []
+      skills: [],
+      country: '',
+      city: '',
+      location: '',
     };
     onChange([...education, newEducation]);
   };
 
   const handleUpdate = (id: string, field: keyof Education, value: string | string[] | boolean) => {
-    onChange(education.map(edu => 
-      edu.id === id ? { ...edu, [field]: value } : edu
-    ));
+    onChange(education.map((edu) => (edu.id === id ? { ...edu, [field]: value } : edu)));
   };
 
   const handleRemove = (id: string) => {
-    onChange(education.filter(edu => edu.id !== id));
+    onChange(education.filter((edu) => edu.id !== id));
   };
 
   const handleAddSkill = (id: string, skill: string) => {
     if (!skill.trim()) return;
-    const edu = education.find(e => e.id === id);
+    const edu = education.find((e) => e.id === id);
     if (edu && !edu.skills.includes(skill.trim())) {
       handleUpdate(id, 'skills', [...edu.skills, skill.trim()]);
     }
   };
 
   const handleRemoveSkill = (id: string, skillToRemove: string) => {
-    const edu = education.find(e => e.id === id);
+    const edu = education.find((e) => e.id === id);
     if (edu) {
-      handleUpdate(id, 'skills', edu.skills.filter(s => s !== skillToRemove));
+      handleUpdate(
+        id,
+        'skills',
+        edu.skills.filter((s) => s !== skillToRemove)
+      );
     }
   };
 
@@ -61,7 +70,7 @@ export const EducationForm: React.FC<EducationFormProps> = ({ education, onChang
           + {t(language, 'education.add')}
         </button>
       </h2>
-      
+
       {education.length === 0 ? (
         <div className="empty-state">
           <div className="empty-state-icon">🎓</div>
@@ -75,14 +84,11 @@ export const EducationForm: React.FC<EducationFormProps> = ({ education, onChang
                 <span style={{ fontWeight: 600, color: '#64748b' }}>
                   {t(language, 'education.number')} #{index + 1}
                 </span>
-                <button 
-                  className="btn btn-danger btn-icon"
-                  onClick={() => handleRemove(edu.id)}
-                >
+                <button className="btn btn-danger btn-icon" onClick={() => handleRemove(edu.id)}>
                   🗑️ {t(language, 'common.remove')}
                 </button>
               </div>
-              
+
               <div className="form-group">
                 <label className="form-label">{t(language, 'education.school')} *</label>
                 <input
@@ -93,7 +99,7 @@ export const EducationForm: React.FC<EducationFormProps> = ({ education, onChang
                   placeholder="University of Technology"
                 />
               </div>
-              
+
               <div className="form-row">
                 <div className="form-group">
                   <label className="form-label">{t(language, 'education.degree')} *</label>
@@ -104,11 +110,13 @@ export const EducationForm: React.FC<EducationFormProps> = ({ education, onChang
                   >
                     <option value="">{t(language, 'education.selectDegree')}</option>
                     {degrees.map((d) => (
-                      <option key={d} value={d}>{d}</option>
+                      <option key={d} value={d}>
+                        {d}
+                      </option>
                     ))}
                   </select>
                 </div>
-                
+
                 <div className="form-group">
                   <label className="form-label">{t(language, 'education.field')} *</label>
                   <input
@@ -120,42 +128,66 @@ export const EducationForm: React.FC<EducationFormProps> = ({ education, onChang
                   />
                 </div>
               </div>
-              
+
               <div className="form-row">
-                <div className="form-group">
-                  <label className="form-label">{t(language, 'education.start')}</label>
-                  <input
-                    type="month"
-                    className="form-input"
-                    value={edu.startDate}
-                    onChange={(e) => handleUpdate(edu.id, 'startDate', e.target.value)}
-                  />
-                </div>
-                
-                <div className="form-group">
-                  <label className="form-label">{t(language, 'education.end')}</label>
-                  <input
-                    type="month"
-                    className="form-input"
-                    value={edu.endDate}
-                    onChange={(e) => handleUpdate(edu.id, 'endDate', e.target.value)}
-                    disabled={edu.currentlyStudying}
-                  />
-                </div>
+                <DateInput
+                  label={t(language, 'education.start')}
+                  value={edu.startDate}
+                  onChange={(value) => handleUpdate(edu.id, 'startDate', value)}
+                  language={language}
+                />
+
+                <DateInput
+                  label={t(language, 'education.end')}
+                  value={edu.endDate}
+                  onChange={(value) => handleUpdate(edu.id, 'endDate', value)}
+                  disabled={!!edu.currentlyStudying}
+                  language={language}
+                  startDate={edu.startDate}
+                />
               </div>
 
-              <div className="form-group">
+              <div className="form-group current-work-checkbox">
                 <div className="checkbox-item">
                   <input
                     type="checkbox"
                     id={`current-${edu.id}`}
                     checked={!!edu.currentlyStudying}
-                    onChange={(e) => handleUpdate(edu.id, 'currentlyStudying', e.target.checked)}
+                    onChange={(e) => {
+                      handleUpdate(edu.id, 'currentlyStudying', e.target.checked);
+                      if (e.target.checked) {
+                        handleUpdate(edu.id, 'endDate', '');
+                      }
+                    }}
                   />
-                  <label htmlFor={`current-${edu.id}`}>{t(language, 'education.currentlyStudying')}</label>
+                  <label htmlFor={`current-${edu.id}`}>
+                    {t(language, 'education.currentlyStudying')}
+                  </label>
                 </div>
               </div>
-              
+
+              <LocationSelector
+                country={edu.country || ''}
+                city={edu.city || ''}
+                onCountryChange={(country) => {
+                  handleUpdate(edu.id, 'country', country);
+                  handleUpdate(
+                    edu.id,
+                    'location',
+                    country && edu.city ? `${edu.city}, ${country}` : country || ''
+                  );
+                }}
+                onCityChange={(city) => {
+                  handleUpdate(edu.id, 'city', city);
+                  handleUpdate(
+                    edu.id,
+                    'location',
+                    edu.country && city ? `${city}, ${edu.country}` : edu.country || ''
+                  );
+                }}
+                language={language}
+              />
+
               <div className="form-row">
                 <div className="form-group">
                   <label className="form-label">{t(language, 'education.gradeLabel')}</label>
@@ -167,7 +199,7 @@ export const EducationForm: React.FC<EducationFormProps> = ({ education, onChang
                     placeholder="3.8 / 4.0"
                   />
                 </div>
-                
+
                 <div className="form-group">
                   <label className="form-label">{t(language, 'education.activitiesLabel')}</label>
                   <input
@@ -179,7 +211,7 @@ export const EducationForm: React.FC<EducationFormProps> = ({ education, onChang
                   />
                 </div>
               </div>
-              
+
               <div className="form-group">
                 <label className="form-label">{t(language, 'education.description')}</label>
                 <RichTextEditor
@@ -192,7 +224,7 @@ export const EducationForm: React.FC<EducationFormProps> = ({ education, onChang
                   templateType="education"
                 />
               </div>
-              
+
               <div className="form-group">
                 <label className="form-label">{t(language, 'education.skills')}</label>
                 <div className="skills-input-container">
@@ -211,7 +243,11 @@ export const EducationForm: React.FC<EducationFormProps> = ({ education, onChang
                       const text = e.clipboardData.getData('text');
                       if (text.includes(',') || text.includes(';') || text.includes('|')) {
                         e.preventDefault();
-                        text.split(/[,;|]/).map(s => s.trim()).filter(Boolean).forEach(s => handleAddSkill(edu.id, s));
+                        text
+                          .split(/[,;|]/)
+                          .map((s) => s.trim())
+                          .filter(Boolean)
+                          .forEach((s) => handleAddSkill(edu.id, s));
                         (e.target as HTMLInputElement).value = '';
                       }
                     }}
@@ -223,7 +259,7 @@ export const EducationForm: React.FC<EducationFormProps> = ({ education, onChang
                     {edu.skills.map((skill, idx) => (
                       <div key={idx} className="skill-tag">
                         {skill}
-                        <span 
+                        <span
                           className="skill-tag-remove"
                           onClick={() => handleRemoveSkill(edu.id, skill)}
                         >
@@ -238,7 +274,9 @@ export const EducationForm: React.FC<EducationFormProps> = ({ education, onChang
           ))}
           {/* Add button at the bottom of all education */}
           <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '1rem' }}>
-            <button className="btn btn-primary btn-icon" onClick={handleAdd}>+ {t(language, 'education.add')}</button>
+            <button className="btn btn-primary btn-icon" onClick={handleAdd}>
+              + {t(language, 'education.add')}
+            </button>
           </div>
         </div>
       )}

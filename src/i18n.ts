@@ -2,21 +2,174 @@ export type Lang = 'en' | 'tr';
 
 const dict: Record<string, Record<Lang, string>> = {
   'app.title': { en: 'AI CV & Cover Letter Optimizer', tr: 'YZ CV ve Niyet Mektubu Optimizasyonu' },
-  'app.subtitle': { en: 'ATS-Optimized Resumes & Cover Letters Powered by AI', tr: 'ATS Uyumlu Özgeçmiş ve Niyet Mektupları (YZ Gücüyle)' },
+  'app.subtitle': {
+    en: 'ATS-Optimized Resumes & Cover Letters Powered by AI',
+    tr: 'ATS Uyumlu Özgeçmiş ve Niyet Mektupları (YZ Gücüyle)',
+  },
 
   'tabs.cvinfo': { en: 'CV Information', tr: 'CV Bilgileri' },
   'tabs.optimize': { en: 'Optimize & Preview', tr: 'Optimize Et & Önizleme' },
   'tabs.cover': { en: 'Cover Letter', tr: 'Niyet Mektubu' },
   'tabs.profiles': { en: 'Profiles', tr: 'Profiller' },
+  'tabs.settings': { en: 'Settings', tr: 'Ayarlar' },
 
   'common.add': { en: 'Add', tr: 'Ekle' },
   'common.remove': { en: 'Remove', tr: 'Kaldır' },
   'common.cancel': { en: 'Cancel', tr: 'İptal' },
   'common.save': { en: 'Save', tr: 'Kaydet' },
   'common.currently': { en: 'Currently', tr: 'Halen' },
-  'common.errorGeneratingDoc': { en: 'Error generating document. Please try again.', tr: 'Belge oluşturulurken hata oluştu. Lütfen tekrar deneyin.' },
-  'common.googleDocsMsg': { en: 'Google Docs export: This feature requires Google Docs API integration. The DOCX file can be uploaded to Google Drive and opened with Google Docs.', tr: 'Google Docs dışa aktarımı: Bu özellik Google Docs API entegrasyonu gerektirir. DOCX dosyası Google Drive\'a yüklenebilir ve Google Docs ile açılabilir.' },
-  'common.errorOptimizing': { en: 'Error optimizing CV. Please try again.', tr: 'CV optimize edilirken hata oluştu. Lütfen tekrar deneyin.' },
+  'common.errorGeneratingDoc': {
+    en: 'Error generating document. Please try again.',
+    tr: 'Belge oluşturulurken hata oluştu. Lütfen tekrar deneyin.',
+  },
+  'common.googleDocsMsg': {
+    en: 'Google Docs export: This feature requires Google Docs API integration. The DOCX file can be uploaded to Google Drive and opened with Google Docs.',
+    tr: "Google Docs dışa aktarımı: Bu özellik Google Docs API entegrasyonu gerektirir. DOCX dosyası Google Drive'a yüklenebilir ve Google Docs ile açılabilir.",
+  },
+
+  // Google Drive Integration
+  'googleDrive.title': { en: 'Google Drive Integration', tr: 'Google Drive Entegrasyonu' },
+  'googleDrive.connected': { en: 'Connected to Google Drive', tr: "Google Drive'a Bağlı" },
+  'googleDrive.notConnected': {
+    en: 'Not connected to Google Drive',
+    tr: "Google Drive'a Bağlı Değil",
+  },
+  'googleDrive.signIn': { en: 'Sign In with Google', tr: 'Google ile Giriş Yap' },
+  'googleDrive.signOut': { en: 'Sign Out', tr: 'Çıkış Yap' },
+  'googleDrive.signInSuccess': {
+    en: 'Successfully signed in to Google Drive!',
+    tr: "Google Drive'a başarıyla giriş yapıldı!",
+  },
+  'googleDrive.signInError': {
+    en: 'Failed to sign in. Please try again.',
+    tr: 'Giriş başarısız oldu. Lütfen tekrar deneyin.',
+  },
+  'googleDrive.signOutSuccess': {
+    en: 'Successfully signed out from Google Drive',
+    tr: "Google Drive'dan başarıyla çıkış yapıldı",
+  },
+  'googleDrive.infoTitle': { en: 'What can you do?', tr: 'Neler yapabilirsiniz?' },
+  'googleDrive.infoText': {
+    en: 'With Google Drive integration, you can directly export your CV to Google Docs, Sheets, or Slides.',
+    tr: "Google Drive entegrasyonu ile CV'nizi doğrudan Google Docs, Sheets veya Slides'a aktarabilirsiniz.",
+  },
+  'googleDrive.feature1': {
+    en: 'Export to Google Docs for easy editing',
+    tr: "Kolay düzenleme için Google Docs'a aktarın",
+  },
+  'googleDrive.feature2': {
+    en: 'Export to Google Sheets for data analysis',
+    tr: "Veri analizi için Google Sheets'e aktarın",
+  },
+  'googleDrive.feature3': {
+    en: 'Export to Google Slides for presentations',
+    tr: "Sunumlar için Google Slides'a aktarın",
+  },
+  'googleDrive.feature4': {
+    en: 'Access your files from anywhere',
+    tr: 'Dosyalarınıza her yerden erişin',
+  },
+  'googleDrive.viewFiles': { en: 'View My Files', tr: 'Dosyalarımı Görüntüle' },
+  'googleDrive.yourFiles': { en: 'Your Files', tr: 'Dosyalarınız' },
+  'googleDrive.noFiles': {
+    en: 'No files found. Export your CV to get started!',
+    tr: "Dosya bulunamadı. Başlamak için CV'nizi dışa aktarın!",
+  },
+  'googleDrive.open': { en: 'Open', tr: 'Aç' },
+  'googleDrive.delete': { en: 'Delete', tr: 'Sil' },
+  'googleDrive.confirmDelete': {
+    en: 'Are you sure you want to delete "{name}"?',
+    tr: '"{name}" dosyasını silmek istediğinizden emin misiniz?',
+  },
+  'googleDrive.deleteSuccess': { en: 'File deleted successfully', tr: 'Dosya başarıyla silindi' },
+  'googleDrive.deleteError': { en: 'Failed to delete file', tr: 'Dosya silinemedi' },
+  'googleDrive.loadFilesError': { en: 'Failed to load files', tr: 'Dosyalar yüklenemedi' },
+  'googleDrive.exportSuccess': {
+    en: 'Successfully exported to Google Docs!',
+    tr: "Google Docs'a başarıyla aktarıldı!",
+  },
+  'googleDrive.exportSuccessSheets': {
+    en: 'Successfully exported to Google Sheets!',
+    tr: "Google Sheets'e başarıyla aktarıldı!",
+  },
+  'googleDrive.exportSuccessSlides': {
+    en: 'Successfully exported to Google Slides!',
+    tr: "Google Slides'a başarıyla aktarıldı!",
+  },
+  'googleDrive.exportSuccessCoverLetter': {
+    en: 'Cover letter successfully exported to Google Docs!',
+    tr: "Niyet mektubu Google Docs'a başarıyla aktarıldı!",
+  },
+  'googleDrive.openFile': {
+    en: 'Opening file in new tab...',
+    tr: 'Dosya yeni sekmede açılıyor...',
+  },
+  'googleDrive.authRequired': {
+    en: 'Please sign in to Google Drive first',
+    tr: "Lütfen önce Google Drive'a giriş yapın",
+  },
+  'googleDrive.exportError': {
+    en: 'Failed to export to Google Drive',
+    tr: "Google Drive'a aktarılamadı",
+  },
+  'googleDrive.setupTitle': { en: 'Setup Instructions', tr: 'Kurulum Talimatları' },
+  'googleDrive.setupStep1': {
+    en: '1. Go to Google Cloud Console and create a new project',
+    tr: "1. Google Cloud Console'a gidin ve yeni bir proje oluşturun",
+  },
+  'googleDrive.setupStep2': {
+    en: '2. Enable Google Drive, Docs, Sheets, and Slides APIs',
+    tr: "2. Google Drive, Docs, Sheets ve Slides API'lerini etkinleştirin",
+  },
+  'googleDrive.setupStep3': {
+    en: '3. Create OAuth 2.0 credentials and add your Chrome Extension ID',
+    tr: "3. OAuth 2.0 kimlik bilgileri oluşturun ve Chrome Uzantı ID'nizi ekleyin",
+  },
+  'googleDrive.openConsole': { en: 'Open Google Cloud Console', tr: "Google Cloud Console'u Aç" },
+  'googleDrive.configError': { en: 'Configuration Error', tr: 'Yapılandırma Hatası' },
+  'googleDrive.setupRequired': {
+    en: 'Google Drive setup is required',
+    tr: 'Google Drive kurulumu gerekli',
+  },
+  'googleDrive.setupRequiredDesc': {
+    en: 'The Google Client ID has not been configured yet. Please follow these steps:',
+    tr: 'Google Client ID henüz yapılandırılmadı. Lütfen şu adımları izleyin:',
+  },
+  'googleDrive.invalidClientId': { en: 'Invalid Client ID', tr: 'Geçersiz Client ID' },
+  'googleDrive.clientIdPlaceholder': {
+    en: 'The Client ID in manifest.json is still set to placeholder value',
+    tr: 'manifest.json içindeki Client ID hala yer tutucu değerde',
+  },
+  'googleDrive.badClientIdError': {
+    en: 'OAuth2 error: Bad Client ID. Your Google Client ID might be incorrect or not properly configured.',
+    tr: "OAuth2 hatası: Geçersiz Client ID. Google Client ID'niz yanlış veya düzgün yapılandırılmamış olabilir.",
+  },
+  'googleDrive.setupGuideTitle': { en: 'Quick Setup Guide', tr: 'Hızlı Kurulum Kılavuzu' },
+  'googleDrive.viewFullGuide': {
+    en: 'View Full Setup Guide',
+    tr: 'Tam Kurulum Kılavuzunu Görüntüle',
+  },
+  'googleDrive.troubleshooting': { en: 'Troubleshooting', tr: 'Sorun Giderme' },
+  'googleDrive.commonIssues': { en: 'Common Issues', tr: 'Yaygın Sorunlar' },
+  'googleDrive.issue1': { en: 'Issue: "bad client id" error', tr: 'Sorun: "bad client id" hatası' },
+  'googleDrive.solution1': {
+    en: 'Solution: Update manifest.json with correct Client ID from Google Cloud Console',
+    tr: "Çözüm: manifest.json dosyasını Google Cloud Console'dan doğru Client ID ile güncelleyin",
+  },
+  'googleDrive.issue2': { en: 'Issue: APIs not enabled', tr: "Sorun: API'ler etkinleştirilmedi" },
+  'googleDrive.solution2': {
+    en: 'Solution: Enable Drive, Docs, Sheets, and Slides APIs in Google Cloud Console',
+    tr: "Çözüm: Google Cloud Console'da Drive, Docs, Sheets ve Slides API'lerini etkinleştirin",
+  },
+  'googleDrive.issue3': { en: 'Issue: Access denied', tr: 'Sorun: Erişim engellendi' },
+  'googleDrive.solution3': {
+    en: 'Solution: Add your email as a test user in OAuth consent screen',
+    tr: 'Çözüm: OAuth izin ekranında e-postanızı test kullanıcısı olarak ekleyin',
+  },
+  'common.errorOptimizing': {
+    en: 'Error optimizing CV. Please try again.',
+    tr: 'CV optimize edilirken hata oluştu. Lütfen tekrar deneyin.',
+  },
   'common.all': { en: 'All', tr: 'Tümü' },
 
   'personal.section': { en: 'Personal Information', tr: 'Kişisel Bilgiler' },
@@ -35,28 +188,130 @@ const dict: Record<string, Record<Lang, string>> = {
   'personal.invalidEmail': { en: 'Invalid email address', tr: 'Geçersiz e-posta adresi' },
   'personal.buildFromPhone': { en: 'Build from phone', tr: 'Telefondan oluştur' },
   'personal.upload': { en: 'Upload', tr: 'Yükle' },
+  'personal.change': { en: 'Change', tr: 'Değiştir' },
+  'personal.editPhoto': { en: 'Edit Photo', tr: 'Fotoğrafı Düzenle' },
   'personal.remove': { en: 'Remove', tr: 'Kaldır' },
   'personal.invalidEmailFormat': { en: 'Invalid email format', tr: 'Geçersiz e-posta formatı' },
   'personal.didYouMean': { en: 'Did you mean', tr: 'Şunu mu demek istediniz' },
   'personal.validEmail': { en: 'Valid email address', tr: 'Geçerli e-posta adresi' },
+  'personal.photoUploadSuccess': {
+    en: 'Photo uploaded successfully (optimized for ATS)',
+    tr: 'Fotoğraf başarıyla yüklendi (ATS için optimize edildi)',
+  },
+  'personal.photoTooLarge': {
+    en: 'Image is too large. Please upload an image smaller than 10MB.',
+    tr: "Görsel çok büyük. Lütfen 10MB'den küçük bir görsel yükleyin.",
+  },
+  'personal.photoInvalidType': {
+    en: 'Please upload a valid image file (JPEG, PNG, or WebP)',
+    tr: 'Lütfen geçerli bir görsel dosyası yükleyin (JPEG, PNG veya WebP)',
+  },
+  'personal.photoProcessError': {
+    en: 'Error processing image. Please try another file.',
+    tr: 'Görsel işlenirken hata oluştu. Lütfen başka bir dosya deneyin.',
+  },
+  'personal.photoCropTitle': { en: 'Crop Profile Photo', tr: 'Profil Fotoğrafını Kırp' },
+  'personal.photoCropInstructions': {
+    en: 'Drag to reposition, use zoom buttons to adjust size',
+    tr: 'Konumu değiştirmek için sürükleyin, boyutu ayarlamak için zoom düğmelerini kullanın',
+  },
+  'personal.photoCropZoomOut': { en: 'Zoom Out', tr: 'Uzaklaştır' },
+  'personal.photoCropZoomIn': { en: 'Zoom In', tr: 'Yakınlaştır' },
+  'personal.photoCropApply': { en: 'Save & Apply', tr: 'Kaydet ve Uygula' },
+  'personal.photoCropCancel': { en: 'Cancel', tr: 'İptal' },
+
+  // URL Validation Messages
+  'validation.url.invalid': {
+    en: 'Please enter a valid URL (e.g., https://example.com)',
+    tr: 'Lütfen geçerli bir URL girin (örn. https://example.com)',
+  },
+  'validation.url.noProtocol': {
+    en: 'Consider adding https:// at the beginning',
+    tr: 'Başlangıca https:// eklemeyi düşünün',
+  },
+  'validation.url.spaces': { en: 'URL cannot contain spaces', tr: 'URL boşluk içeremez' },
+  'validation.url.local': {
+    en: 'Local URL detected - ensure this is accessible to employers',
+    tr: 'Yerel URL tespit edildi - işverenlerin erişebileceğinden emin olun',
+  },
+  'validation.url.valid': { en: 'Valid URL', tr: 'Geçerli URL' },
+  'validation.linkedin.invalid': {
+    en: 'LinkedIn username should be 3-100 characters (letters, numbers, hyphens, underscores)',
+    tr: 'LinkedIn kullanıcı adı 3-100 karakter olmalı (harf, rakam, tire, alt çizgi)',
+  },
+  'validation.linkedin.valid': {
+    en: 'Valid LinkedIn username',
+    tr: 'Geçerli LinkedIn kullanıcı adı',
+  },
+  'validation.github.invalid': {
+    en: 'GitHub username should be 1-39 characters, alphanumeric and hyphens only',
+    tr: 'GitHub kullanıcı adı 1-39 karakter olmalı, sadece alfanümerik ve tire',
+  },
+  'validation.github.consecutive': {
+    en: 'GitHub username cannot contain consecutive hyphens',
+    tr: 'GitHub kullanıcı adı ardışık tire içeremez',
+  },
+  'validation.github.valid': { en: 'Valid GitHub username', tr: 'Geçerli GitHub kullanıcı adı' },
+  'validation.whatsapp.invalid': {
+    en: 'WhatsApp link should be in format: https://wa.me/1234567890',
+    tr: 'WhatsApp bağlantısı şu formatta olmalı: https://wa.me/1234567890',
+  },
+  'validation.whatsapp.protocol': {
+    en: 'WhatsApp link must start with https://',
+    tr: 'WhatsApp bağlantısı https:// ile başlamalı',
+  },
+  'validation.whatsapp.valid': { en: 'Valid WhatsApp link', tr: 'Geçerli WhatsApp bağlantısı' },
+  'validation.portfolio.social': {
+    en: 'Consider using dedicated LinkedIn/GitHub fields instead',
+    tr: 'Bunun yerine özel LinkedIn/GitHub alanlarını kullanmayı düşünün',
+  },
+  'validation.portfolio.valid': { en: 'Valid portfolio URL', tr: 'Geçerli portfolyo URL' },
+  'validation.credential.valid': { en: 'Valid certification URL', tr: 'Geçerli sertifika URL' },
 
   'skills.section': { en: 'Skills', tr: 'Yetenekler' },
-  'skills.placeholder': { en: 'Add a skill (e.g., JavaScript, SQL)', tr: 'Yetenek ekle (örn. JavaScript, SQL)' },
-  'skills.emptyState': { en: 'No skills added yet. Add your key skills to make your CV stand out!', tr: 'Henüz yetenek eklenmedi. CV\'nizi öne çıkarmak için önemli yeteneklerinizi ekleyin!' },
+  'skills.placeholder': {
+    en: 'Add a skill (e.g., JavaScript, SQL)',
+    tr: 'Yetenek ekle (örn. JavaScript, SQL)',
+  },
+  'skills.emptyState': {
+    en: 'No skills added yet. Add your key skills to make your CV stand out!',
+    tr: "Henüz yetenek eklenmedi. CV'nizi öne çıkarmak için önemli yeteneklerinizi ekleyin!",
+  },
   'skills.addSkillBtn': { en: 'Add Skill', tr: 'Yetenek Ekle' },
 
   'upload.section': { en: 'Upload Your CV', tr: 'CV Yükle' },
-  'upload.drag': { en: 'Drag and drop your CV here or click to browse', tr: 'CV\'nizi buraya sürükleyin veya tıklayın' },
-  'upload.supported': { en: 'Supported formats: PDF, DOCX, DOC', tr: 'Desteklenen formatlar: PDF, DOCX, DOC' },
-  'upload.uploading': { en: 'Parsing your CV...', tr: 'CV\'niz işleniyor...' },
+  'upload.drag': {
+    en: 'Drag and drop your CV here or click to browse',
+    tr: "CV'nizi buraya sürükleyin veya tıklayın",
+  },
+  'upload.supported': {
+    en: 'Supported formats: PDF, DOCX, DOC',
+    tr: 'Desteklenen formatlar: PDF, DOCX, DOC',
+  },
+  'upload.uploading': { en: 'Parsing your CV...', tr: "CV'niz işleniyor..." },
   'upload.uploaded': { en: 'Uploaded', tr: 'Yüklendi' },
-  'upload.error': { en: 'Error parsing file. Please make sure it\'s a valid PDF or DOCX file.', tr: 'Dosya işlenirken hata oluştu. Lütfen geçerli bir PDF veya DOCX dosyası olduğundan emin olun.' },
+  'upload.error': {
+    en: "Error parsing file. Please make sure it's a valid PDF or DOCX file.",
+    tr: 'Dosya işlenirken hata oluştu. Lütfen geçerli bir PDF veya DOCX dosyası olduğundan emin olun.',
+  },
 
   'job.section': { en: 'Job Description', tr: 'İş İlanı' },
-  'job.tip': { en: 'Tip: AI will analyze this to optimize your CV.', tr: 'İpucu: YZ CV\'nizi optimize etmek için bunu analiz eder.' },
-  'job.paste': { en: 'Paste the job description you\'re applying for', tr: 'Başvurduğunuz iş ilanının açıklamasını yapıştırın' },
-  'job.placeholder': { en: 'Paste the full job description here...', tr: 'Tam iş ilanı açıklamasını buraya yapıştırın...' },
-  'job.tipFull': { en: 'Tip: The AI will analyze this job description to optimize your CV with relevant keywords and match your experience to the job requirements.', tr: 'İpucu: YZ, CV\'nizi ilgili anahtar kelimelerle optimize etmek ve deneyiminizi iş gereksinimlerine uyarlamak için bu iş açıklamasını analiz edecek.' },
+  'job.tip': {
+    en: 'Tip: AI will analyze this to optimize your CV.',
+    tr: "İpucu: YZ CV'nizi optimize etmek için bunu analiz eder.",
+  },
+  'job.paste': {
+    en: "Paste the job description you're applying for",
+    tr: 'Başvurduğunuz iş ilanının açıklamasını yapıştırın',
+  },
+  'job.placeholder': {
+    en: 'Paste the full job description here...',
+    tr: 'Tam iş ilanı açıklamasını buraya yapıştırın...',
+  },
+  'job.tipFull': {
+    en: 'Tip: The AI will analyze this job description to optimize your CV with relevant keywords and match your experience to the job requirements.',
+    tr: "İpucu: YZ, CV'nizi ilgili anahtar kelimelerle optimize etmek ve deneyiminizi iş gereksinimlerine uyarlamak için bu iş açıklamasını analiz edecek.",
+  },
 
   'experience.section': { en: 'Experience', tr: 'Deneyim' },
   'experience.add': { en: 'Add Experience', tr: 'Deneyim Ekle' },
@@ -78,16 +333,37 @@ const dict: Record<string, Record<Lang, string>> = {
   'experience.employmentTypes.internship': { en: 'Internship', tr: 'Staj' },
   'experience.selectType': { en: 'Select Type', tr: 'Tür Seçin' },
   'experience.present': { en: 'Present', tr: 'Halen' },
-  'experience.selectCountry': { en: 'Select Country', tr: 'Ülke Seçin' },
-  'experience.selectCity': { en: 'Select City', tr: 'Şehir Seçin' },
+  'experience.currentlyWorking': { en: 'I currently work here', tr: 'Halen burada çalışıyorum' },
+  'experience.selectCountry': { en: 'Select or search country', tr: 'Ülke seçin veya arayın' },
+  'experience.selectCity': { en: 'Select or search city', tr: 'Şehir seçin veya arayın' },
   'experience.selectCountryFirst': { en: 'Select Country First', tr: 'Önce Ülke Seçin' },
+
+  // Location Selector
+  'location.noCountriesFound': { en: 'No countries found', tr: 'Ülke bulunamadı' },
+  'location.noCitiesFound': { en: 'No cities found', tr: 'Şehir bulunamadı' },
+  'location.enterCustomCity': { en: 'Enter custom city', tr: 'Özel şehir girin' },
+  'location.customCityNote': {
+    en: 'Custom city (not in predefined list)',
+    tr: 'Özel şehir (önceden tanımlı listede değil)',
+  },
+  'location.clearCustomCity': { en: 'Clear custom city', tr: 'Özel şehri temizle' },
+  'location.searchPlaceholder': { en: 'Search...', tr: 'Ara...' },
   'experience.locationTypes.onsite': { en: 'On-site', tr: 'Yerinde' },
   'experience.locationTypes.remote': { en: 'Remote', tr: 'Uzaktan' },
   'experience.locationTypes.hybrid': { en: 'Hybrid', tr: 'Hibrit' },
-  'experience.descriptionPlaceholder': { en: 'Use bullets like: \n• Improved X by Y% \n• Led Z project', tr: 'Madde işaretleri kullanın: \n• X\'i %Y iyileştirdim \n• Z projesini yönettim' },
-  'experience.skillsPlaceholder': { en: 'Add a skill or paste: skill1, skill2', tr: 'Yetenek ekleyin veya yapıştırın: yetenek1, yetenek2' },
+  'experience.descriptionPlaceholder': {
+    en: 'Use bullets like: \n• Improved X by Y% \n• Led Z project',
+    tr: "Madde işaretleri kullanın: \n• X'i %Y iyileştirdim \n• Z projesini yönettim",
+  },
+  'experience.skillsPlaceholder': {
+    en: 'Add a skill or paste: skill1, skill2',
+    tr: 'Yetenek ekleyin veya yapıştırın: yetenek1, yetenek2',
+  },
   'experience.number': { en: 'Experience', tr: 'Deneyim' },
-  'experience.emptyState': { en: 'No work experience added yet. Click "Add Experience" to get started!', tr: 'Henüz iş deneyimi eklenmedi. Başlamak için "Deneyim Ekle" butonuna tıklayın!' },
+  'experience.emptyState': {
+    en: 'No work experience added yet. Click "Add Experience" to get started!',
+    tr: 'Henüz iş deneyimi eklenmedi. Başlamak için "Deneyim Ekle" butonuna tıklayın!',
+  },
 
   'education.section': { en: 'Education', tr: 'Eğitim' },
   'education.add': { en: 'Add Education', tr: 'Eğitim Ekle' },
@@ -101,11 +377,18 @@ const dict: Record<string, Record<Lang, string>> = {
   'education.skills': { en: 'Skills', tr: 'Yetenekler' },
   'education.selectDegree': { en: 'Select Degree', tr: 'Derece Seçin' },
   'education.currentlyStudying': { en: 'I am currently studying', tr: 'Hâla devam ediyorum' },
+  'education.expected': { en: 'Expected', tr: 'Beklenen' },
   'education.gradeLabel': { en: 'Grade / GPA', tr: 'Not / Not Ortalaması' },
   'education.activitiesLabel': { en: 'Activities and Societies', tr: 'Aktiviteler ve Topluluklar' },
-  'education.descriptionPlaceholder': { en: 'Use bullets like:\n• Coursework: ...\n• Achievement: ...', tr: 'Madde işaretleri kullanın:\n• Dersler: ...\n• Başarı: ...' },
+  'education.descriptionPlaceholder': {
+    en: 'Use bullets like:\n• Coursework: ...\n• Achievement: ...',
+    tr: 'Madde işaretleri kullanın:\n• Dersler: ...\n• Başarı: ...',
+  },
   'education.number': { en: 'Education', tr: 'Eğitim' },
-  'education.emptyState': { en: 'No education added yet. Click "Add Education" to get started!', tr: 'Henüz eğitim eklenmedi. Başlamak için "Eğitim Ekle" butonuna tıklayın!' },
+  'education.emptyState': {
+    en: 'No education added yet. Click "Add Education" to get started!',
+    tr: 'Henüz eğitim eklenmedi. Başlamak için "Eğitim Ekle" butonuna tıklayın!',
+  },
 
   'certs.section': { en: 'Licenses & Certifications', tr: 'Lisanslar ve Sertifikalar' },
   'certs.add': { en: 'Add Certification', tr: 'Sertifika Ekle' },
@@ -119,8 +402,14 @@ const dict: Record<string, Record<Lang, string>> = {
   'certs.description': { en: 'Description', tr: 'Açıklama' },
   'certs.skills': { en: 'Skills', tr: 'Yetenekler' },
   'certs.number': { en: 'Certification', tr: 'Sertifika' },
-  'certs.emptyState': { en: 'No certifications added yet. Click "Add Certification" to get started!', tr: 'Henüz sertifika eklenmedi. Başlamak için "Sertifika Ekle" butonuna tıklayın!' },
-  'certs.descriptionPlaceholder': { en: 'Use bullets like:\n• Credential URL: ...\n• Skills gained: ...', tr: 'Madde işaretleri kullanın:\n• Kimlik URL: ...\n• Kazanılan yetenekler: ...' },
+  'certs.emptyState': {
+    en: 'No certifications added yet. Click "Add Certification" to get started!',
+    tr: 'Henüz sertifika eklenmedi. Başlamak için "Sertifika Ekle" butonuna tıklayın!',
+  },
+  'certs.descriptionPlaceholder': {
+    en: 'Use bullets like:\n• Credential URL: ...\n• Skills gained: ...',
+    tr: 'Madde işaretleri kullanın:\n• Kimlik URL: ...\n• Kazanılan yetenekler: ...',
+  },
 
   'projects.section': { en: 'Projects', tr: 'Projeler' },
   'projects.add': { en: 'Add Project', tr: 'Proje Ekle' },
@@ -128,34 +417,76 @@ const dict: Record<string, Record<Lang, string>> = {
   'projects.description': { en: 'Description', tr: 'Açıklama' },
   'projects.start': { en: 'Start Date', tr: 'Başlangıç Tarihi' },
   'projects.end': { en: 'End Date', tr: 'Bitiş Tarihi' },
-  'projects.currently': { en: 'I am currently working on this project', tr: 'Hâla bu projede çalışıyorum' },
+  'projects.currently': {
+    en: 'I am currently working on this project',
+    tr: 'Hâla bu projede çalışıyorum',
+  },
   'projects.associated': { en: 'Associated With', tr: 'İlişkili Olduğu' },
   'projects.skills': { en: 'Skills', tr: 'Yetenekler' },
   'projects.number': { en: 'Project', tr: 'Proje' },
-  'projects.emptyState': { en: 'No projects added yet. Click "Add Project" to get started!', tr: 'Henüz proje eklenmedi. Başlamak için "Proje Ekle" butonuna tıklayın!' },
-  'projects.descriptionPlaceholder': { en: 'Use bullets like:\n• Built ...\n• Improved ...', tr: 'Madde işaretleri kullanın:\n• Geliştirdim ...\n• İyileştirdim ...' },
-  'projects.associatedPlaceholder': { en: 'Company, School, or Organization', tr: 'Şirket, Okul veya Organizasyon' },
+  'projects.emptyState': {
+    en: 'No projects added yet. Click "Add Project" to get started!',
+    tr: 'Henüz proje eklenmedi. Başlamak için "Proje Ekle" butonuna tıklayın!',
+  },
+  'projects.descriptionPlaceholder': {
+    en: 'Use bullets like:\n• Built ...\n• Improved ...',
+    tr: 'Madde işaretleri kullanın:\n• Geliştirdim ...\n• İyileştirdim ...',
+  },
+  'projects.associatedPlaceholder': {
+    en: 'Company, School, or Organization',
+    tr: 'Şirket, Okul veya Organizasyon',
+  },
 
   'opt.section': { en: 'ATS Optimization Details', tr: 'ATS Optimizasyon Detayları' },
   'opt.preview': { en: 'CV Preview', tr: 'CV Önizleme' },
-  'opt.optimizeBtn': { en: 'Optimize CV with AI', tr: 'CV\'yi YZ ile Optimize Et' },
+  'opt.optimizeBtn': { en: 'Optimize CV with AI', tr: "CV'yi YZ ile Optimize Et" },
   'opt.optimizing': { en: 'Optimizing...', tr: 'Optimize Ediliyor...' },
-  'opt.clickOptimize': { en: 'Click "Optimize CV" to generate ATS optimization suggestions based on your CV and the job description.', tr: 'CV ve iş ilanı açıklamasına göre ATS optimizasyon önerileri almak için "CV Optimize Et" butonuna tıklayın.' },
+  'opt.clickOptimize': {
+    en: 'Click "Optimize CV" to generate ATS optimization suggestions based on your CV and the job description.',
+    tr: 'CV ve iş ilanı açıklamasına göre ATS optimizasyon önerileri almak için "CV Optimize Et" butonuna tıklayın.',
+  },
   'opt.applied': { en: 'applied', tr: 'uygulandı' },
   'opt.optimization': { en: 'optimization', tr: 'optimizasyon' },
   'opt.optimizations': { en: 'optimizations', tr: 'optimizasyon' },
-  'opt.hoverTip': { en: 'Hover over any pill and click the X to remove an optimization.', tr: 'Bir optimizasyonu kaldırmak için üzerine gelin ve X işaretine tıklayın.' },
+  'opt.hoverTip': {
+    en: 'Hover over any pill and click the X to remove an optimization.',
+    tr: 'Bir optimizasyonu kaldırmak için üzerine gelin ve X işaretine tıklayın.',
+  },
   'opt.clickToRemove': { en: 'Click to remove', tr: 'Kaldırmak için tıklayın' },
   'opt.clickToApply': { en: 'Click to apply', tr: 'Uygulamak için tıklayın' },
   'opt.detailsTitle': { en: 'Optimization Details', tr: 'Optimizasyon Detayları' },
   'opt.original': { en: 'Original', tr: 'Orijinal' },
   'opt.optimized': { en: 'Optimized', tr: 'Optimize Edilmiş' },
-  
+  'opt.clickToHighlight': {
+    en: 'Click to highlight in CV preview',
+    tr: 'CV önizlemede vurgulamak için tıklayın',
+  },
+  'opt.applyFirstToHighlight': {
+    en: 'Apply this optimization first to highlight it in the preview',
+    tr: 'Önizlemede vurgulamak için önce bu optimizasyonu uygulayın',
+  },
+
   'preview.title': { en: 'CV Preview', tr: 'CV Önizleme' },
   'preview.downloadPdf': { en: 'Download PDF', tr: 'PDF İndir' },
   'preview.downloadDocx': { en: 'Download DOCX', tr: 'DOCX İndir' },
-  'preview.exportGoogleDocs': { en: 'Export to Google Docs', tr: 'Google Docs\'a Aktar' },
+  'preview.exportGoogle': { en: 'Export to Google', tr: "Google'a Aktar" },
+  'preview.exportGoogleDocs': { en: 'Export to Google Docs', tr: "Google Docs'a Aktar" },
+  'preview.exportGoogleSheets': { en: 'Export to Google Sheets', tr: "Google Sheets'e Aktar" },
+  'preview.exportGoogleSlides': { en: 'Export to Google Slides', tr: "Google Slides'a Aktar" },
   'preview.template': { en: 'Template', tr: 'Şablon' },
+
+  // CV Templates
+  'templates.title': { en: 'CV Templates', tr: 'CV Şablonları' },
+  'templates.description': {
+    en: 'Choose a professional template that best suits your industry and career level',
+    tr: 'Sektörünüze ve kariyer seviyenize en uygun profesyonel şablonu seçin',
+  },
+  'templates.preview': { en: 'Preview', tr: 'Önizle' },
+  'templates.selected': { en: 'Selected', tr: 'Seçili' },
+  'templates.useTemplate': { en: 'Use This Template', tr: 'Bu Şablonu Kullan' },
+  'templates.colors': { en: 'Color Scheme', tr: 'Renk Şeması' },
+  'templates.features': { en: 'Features', tr: 'Özellikler' },
+  'templates.layout': { en: 'Layout Details', tr: 'Düzen Detayları' },
   'preview.classic': { en: 'Classic', tr: 'Klasik' },
   'preview.modern': { en: 'Modern', tr: 'Modern' },
   'preview.compact': { en: 'Compact', tr: 'Kompakt' },
@@ -169,10 +500,16 @@ const dict: Record<string, Record<Lang, string>> = {
   'preview.issued': { en: 'Issued', tr: 'Verildi' },
   'preview.skills': { en: 'Skills', tr: 'Yetenekler' },
   'preview.id': { en: 'ID', tr: 'Kimlik' },
-  
+
   'cover.section': { en: 'Cover Letter', tr: 'Niyet Mektubu' },
-  'cover.extraInstructions': { en: 'Extra Instructions (Optional)', tr: 'Ekstra Talimatlar (Opsiyonel)' },
-  'cover.placeholder': { en: 'Add any specific requirements or tone preferences for the cover letter...', tr: 'Niyet mektubu için özel gereksinimler veya ton tercihleri ekleyin...' },
+  'cover.extraInstructions': {
+    en: 'Extra Instructions (Optional)',
+    tr: 'Ekstra Talimatlar (Opsiyonel)',
+  },
+  'cover.placeholder': {
+    en: 'Add any specific requirements or tone preferences for the cover letter...',
+    tr: 'Niyet mektubu için özel gereksinimler veya ton tercihleri ekleyin...',
+  },
   'cover.generate': { en: 'Generate Cover Letter', tr: 'Niyet Mektubu Oluştur' },
   'cover.generating': { en: 'Generating...', tr: 'Oluşturuluyor...' },
   'cover.savePrompt': { en: 'Save Prompt', tr: 'İstemi Kaydet' },
@@ -184,12 +521,115 @@ const dict: Record<string, Record<Lang, string>> = {
   'cover.savedPrompts': { en: 'Saved Prompts', tr: 'Kaydedilmiş İstemler' },
   'cover.preview': { en: 'Preview', tr: 'Önizleme' },
   'cover.copyToClipboard': { en: 'Copy to Clipboard', tr: 'Panoya Kopyala' },
-  'cover.copied': { en: 'Cover letter copied to clipboard!', tr: 'Niyet mektubu panoya kopyalandı!' },
-  'cover.emptyState': { en: 'No cover letter generated yet. Fill in your CV and job description, then click "Generate Cover Letter".', tr: 'Henüz niyet mektubu oluşturulmadı. CV\'nizi ve iş ilanını doldurun, ardından "Niyet Mektubu Oluştur" butonuna tıklayın.' },
+  'cover.copied': {
+    en: 'Cover letter copied to clipboard!',
+    tr: 'Niyet mektubu panoya kopyalandı!',
+  },
+  'cover.emptyState': {
+    en: 'No cover letter generated yet. Fill in your CV and job description, then click "Generate Cover Letter".',
+    tr: 'Henüz niyet mektubu oluşturulmadı. CV\'nizi ve iş ilanını doldurun, ardından "Niyet Mektubu Oluştur" butonuna tıklayın.',
+  },
   'cover.load': { en: 'Load', tr: 'Yükle' },
-  'cover.errorGenerating': { en: 'Error generating cover letter. Please try again.', tr: 'Niyet mektubu oluşturulurken hata oluştu. Lütfen tekrar deneyin.' },
-  'cover.needJobDesc': { en: 'Please enter a job description first!', tr: 'Lütfen önce iş ilanı açıklamasını girin!' },
-  
+  'cover.errorGenerating': {
+    en: 'Error generating cover letter. Please try again.',
+    tr: 'Niyet mektubu oluşturulurken hata oluştu. Lütfen tekrar deneyin.',
+  },
+  'cover.errorDetails': { en: 'Error details', tr: 'Hata detayları' },
+  'cover.errorNoApiKey': {
+    en: 'AI service is not configured. Please add your API key in Settings to use AI-powered cover letter generation.',
+    tr: "YZ hizmeti yapılandırılmamış. YZ destekli niyet mektubu oluşturma için Ayarlar'dan API anahtarınızı ekleyin.",
+  },
+  'cover.errorGoToSettings': {
+    en: 'Go to Settings tab and configure your AI provider (OpenAI, Gemini, or Claude)',
+    tr: 'Ayarlar sekmesine gidin ve YZ sağlayıcınızı yapılandırın (OpenAI, Gemini veya Claude)',
+  },
+  'cover.errorRateLimit': {
+    en: 'API rate limit exceeded. Please wait a moment and try again.',
+    tr: 'API hız sınırı aşıldı. Lütfen bir süre bekleyin ve tekrar deneyin.',
+  },
+  'cover.errorNetwork': {
+    en: 'Network error. Please check your internet connection and try again.',
+    tr: 'Ağ hatası. Lütfen internet bağlantınızı kontrol edin ve tekrar deneyin.',
+  },
+  'cover.needJobDesc': {
+    en: 'Please enter a job description first!',
+    tr: 'Lütfen önce iş ilanı açıklamasını girin!',
+  },
+
+  // Cover Letter Templates
+  'coverTemplates.title': { en: 'Cover Letter Template', tr: 'Niyet Mektubu Şablonu' },
+  'coverTemplates.description': {
+    en: 'Choose a professional template that matches the tone and style of your cover letter',
+    tr: 'Niyet mektubunuzun tonuna ve stiline uygun profesyonel bir şablon seçin',
+  },
+  'coverTemplates.classic': { en: 'Classic Professional', tr: 'Klasik Profesyonel' },
+  'coverTemplates.modern': { en: 'Modern Professional', tr: 'Modern Profesyonel' },
+  'coverTemplates.executive': { en: 'Executive Elite', tr: 'Yönetici Elit' },
+  'coverTemplates.creative': { en: 'Creative Professional', tr: 'Kreatif Profesyonel' },
+  'coverTemplates.startup': { en: 'Startup Ready', tr: 'Startup Hazır' },
+  'coverTemplates.academic': { en: 'Academic & Research', tr: 'Akademik ve Araştırma' },
+
+  // Cover Letter Template Descriptions
+  'coverTemplates.classic.desc': {
+    en: 'Traditional business letter format, perfect for corporate positions',
+    tr: 'Kurumsal pozisyonlar için mükemmel, geleneksel iş mektubu formatı',
+  },
+  'coverTemplates.modern.desc': {
+    en: 'Clean, contemporary design for tech and innovative companies',
+    tr: 'Teknoloji ve yenilikçi şirketler için temiz, çağdaş tasarım',
+  },
+  'coverTemplates.executive.desc': {
+    en: 'Sophisticated format for senior leadership positions',
+    tr: 'Üst düzey yönetici pozisyonları için sofistike format',
+  },
+  'coverTemplates.creative.desc': {
+    en: 'Expressive design for creative and design roles',
+    tr: 'Kreatif ve tasarım rolleri için etkileyici tasarım',
+  },
+  'coverTemplates.startup.desc': {
+    en: 'Dynamic and energetic format for startup environments',
+    tr: 'Startup ortamları için dinamik ve enerjik format',
+  },
+  'coverTemplates.academic.desc': {
+    en: 'Formal academic format for research and faculty positions',
+    tr: 'Araştırma ve akademik kadro pozisyonları için resmi akademik format',
+  },
+
+  // Cover Letter Template Features
+  'coverTemplates.feature.traditionalFormat': { en: 'Traditional Format', tr: 'Geleneksel Format' },
+  'coverTemplates.feature.formalTone': { en: 'Formal Tone', tr: 'Resmi Ton' },
+  'coverTemplates.feature.atsFriendly': { en: 'ATS-Friendly', tr: 'ATS Uyumlu' },
+  'coverTemplates.feature.corporateStandard': { en: 'Corporate Standard', tr: 'Kurumsal Standart' },
+  'coverTemplates.feature.cleanDesign': { en: 'Clean Design', tr: 'Temiz Tasarım' },
+  'coverTemplates.feature.modernTone': { en: 'Modern Tone', tr: 'Modern Ton' },
+  'coverTemplates.feature.techFriendly': { en: 'Tech-Friendly', tr: 'Teknoloji Dostu' },
+  'coverTemplates.feature.conciseFormat': { en: 'Concise Format', tr: 'Özlü Format' },
+  'coverTemplates.feature.executiveStyle': { en: 'Executive Style', tr: 'Yönetici Tarzı' },
+  'coverTemplates.feature.authoritativeTone': { en: 'Authoritative Tone', tr: 'Otoriter Ton' },
+  'coverTemplates.feature.leadershipFocus': { en: 'Leadership Focus', tr: 'Liderlik Odaklı' },
+  'coverTemplates.feature.premiumLook': { en: 'Premium Look', tr: 'Premium Görünüm' },
+  'coverTemplates.feature.creativeLayout': { en: 'Creative Layout', tr: 'Kreatif Düzen' },
+  'coverTemplates.feature.expressiveTone': { en: 'Expressive Tone', tr: 'İfadeci Ton' },
+  'coverTemplates.feature.designFocus': { en: 'Design Focus', tr: 'Tasarım Odaklı' },
+  'coverTemplates.feature.personalityShowcase': {
+    en: 'Personality Showcase',
+    tr: 'Kişilik Vitrini',
+  },
+  'coverTemplates.feature.energeticTone': { en: 'Energetic Tone', tr: 'Enerjik Ton' },
+  'coverTemplates.feature.fastPacedFeel': { en: 'Fast-Paced Feel', tr: 'Hızlı Tempolu Hissiyat' },
+  'coverTemplates.feature.startupCulture': { en: 'Startup Culture', tr: 'Startup Kültürü' },
+  'coverTemplates.feature.directCommunication': {
+    en: 'Direct Communication',
+    tr: 'Doğrudan İletişim',
+  },
+  'coverTemplates.feature.academicFormat': { en: 'Academic Format', tr: 'Akademik Format' },
+  'coverTemplates.feature.scholarlyTone': { en: 'Scholarly Tone', tr: 'Akademik Ton' },
+  'coverTemplates.feature.researchFocus': { en: 'Research Focus', tr: 'Araştırma Odaklı' },
+  'coverTemplates.feature.publicationStandard': {
+    en: 'Publication Standard',
+    tr: 'Yayın Standardı',
+  },
+
   'profile.section': { en: 'Profile Management', tr: 'Profil Yönetimi' },
   'profile.current': { en: 'Current Profile', tr: 'Mevcut Profil' },
   'profile.name': { en: 'Profile Name', tr: 'Profil Adı' },
@@ -197,17 +637,26 @@ const dict: Record<string, Record<Lang, string>> = {
   'profile.save': { en: 'Save Profile', tr: 'Profili Kaydet' },
   'profile.saved': { en: 'Saved Profiles', tr: 'Kaydedilmiş Profiller' },
   'profile.updated': { en: 'Updated', tr: 'Güncellenme' },
-  'profile.deleteConfirm': { en: 'Are you sure you want to delete this profile?', tr: 'Bu profili silmek istediğinizden emin misiniz?' },
+  'profile.deleteConfirm': {
+    en: 'Are you sure you want to delete this profile?',
+    tr: 'Bu profili silmek istediğinizden emin misiniz?',
+  },
   'profile.saveSuccess': { en: 'Profile saved successfully!', tr: 'Profil başarıyla kaydedildi!' },
   'profile.loadSuccess': { en: 'Profile loaded successfully!', tr: 'Profil başarıyla yüklendi!' },
-  'profile.emptyState': { en: 'No saved profiles yet. Fill in your information and click "Save Profile" to save it for later use!', tr: 'Henüz kaydedilmiş profil yok. Bilgilerinizi doldurun ve daha sonra kullanmak üzere kaydetmek için "Profili Kaydet" butonuna tıklayın!' },
+  'profile.emptyState': {
+    en: 'No saved profiles yet. Fill in your information and click "Save Profile" to save it for later use!',
+    tr: 'Henüz kaydedilmiş profil yok. Bilgilerinizi doldurun ve daha sonra kullanmak üzere kaydetmek için "Profili Kaydet" butonuna tıklayın!',
+  },
   'profile.load': { en: 'Load', tr: 'Yükle' },
-  
+
   'questions.section': { en: 'Additional Questions', tr: 'Ek Sorular' },
   'questions.add': { en: 'Add Question', tr: 'Soru Ekle' },
   'questions.cancel': { en: 'Cancel', tr: 'İptal' },
   'questions.questionText': { en: 'Question Text', tr: 'Soru Metni' },
-  'questions.questionPlaceholder': { en: 'Enter your custom question...', tr: 'Özel sorunuzu girin...' },
+  'questions.questionPlaceholder': {
+    en: 'Enter your custom question...',
+    tr: 'Özel sorunuzu girin...',
+  },
   'questions.questionType': { en: 'Question Type', tr: 'Soru Tipi' },
   'questions.textInput': { en: 'Text Input', tr: 'Metin Girişi' },
   'questions.formGroup': { en: 'Form Group (Multi-line)', tr: 'Form Grubu (Çok satırlı)' },
@@ -218,8 +667,24 @@ const dict: Record<string, Record<Lang, string>> = {
   'questions.answer': { en: 'Answer', tr: 'Cevap' },
   'questions.answerPlaceholder': { en: 'Your answer...', tr: 'Cevabınız...' },
   'questions.type': { en: 'Type', tr: 'Tip' },
-  'questions.emptyState': { en: 'No custom questions added. Add questions to capture additional information!', tr: 'Özel soru eklenmedi. Ek bilgi toplamak için sorular ekleyin!' },
-  
+  'questions.emptyState': {
+    en: 'No custom questions added. Add questions to capture additional information!',
+    tr: 'Özel soru eklenmedi. Ek bilgi toplamak için sorular ekleyin!',
+  },
+  'questions.options': { en: 'Options', tr: 'Seçenekler' },
+  'questions.addOption': { en: 'Add Option', tr: 'Seçenek Ekle' },
+  'questions.optionPlaceholder': { en: 'Enter option text...', tr: 'Seçenek metnini girin...' },
+  'questions.removeOption': { en: 'Remove option', tr: 'Seçeneği kaldır' },
+  'questions.optionsRequired': {
+    en: 'Please add at least one option for this question type',
+    tr: 'Bu soru tipi için en az bir seçenek ekleyin',
+  },
+  'questions.optionsHelp': {
+    en: 'Add options that users can choose from',
+    tr: 'Kullanıcıların seçebileceği seçenekler ekleyin',
+  },
+  'questions.multilineInput': { en: 'Multi-line text area', tr: 'Çok satırlı metin alanı' },
+
   // Rich Text Editor
   'editor.bold': { en: 'Bold', tr: 'Kalın' },
   'editor.italic': { en: 'Italic', tr: 'İtalik' },
@@ -230,25 +695,177 @@ const dict: Record<string, Record<Lang, string>> = {
   'editor.clearFormat': { en: 'Clear Format', tr: 'Biçimi Temizle' },
   'editor.clearFormatting': { en: 'Clear all formatting', tr: 'Tüm biçimlendirmeyi temizle' },
   'editor.clearAll': { en: 'Clear all text', tr: 'Tüm metni temizle' },
-  'editor.confirmClear': { en: 'Are you sure you want to clear all text?', tr: 'Tüm metni silmek istediğinizden emin misiniz?' },
+  'editor.confirmClear': {
+    en: 'Are you sure you want to clear all text?',
+    tr: 'Tüm metni silmek istediğinizden emin misiniz?',
+  },
   'editor.characters': { en: 'Characters', tr: 'Karakter' },
   'editor.words': { en: 'Words', tr: 'Kelime' },
-  'editor.hint': { en: 'Use **text** for bold, _text_ for italic', tr: '**metin** kalın, _metin_ italik için' },
+  'editor.hint': {
+    en: 'Use **text** for bold, _text_ for italic',
+    tr: '**metin** kalın, _metin_ italik için',
+  },
   'editor.template': { en: 'Use Template', tr: 'Şablon Kullan' },
   'editor.templates': { en: 'Templates', tr: 'Şablonlar' },
-  
-  // Description Templates
-  'templates.experience.improved': { en: '• Improved [metric] by [percentage]% through [method]', tr: '• [metrik]i [yöntem] ile %[yüzde] iyileştirdim' },
-  'templates.experience.led': { en: '• Led team of [number] to deliver [project/outcome]', tr: '• [proje/sonuç] sunmak için [sayı] kişilik ekibi yönettim' },
-  'templates.experience.developed': { en: '• Developed [feature/system] that resulted in [outcome]', tr: '• [sonuç] ile sonuçlanan [özellik/sistem] geliştirdim' },
-  'templates.experience.managed': { en: '• Managed [responsibility] achieving [result]', tr: '• [sorumluluk]u yönettim ve [sonuç] elde ettim' },
-  'templates.education.coursework': { en: '• Relevant Coursework: [courses]', tr: '• İlgili Dersler: [dersler]' },
-  'templates.education.achievement': { en: '• Achievement: [description]', tr: '• Başarı: [açıklama]' },
-  'templates.education.thesis': { en: '• Thesis: [title] - [brief description]', tr: '• Tez: [başlık] - [kısa açıklama]' },
-  'templates.cert.skills': { en: '• Skills gained: [skill1], [skill2], [skill3]', tr: '• Kazanılan yetenekler: [yetenek1], [yetenek2], [yetenek3]' },
-  'templates.cert.focus': { en: '• Focus areas: [area1], [area2]', tr: '• Odak alanları: [alan1], [alan2]' },
-  'templates.project.built': { en: '• Built [feature] using [technologies]', tr: '• [teknolojiler] kullanarak [özellik] geliştirdim' },
-  'templates.project.implemented': { en: '• Implemented [functionality] resulting in [outcome]', tr: '• [sonuç] ile sonuçlanan [işlevsellik] uyguladım' }
+
+  // Description Templates - Experience
+  'templates.experience.improved': {
+    en: '• Improved [metric] by [percentage]% through [method]',
+    tr: '• [Yöntem] kullanarak [metrik]i %[yüzde] oranında iyileştirdim',
+  },
+  'templates.experience.led': {
+    en: '• Led team of [number] to deliver [project/outcome]',
+    tr: '• [Sayı] kişilik ekibi yöneterek [proje/sonuç] başarıyla tamamladım',
+  },
+  'templates.experience.developed': {
+    en: '• Developed [feature/system] that resulted in [outcome]',
+    tr: '• [Özellik/sistem] geliştirerek [sonuç] elde ettim',
+  },
+  'templates.experience.managed': {
+    en: '• Managed [responsibility] achieving [result]',
+    tr: '• [Sorumluluk] yöneterek [sonuç] sağladım',
+  },
+  'templates.experience.achieved': {
+    en: '• Achieved [result] by implementing [solution/method]',
+    tr: '• [Çözüm/yöntem] uygulayarak [sonuç] elde ettim',
+  },
+  'templates.experience.collaborated': {
+    en: '• Collaborated with [teams/stakeholders] to deliver [outcome]',
+    tr: '• [Ekipler/paydaşlar] ile işbirliği yaparak [sonuç] teslim ettim',
+  },
+  'templates.experience.reduced': {
+    en: '• Reduced [metric] by [percentage]% through [optimization/method]',
+    tr: '• [Optimizasyon/yöntem] ile [metrik]i %[yüzde] oranında azalttım',
+  },
+  'templates.experience.increased': {
+    en: '• Increased [metric] by [percentage]% via [strategy/method]',
+    tr: '• [Strateji/yöntem] ile [metrik]i %[yüzde] oranında artırdım',
+  },
+
+  // Description Templates - Education
+  'templates.education.coursework': {
+    en: '• Relevant Coursework: [courses]',
+    tr: '• İlgili Dersler: [dersler]',
+  },
+  'templates.education.achievement': {
+    en: '• Achievement: [description]',
+    tr: '• Başarı: [açıklama]',
+  },
+  'templates.education.thesis': {
+    en: '• Thesis: [title] - [brief description]',
+    tr: '• Tez: [başlık] - [kısa açıklama]',
+  },
+  'templates.education.gpa': {
+    en: '• GPA: [score] | Top [percentage]% of graduating class',
+    tr: '• Not Ortalaması: [puan] | Mezuniyet sınıfının en iyi %[yüzde]si içinde',
+  },
+  'templates.education.honors': {
+    en: '• Honors & Awards: [awards]',
+    tr: '• Ödüller ve Başarılar: [ödüller]',
+  },
+  'templates.education.activities': {
+    en: '• Leadership: [position] in [organization/club]',
+    tr: '• Liderlik: [organizasyon/kulüp]de [pozisyon]',
+  },
+
+  // Description Templates - Certifications
+  'templates.cert.skills': {
+    en: '• Skills gained: [skill1], [skill2], [skill3]',
+    tr: '• Kazanılan yetenekler: [yetenek1], [yetenek2], [yetenek3]',
+  },
+  'templates.cert.focus': {
+    en: '• Focus areas: [area1], [area2]',
+    tr: '• Odak alanları: [alan1], [alan2]',
+  },
+  'templates.cert.validation': {
+    en: '• Validated expertise in [domain/technology]',
+    tr: '• [Domain/teknoloji] alanında uzmanlık doğrulandı',
+  },
+  'templates.cert.credential': { en: '• Credential URL: [url]', tr: '• Kimlik Bilgisi URL: [url]' },
+
+  // Description Templates - Projects
+  'templates.project.built': {
+    en: '• Built [feature] using [technologies]',
+    tr: '• [Teknolojiler] kullanarak [özellik] geliştirdim',
+  },
+  'templates.project.implemented': {
+    en: '• Implemented [functionality] resulting in [outcome]',
+    tr: '• [İşlevsellik] uygulayarak [sonuç] elde ettim',
+  },
+  'templates.project.designed': {
+    en: '• Designed and developed [feature/system] for [purpose]',
+    tr: '• [Amaç] için [özellik/sistem] tasarlayıp geliştirdim',
+  },
+  'templates.project.technologies': {
+    en: '• Technologies used: [tech stack]',
+    tr: '• Kullanılan teknolojiler: [teknoloji yığını]',
+  },
+
+  // AI Settings
+  'settings.aiSection': { en: 'AI Provider Settings', tr: 'YZ Sağlayıcı Ayarları' },
+  'settings.aiProvider': { en: 'AI Provider', tr: 'YZ Sağlayıcısı' },
+  'settings.aiProviderDesc': {
+    en: 'Choose which AI service to use for CV optimization and cover letter generation',
+    tr: 'CV optimizasyonu ve niyet mektubu oluşturma için hangi YZ hizmetini kullanacağınızı seçin',
+  },
+  'settings.apiKey': { en: 'API Key', tr: 'API Anahtarı' },
+  'settings.apiKeyPlaceholder': { en: 'Enter your API key', tr: 'API anahtarınızı girin' },
+  'settings.apiKeyRequired': {
+    en: 'API key is required for AI features to work',
+    tr: 'YZ özelliklerinin çalışması için API anahtarı gereklidir',
+  },
+  'settings.apiKeyHidden': {
+    en: 'API key is hidden for security',
+    tr: 'API anahtarı güvenlik için gizlenmiştir',
+  },
+  'settings.showApiKey': { en: 'Show', tr: 'Göster' },
+  'settings.hideApiKey': { en: 'Hide', tr: 'Gizle' },
+  'settings.aiModel': { en: 'Model', tr: 'Model' },
+  'settings.aiModelDesc': {
+    en: 'Select the AI model to use (optional)',
+    tr: 'Kullanılacak YZ modelini seçin (isteğe bağlı)',
+  },
+  'settings.aiTemperature': { en: 'Creativity Level', tr: 'Yaratıcılık Seviyesi' },
+  'settings.aiTemperatureDesc': {
+    en: 'Higher values make output more creative, lower values more focused',
+    tr: 'Yüksek değerler çıktıyı daha yaratıcı, düşük değerler daha odaklı yapar',
+  },
+  'settings.saveSuccess': {
+    en: 'Settings saved successfully!',
+    tr: 'Ayarlar başarıyla kaydedildi!',
+  },
+  'settings.saveError': {
+    en: 'Error saving settings. Please try again.',
+    tr: 'Ayarlar kaydedilirken hata oluştu. Lütfen tekrar deneyin.',
+  },
+  'settings.testConnection': { en: 'Test Connection', tr: 'Bağlantıyı Test Et' },
+  'settings.testing': { en: 'Testing...', tr: 'Test ediliyor...' },
+  'settings.testSuccess': { en: 'Connection successful!', tr: 'Bağlantı başarılı!' },
+  'settings.testError': {
+    en: 'Connection failed. Please check your API key.',
+    tr: 'Bağlantı başarısız. Lütfen API anahtarınızı kontrol edin.',
+  },
+  'settings.getApiKey': { en: 'Get API Key', tr: 'API Anahtarı Al' },
+  'settings.openaiInfo': {
+    en: 'OpenAI (ChatGPT) - Most widely used, excellent quality',
+    tr: 'OpenAI (ChatGPT) - En yaygın kullanılan, mükemmel kalite',
+  },
+  'settings.geminiInfo': {
+    en: 'Google Gemini - Fast and cost-effective',
+    tr: 'Google Gemini - Hızlı ve uygun maliyetli',
+  },
+  'settings.claudeInfo': {
+    en: 'Anthropic Claude - Great for detailed analysis',
+    tr: 'Anthropic Claude - Detaylı analiz için harika',
+  },
+  'settings.mockMode': {
+    en: 'Demo Mode (No API key required)',
+    tr: 'Demo Modu (API anahtarı gerekmez)',
+  },
+  'settings.mockModeDesc': {
+    en: 'Currently running in demo mode with sample data',
+    tr: 'Şu anda örnek verilerle demo modunda çalışıyor',
+  },
 };
 
 export function t(lang: Lang, key: string): string {
