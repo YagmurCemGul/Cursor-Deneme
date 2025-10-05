@@ -1,12 +1,10 @@
 import React, { Component, ErrorInfo, ReactNode } from 'react';
 import { logger } from '../utils/logger';
-import { errorTracker } from '../utils/errorTracking';
 
 interface Props {
   children: ReactNode;
   fallback?: ReactNode;
   onError?: (error: Error, errorInfo: ErrorInfo) => void;
-  component?: string;
 }
 
 interface State {
@@ -44,15 +42,15 @@ export class ErrorBoundary extends Component<Props, State> {
       errorInfo,
     });
 
-    // Track error in analytics
-    errorTracker.trackError(error, {
-      errorType: 'runtime',
-      severity: 'critical',
-      component: this.props.component || 'Unknown',
-      action: 'Component render',
-      metadata: {
+    // Track error for frequency analysis
+    import('../utils/errorTracking').then(({ ErrorTrackingService }) => {
+      ErrorTrackingService.trackError(error, 'React Component', {
         componentStack: errorInfo.componentStack,
-      },
+      }).catch(() => {
+        // Silently fail to avoid infinite loops
+      });
+    }).catch(() => {
+      // Silently fail if error tracking is not available
     });
 
     // Call optional error handler
