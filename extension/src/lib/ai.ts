@@ -312,7 +312,5 @@ export async function callOpenAI(
     } else {
       return `Unsupported AI provider: ${provider}`;
     }
-  } catch (err) {
-    return `Request failed: ${String(err)}`;
   }
 }
