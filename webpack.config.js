@@ -8,6 +8,7 @@ module.exports = (env, argv) => {
   return {
     entry: {
       popup: './src/popup.tsx',
+      newtab: './src/newtab/main.tsx',
       background: './src/background/index.ts'
     },
     output: {
@@ -48,6 +49,24 @@ module.exports = (env, argv) => {
         template: './src/popup/index.html',
         filename: 'popup.html',
         chunks: ['popup'],
+        minify: isProduction ? {
+          removeComments: true,
+          collapseWhitespace: true,
+          removeRedundantAttributes: true,
+          useShortDoctype: true,
+          removeEmptyAttributes: true,
+          removeStyleLinkTypeAttributes: true,
+          keepClosingSlash: true,
+          minifyJS: true,
+          minifyCSS: true,
+          minifyURLs: true
+        } : false,
+        inject: true
+      }),
+      new HtmlWebpackPlugin({
+        template: './src/newtab/index.html',
+        filename: 'newtab.html',
+        chunks: ['newtab'],
         minify: isProduction ? {
           removeComments: true,
           collapseWhitespace: true,
