@@ -59,6 +59,7 @@ export function NewTab() {
   } | null>(null);
   const [showCoverLetterBuilder, setShowCoverLetterBuilder] = useState(false);
   const [currentLang, setCurrentLang] = useState<Language>('en');
+  const [cvLanguage, setCvLanguage] = useState<Language>('en');
 
   useEffect(() => {
     (async () => {
@@ -1502,16 +1503,64 @@ Make it compelling, highlight key strengths, and use action-oriented language.`;
                     display: 'flex',
                     gap: 8,
                     flexWrap: 'wrap',
-                    justifyContent: 'center',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
                   }}>
-                    <Button 
-                      variant="primary" 
-                      onClick={handleExportToPDF}
-                      disabled={isExporting}
-                      style={{ fontSize: 13 }}
-                    >
-                      {isExporting ? '⏳ Exporting...' : '📄 Export as PDF'}
-                    </Button>
+                    {/* CV Language Selector */}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <span style={{ fontSize: 13, color: '#64748b', fontWeight: 500 }}>CV Language:</span>
+                      <div style={{ display: 'flex', gap: 4 }}>
+                        <button
+                          onClick={() => setCvLanguage('en')}
+                          style={{
+                            padding: '6px 12px',
+                            background: cvLanguage === 'en' ? '#667eea' : 'white',
+                            color: cvLanguage === 'en' ? 'white' : '#64748b',
+                            border: `1px solid ${cvLanguage === 'en' ? '#667eea' : '#cbd5e1'}`,
+                            borderRadius: 6,
+                            cursor: 'pointer',
+                            fontSize: 12,
+                            fontWeight: 500,
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: 4,
+                          }}
+                        >
+                          <span>🇬🇧</span>
+                          <span>EN</span>
+                        </button>
+                        <button
+                          onClick={() => setCvLanguage('tr')}
+                          style={{
+                            padding: '6px 12px',
+                            background: cvLanguage === 'tr' ? '#667eea' : 'white',
+                            color: cvLanguage === 'tr' ? 'white' : '#64748b',
+                            border: `1px solid ${cvLanguage === 'tr' ? '#667eea' : '#cbd5e1'}`,
+                            borderRadius: 6,
+                            cursor: 'pointer',
+                            fontSize: 12,
+                            fontWeight: 500,
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: 4,
+                          }}
+                        >
+                          <span>🇹🇷</span>
+                          <span>TR</span>
+                        </button>
+                      </div>
+                    </div>
+                    
+                    {/* Export Buttons */}
+                    <div style={{ display: 'flex', gap: 8 }}>
+                      <Button 
+                        variant="primary" 
+                        onClick={handleExportToPDF}
+                        disabled={isExporting}
+                        style={{ fontSize: 13 }}
+                      >
+                        {isExporting ? '⏳ Exporting...' : '📄 Export as PDF'}
+                      </Button>
                     <Button 
                       variant="secondary" 
                       onClick={() => handleExportToImage('png')}
@@ -1521,13 +1570,20 @@ Make it compelling, highlight key strengths, and use action-oriented language.`;
                       🖼️ Export as PNG
                     </Button>
                     <Button 
-                      variant="secondary" 
+                      variant="ghost" 
                       onClick={handlePrint}
-                      disabled={isExporting}
                       style={{ fontSize: 13 }}
                     >
                       🖨️ Print
                     </Button>
+                    <Button 
+                      variant="ghost" 
+                      onClick={() => setShowTemplateGallery(true)}
+                      style={{ fontSize: 13 }}
+                    >
+                      🎨 Change Template
+                    </Button>
+                  </div>
                   </div>
 
                   {/* Preview */}
@@ -1537,6 +1593,7 @@ Make it compelling, highlight key strengths, and use action-oriented language.`;
                       template={cvTemplate}
                       customColors={customColors}
                       customFonts={customFonts}
+                      language={cvLanguage}
                     />
                   </div>
                 </div>

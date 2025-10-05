@@ -2,18 +2,34 @@ import React from 'react';
 import { ResumeProfile } from '../lib/types';
 import { formatDate, calculateDateDuration } from '../lib/validation';
 import { getTemplateStyles, TemplateType, TemplateColors, TemplateFonts } from '../lib/templates';
+import { Language } from '../lib/i18n';
 
 interface CVPreviewProps {
   profile: ResumeProfile;
   template?: TemplateType;
   customColors?: Partial<TemplateColors>;
   customFonts?: Partial<TemplateFonts>;
+  language?: Language;
 }
 
-export function CVPreview({ profile, template = 'professional', customColors, customFonts }: CVPreviewProps) {
+export function CVPreview({ profile, template = 'professional', customColors, customFonts, language = 'en' }: CVPreviewProps) {
   const { personal, skills, experience, education, projects, licenses } = profile;
 
   const styles = getTemplateStyles(template, customColors, customFonts);
+  
+  // Translation helper for section titles
+  const sectionTitle = (key: string) => {
+    const titles: Record<string, { en: string; tr: string }> = {
+      summary: { en: 'Professional Summary', tr: 'Profesyonel Özet' },
+      skills: { en: 'Skills', tr: 'Yetenekler' },
+      experience: { en: 'Work Experience', tr: 'İş Deneyimi' },
+      education: { en: 'Education', tr: 'Eğitim' },
+      projects: { en: 'Projects', tr: 'Projeler' },
+      certificates: { en: 'Licenses & Certifications', tr: 'Lisanslar ve Sertifikalar' },
+      present: { en: 'Present', tr: 'Devam Ediyor' }
+    };
+    return titles[key]?.[language] || titles[key]?.en || key;
+  };
 
   return (
     <div style={styles.container}>
@@ -44,7 +60,7 @@ export function CVPreview({ profile, template = 'professional', customColors, cu
         {/* Professional Summary */}
         {personal.summary && (
           <div style={styles.section}>
-            <h2 style={styles.sectionTitle}>Professional Summary</h2>
+            <h2 style={styles.sectionTitle}>{sectionTitle('summary')}</h2>
             <p style={styles.summaryText}>{personal.summary}</p>
           </div>
         )}
@@ -52,7 +68,7 @@ export function CVPreview({ profile, template = 'professional', customColors, cu
         {/* Skills */}
         {skills && skills.length > 0 && (
           <div style={styles.section}>
-            <h2 style={styles.sectionTitle}>Skills</h2>
+            <h2 style={styles.sectionTitle}>{sectionTitle('skills')}</h2>
             <div style={styles.skillsContainer}>
               {skills.filter(s => s.trim()).map((skill, i) => (
                 <span key={i} style={styles.skillPill}>
@@ -66,7 +82,7 @@ export function CVPreview({ profile, template = 'professional', customColors, cu
         {/* Experience */}
         {experience && experience.length > 0 && (
           <div style={styles.section}>
-            <h2 style={styles.sectionTitle}>Work Experience</h2>
+            <h2 style={styles.sectionTitle}>{sectionTitle('experience')}</h2>
             {experience.map((exp, i) => (
               <div key={i} style={styles.experienceItem}>
                 <div style={styles.expHeader}>
@@ -82,7 +98,7 @@ export function CVPreview({ profile, template = 'professional', customColors, cu
                     {exp.startDate ? (
                       <>
                         {formatDate(exp.startDate)} -{' '}
-                        {exp.isCurrent ? 'Present' : exp.endDate ? formatDate(exp.endDate) : 'Present'}
+                        {exp.isCurrent ? sectionTitle('present') : exp.endDate ? formatDate(exp.endDate) : sectionTitle('present')}
                         <div style={styles.expDuration}>
                           {calculateDateDuration(exp.startDate, exp.endDate, exp.isCurrent)}
                         </div>
@@ -111,7 +127,7 @@ export function CVPreview({ profile, template = 'professional', customColors, cu
         {/* Education */}
         {education && education.length > 0 && (
           <div style={styles.section}>
-            <h2 style={styles.sectionTitle}>Education</h2>
+            <h2 style={styles.sectionTitle}>{sectionTitle('education')}</h2>
             {education.map((edu, i) => (
               <div key={i} style={styles.educationItem}>
                 <div style={styles.eduHeader}>
@@ -137,10 +153,10 @@ export function CVPreview({ profile, template = 'professional', customColors, cu
           </div>
         )}
 
-        {/* Projects */}
-        {projects && projects.length > 0 && (
-          <div style={styles.section}>
-            <h2 style={styles.sectionTitle}>Projects</h2>
+          {/* Projects */}
+          {projects && projects.length > 0 && (
+            <div style={styles.section}>
+              <h2 style={styles.sectionTitle}>{sectionTitle('projects')}</h2>
             {projects.map((proj, i) => (
               <div key={i} style={styles.projectItem}>
                 <h3 style={styles.projectTitle}>{proj.name || 'Project Name'}</h3>
