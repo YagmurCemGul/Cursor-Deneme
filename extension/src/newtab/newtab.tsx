@@ -5,6 +5,8 @@ import { generateAtsResume, generateCoverLetter } from '../lib/ai';
 import { TabButton, TextRow, SectionHeader, Pill, Button } from '../components/ui';
 import { validateEmail, validatePhone, validateURL, validateLinkedIn, validateGitHub, formatPhoneNumber, calculateDateDuration, formatDate, calculateProfileCompletion, getSkillSuggestions, skillSuggestions } from '../lib/validation';
 import { CVPreview } from '../components/CVPreview';
+import { TemplateGallery } from '../components/TemplateGallery';
+import { TemplateType, TemplateColors, TemplateFonts } from '../lib/templates';
 import '../styles/global.css';
 
 export function NewTab() {
@@ -29,7 +31,10 @@ export function NewTab() {
   const [skillSearchQuery, setSkillSearchQuery] = useState('');
   const [isGeneratingSummary, setIsGeneratingSummary] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
-  const [cvTemplate, setCvTemplate] = useState<'professional' | 'modern' | 'minimal'>('professional');
+  const [cvTemplate, setCvTemplate] = useState<TemplateType>('professional');
+  const [showTemplateGallery, setShowTemplateGallery] = useState(false);
+  const [customColors, setCustomColors] = useState<Partial<TemplateColors>>({});
+  const [customFonts, setCustomFonts] = useState<Partial<TemplateFonts>>({});
 
   useEffect(() => {
     (async () => {
@@ -80,8 +85,29 @@ export function NewTab() {
       if (savedCoverLetter) {
         setCoverMd(savedCoverLetter);
       }
+
+      // Load saved template preferences
+      const savedTemplate = await chrome.storage.local.get(['cvTemplate', 'customColors', 'customFonts']);
+      if (savedTemplate.cvTemplate) {
+        setCvTemplate(savedTemplate.cvTemplate);
+      }
+      if (savedTemplate.customColors) {
+        setCustomColors(savedTemplate.customColors);
+      }
+      if (savedTemplate.customFonts) {
+        setCustomFonts(savedTemplate.customFonts);
+      }
     })();
   }, []);
+
+  // Save template preferences
+  async function saveTemplatePreferences(template: TemplateType, colors?: Partial<TemplateColors>, fonts?: Partial<TemplateFonts>) {
+    await chrome.storage.local.set({
+      cvTemplate: template,
+      customColors: colors || customColors,
+      customFonts: fonts || customFonts,
+    });
+  }
 
   const linkedInUrl = useMemo(() => profile?.personal.linkedin ? `https://www.linkedin.com/in/${profile.personal.linkedin}` : '', [profile]);
   const githubUrl = useMemo(() => profile?.personal.github ? `https://github.com/${profile.personal.github}` : '', [profile]);
@@ -497,30 +523,27 @@ Make it compelling, highlight key strengths, and use action-oriented language.`;
               }}>
                 {/* Preview Toggle Button */}
                 <div style={{ marginBottom: 16, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <Button 
-                    variant={showPreview ? 'primary' : 'secondary'}
-                    onClick={() => setShowPreview(!showPreview)}
-                  >
-                    {showPreview ? '👁️ Hide Preview' : '👁️ Show Live Preview'}
-                  </Button>
-                  {showPreview && (
-                    <div style={{ display: 'flex', gap: 8 }}>
-                      <span style={{ fontSize: 12, color: '#64748b', alignSelf: 'center' }}>Template:</span>
-                      <select 
-                        value={cvTemplate} 
-                        onChange={(e) => setCvTemplate(e.target.value as any)}
-                        style={{ 
-                          padding: '6px 12px',
-                          borderRadius: 6,
-                          border: '1px solid #cbd5e1',
-                          fontSize: 13,
-                          cursor: 'pointer'
-                        }}
+                  <div style={{ display: 'flex', gap: 8 }}>
+                    <Button 
+                      variant={showPreview ? 'primary' : 'secondary'}
+                      onClick={() => setShowPreview(!showPreview)}
+                    >
+                      {showPreview ? '👁️ Hide Preview' : '👁️ Show Live Preview'}
+                    </Button>
+                    {showPreview && (
+                      <Button 
+                        variant="secondary"
+                        onClick={() => setShowTemplateGallery(true)}
                       >
-                        <option value="professional">Professional</option>
-                        <option value="modern">Modern</option>
-                        <option value="minimal">Minimal</option>
-                      </select>
+                        🎨 Change Template
+                      </Button>
+                    )}
+                  </div>
+                  {showPreview && (
+                    <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                      <span style={{ fontSize: 12, color: '#64748b' }}>
+                        Current: <strong>{cvTemplate}</strong>
+                      </span>
                     </div>
                   )}
                 </div>
@@ -1166,7 +1189,12 @@ Make it compelling, highlight key strengths, and use action-oriented language.`;
                   overflowY: 'auto',
                   background: '#f8fafc'
                 }}>
-                  <CVPreview profile={profile} template={cvTemplate} />
+                  <CVPreview 
+                    profile={profile} 
+                    template={cvTemplate}
+                    customColors={customColors}
+                    customFonts={customFonts}
+                  />
                 </div>
               )}
             </div>
@@ -1386,6 +1414,23 @@ Make it compelling, highlight key strengths, and use action-oriented language.`;
             </div>
           )}
         </div>
+        
+        {/* Template Gallery Modal */}
+        {showTemplateGallery && (
+          <TemplateGallery
+            currentTemplate={cvTemplate}
+            onSelectTemplate={(template) => {
+              setCvTemplate(template);
+              saveTemplatePreferences(template);
+            }}
+            onCustomize={(colors, fonts) => {
+              setCustomColors(colors);
+              setCustomFonts(fonts);
+              saveTemplatePreferences(cvTemplate, colors, fonts);
+            }}
+            onClose={() => setShowTemplateGallery(false)}
+          />
+        )}
 
         {/* Footer */}
         <div style={{ marginTop: 24, padding: '16px 0', textAlign: 'center', color: 'rgba(255,255,255,0.9)', fontSize: 13 }}>
