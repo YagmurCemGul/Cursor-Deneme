@@ -38,11 +38,15 @@ A powerful Chrome Extension that uses AI to optimize your CV and generate ATS-fr
 - **📋 Detailed View**: See before/after comparisons for each optimization
 
 ### CV Export
+- **📦 Batch Export**: Export to multiple formats simultaneously (PDF, DOCX, Google Docs, Sheets, Slides)
 - **📥 Multiple Formats**: Download as PDF, DOCX, or export to Google Drive
 - **☁️ Google Drive Integration**: Export directly to Google Docs, Sheets, or Slides
+- **📁 Folder Selection**: Choose or create Google Drive folders for organized exports
+- **📊 Export History**: Track all exports with timestamps, formats, and success rates
+- **📝 Custom File Naming**: Use templates with variables for consistent file naming
+- **🔗 Direct Sharing**: Share exported files via link or email directly from extension
 - **👁️ Live Preview**: See exactly how your CV will look before downloading
 - **🎨 Professional Formatting**: Clean, ATS-friendly templates
-- **📝 Smart Naming**: Automatically generates professional filenames
 - **📊 Structured Data Export**: Export to Google Sheets for data analysis
 
 ### Cover Letter Generation
@@ -139,9 +143,13 @@ The AI follows professional resume best practices:
    - Preview your optimized CV
 
 5. **Download or Export Your CV**
-   - Download as PDF or DOCX
+   - Use **Batch Export** to export to multiple formats at once
+   - Download as PDF or DOCX locally
    - Or export directly to Google Drive (Docs, Sheets, or Slides)
-   - Files are professionally named automatically
+   - Select a Google Drive folder for organized storage
+   - Files are named using customizable templates
+   - View export history and track success rates
+   - Share exported files directly via link or email
 
 6. **Generate Cover Letter**
    - Go to "Cover Letter" tab
@@ -244,6 +252,11 @@ ai-cv-optimizer/
 ✅ **Industry-Specific Template Designs**
 ✅ **Color Schemes and Layout Options**
 ✅ **Google Drive Integration (Docs, Sheets, Slides)**
+✅ **Google Drive Folder Selection & Creation**
+✅ **Batch Export to All Formats**
+✅ **Export History Tracking & Analytics**
+✅ **Custom File Naming Templates**
+✅ **Direct Sharing via Link or Email**
 ✅ **File Management in Google Drive**
 ✅ **OAuth2 Authentication**
 ✅ **Multi-format Export Support**
