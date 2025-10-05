@@ -14,13 +14,12 @@ import { ATSOptimizations } from './components/ATSOptimizations';
 import { CVPreview } from './components/CVPreview';
 import { CoverLetter } from './components/CoverLetter';
 import { ProfileManager } from './components/ProfileManager';
-import { AISettings } from './components/AISettings';
 import { aiService } from './utils/aiService';
 import { StorageService } from './utils/storage';
 import { t } from './i18n';
 import './styles.css';
 
-type TabType = 'cv-info' | 'optimize' | 'cover-letter' | 'profiles' | 'settings';
+type TabType = 'cv-info' | 'optimize' | 'cover-letter' | 'profiles';
 type Theme = 'light' | 'dark' | 'system';
 type Language = 'en' | 'tr';
 
@@ -91,9 +90,6 @@ const App: React.FC = () => {
   const loadInitial = async () => {
     const key = await StorageService.getAPIKey();
     if (key) setApiKey(key);
-    
-    // Initialize AI service with saved configuration
-    await initializeAIService();
     // Restore settings
     const settings = await StorageService.getSettings<{ theme?: Theme; language?: Language; templateId?: string }>();
     if (settings?.theme) setTheme(settings.theme);
@@ -183,29 +179,6 @@ const App: React.FC = () => {
     }
   };
 
-  const initializeAIService = async () => {
-    try {
-      const [provider, apiKeys, model, settings] = await Promise.all([
-        StorageService.getAIProvider(),
-        StorageService.getAPIKeys(),
-        StorageService.getAIModel(),
-        StorageService.getSettings()
-      ]);
-
-      const apiKey = apiKeys[provider];
-      if (apiKey) {
-        aiService.updateConfig({
-          provider,
-          apiKey,
-          model,
-          temperature: (settings as any)?.aiTemperature || 0.3
-        });
-      }
-    } catch (error) {
-      console.error('Failed to initialize AI service:', error);
-    }
-  };
-
   const handleSaveProfile = async (name: string) => {
     const profile: CVProfile = {
       id: Date.now().toString(),
@@ -271,12 +244,6 @@ const App: React.FC = () => {
           onClick={() => setActiveTab('profiles')}
         >
           💾 {t(language, 'tabs.profiles')}
-        </button>
-        <button 
-          className={`tab ${activeTab === 'settings' ? 'active' : ''}`}
-          onClick={() => setActiveTab('settings')}
-        >
-          ⚙️ {t(language, 'tabs.settings')}
         </button>
       </div>
       
@@ -386,13 +353,6 @@ const App: React.FC = () => {
             language={language}
             currentTemplateId={selectedTemplateId}
             onTemplateChange={setSelectedTemplateId}
-          />
-        )}
-        
-        {activeTab === 'settings' && (
-          <AISettings 
-            language={language}
-            onConfigChange={initializeAIService}
           />
         )}
       </div>

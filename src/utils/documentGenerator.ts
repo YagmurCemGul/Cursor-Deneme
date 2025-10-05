@@ -1,108 +1,26 @@
-import { Document, Packer, Paragraph, TextRun, HeadingLevel, AlignmentType, ImageRun, Table, TableRow, TableCell, WidthType, VerticalAlign, BorderStyle } from 'docx';
+import { Document, Packer, Paragraph, TextRun, HeadingLevel, AlignmentType } from 'docx';
 import { saveAs } from 'file-saver';
 import jsPDF from 'jspdf';
 import { CVData, ATSOptimization } from '../types';
 import { getTemplateById, getDefaultTemplate } from '../data/cvTemplates';
-import { getCoverLetterTemplateById, getDefaultCoverLetterTemplate } from '../data/coverLetterTemplates';
 
 export class DocumentGenerator {
-  static base64ToBuffer(base64: string): Uint8Array {
-    // Remove data URL prefix if present
-    const base64Data = base64.includes(',') ? base64.split(',')[1]! : base64;
-    const binaryString = atob(base64Data);
-    const bytes = new Uint8Array(binaryString.length);
-    for (let i = 0; i < binaryString.length; i++) {
-      bytes[i] = binaryString.charCodeAt(i);
-    }
-    return bytes;
-  }
-
-  static async generateDOCX(cvData: CVData, _optimizations: ATSOptimization[], fileName: string, _templateId?: string): Promise<void> {
-    // const template = templateId ? getTemplateById(templateId) || getDefaultTemplate() : getDefaultTemplate();
+  static async generateDOCX(cvData: CVData, _optimizations: ATSOptimization[], fileName: string, templateId?: string): Promise<void> {
+    const template = templateId ? getTemplateById(templateId) || getDefaultTemplate() : getDefaultTemplate();
     // const _appliedOptimizations = optimizations.filter(o => o.applied);
     
-    const headerChildren: (Paragraph | Table)[] = [];
-    
-    // If photo exists, create a header table with photo on the right
-    if (cvData.personalInfo.photoDataUrl) {
-      try {
-        const photoBuffer = this.base64ToBuffer(cvData.personalInfo.photoDataUrl);
-        
-        headerChildren.push(
-          new Table({
-            width: { size: 100, type: WidthType.PERCENTAGE },
-            borders: {
-              top: { style: BorderStyle.NONE, size: 0, color: 'FFFFFF' },
-              bottom: { style: BorderStyle.NONE, size: 0, color: 'FFFFFF' },
-              left: { style: BorderStyle.NONE, size: 0, color: 'FFFFFF' },
-              right: { style: BorderStyle.NONE, size: 0, color: 'FFFFFF' },
-              insideHorizontal: { style: BorderStyle.NONE, size: 0, color: 'FFFFFF' },
-              insideVertical: { style: BorderStyle.NONE, size: 0, color: 'FFFFFF' },
-            },
-            rows: [
-              new TableRow({
-                children: [
-                  new TableCell({
-                    width: { size: 70, type: WidthType.PERCENTAGE },
-                    verticalAlign: VerticalAlign.CENTER,
-                    children: [
-                      new Paragraph({
-                        text: `${cvData.personalInfo.firstName} ${cvData.personalInfo.middleName} ${cvData.personalInfo.lastName}`.trim(),
-                        heading: HeadingLevel.HEADING_1,
-                      }),
-                      new Paragraph({
-                        children: [
-                          new TextRun({
-                            text: `${cvData.personalInfo.email} | ${cvData.personalInfo.countryCode}${cvData.personalInfo.phoneNumber}`,
-                          })
-                        ],
-                      }),
-                      new Paragraph({
-                        children: [
-                          new TextRun({
-                            text: cvData.personalInfo.linkedInUsername 
-                              ? `https://www.linkedin.com/in/${cvData.personalInfo.linkedInUsername}` 
-                              : '',
-                          }),
-                          cvData.personalInfo.githubUsername ? new TextRun({
-                            text: ` | https://github.com/${cvData.personalInfo.githubUsername}`,
-                          }) : new TextRun({ text: '' }),
-                        ],
-                      }),
-                    ],
-                  }),
-                  new TableCell({
-                    width: { size: 30, type: WidthType.PERCENTAGE },
-                    verticalAlign: VerticalAlign.CENTER,
-                    children: [
-                      new Paragraph({
-                        alignment: AlignmentType.CENTER,
-                        children: [
-                          new ImageRun({
-                            data: photoBuffer,
-                            transformation: {
-                              width: 100,
-                              height: 100,
-                            },
-                          }),
-                        ],
-                      }),
-                    ],
-                  }),
-                ],
-              }),
-            ],
-          })
-        );
-      } catch (error) {
-        console.error('Error adding photo to DOCX:', error);
-        // Fallback to header without photo
-        headerChildren.push(
+    const doc = new Document({
+      sections: [{
+        properties: {},
+        children: [
+          // Header with name
           new Paragraph({
             text: `${cvData.personalInfo.firstName} ${cvData.personalInfo.middleName} ${cvData.personalInfo.lastName}`.trim(),
             heading: HeadingLevel.HEADING_1,
             alignment: AlignmentType.CENTER,
           }),
+          
+          // Contact Information
           new Paragraph({
             children: [
               new TextRun({
@@ -111,6 +29,7 @@ export class DocumentGenerator {
             ],
             alignment: AlignmentType.CENTER,
           }),
+          
           new Paragraph({
             children: [
               new TextRun({
@@ -123,46 +42,7 @@ export class DocumentGenerator {
               }) : new TextRun({ text: '' }),
             ],
             alignment: AlignmentType.CENTER,
-          })
-        );
-      }
-    } else {
-      // No photo, use centered header
-      headerChildren.push(
-        new Paragraph({
-          text: `${cvData.personalInfo.firstName} ${cvData.personalInfo.middleName} ${cvData.personalInfo.lastName}`.trim(),
-          heading: HeadingLevel.HEADING_1,
-          alignment: AlignmentType.CENTER,
-        }),
-        new Paragraph({
-          children: [
-            new TextRun({
-              text: `${cvData.personalInfo.email} | ${cvData.personalInfo.countryCode}${cvData.personalInfo.phoneNumber}`,
-            })
-          ],
-          alignment: AlignmentType.CENTER,
-        }),
-        new Paragraph({
-          children: [
-            new TextRun({
-              text: cvData.personalInfo.linkedInUsername 
-                ? `https://www.linkedin.com/in/${cvData.personalInfo.linkedInUsername}` 
-                : '',
-            }),
-            cvData.personalInfo.githubUsername ? new TextRun({
-              text: ` | https://github.com/${cvData.personalInfo.githubUsername}`,
-            }) : new TextRun({ text: '' }),
-          ],
-          alignment: AlignmentType.CENTER,
-        })
-      );
-    }
-    
-    const doc = new Document({
-      sections: [{
-        properties: {},
-        children: [
-          ...headerChildren,
+          }),
           
           // Summary
           new Paragraph({ text: '' }),
@@ -201,7 +81,7 @@ export class DocumentGenerator {
             new Paragraph({
               children: [
                 new TextRun({ 
-                  text: `${exp.startDate} - ${exp.currentlyWorking ? 'Present' : (exp.endDate || 'Present')} | ${exp.location}`,
+                  text: `${exp.startDate} - ${exp.endDate} | ${exp.location}`,
                   italics: true 
                 }),
               ],
@@ -228,7 +108,7 @@ export class DocumentGenerator {
             new Paragraph({
               children: [
                 new TextRun({ 
-                  text: `${edu.startDate} - ${edu.currentlyStudying ? 'Expected' : edu.endDate}`,
+                  text: `${edu.startDate} - ${edu.endDate}`,
                   italics: true 
                 }),
               ],
@@ -245,25 +125,15 @@ export class DocumentGenerator {
   }
 
   static async generatePDF(cvData: CVData, _optimizations: ATSOptimization[], fileName: string, templateId?: string): Promise<void> {
-    const template = templateId ? getTemplateById(templateId) : getDefaultTemplate();
+    const template = templateId ? getTemplateById(templateId) || getDefaultTemplate() : getDefaultTemplate();
     const doc = new jsPDF();
     let yPosition = 20;
-    
-    // Add profile photo if available
-    if (cvData.personalInfo.photoDataUrl) {
-      try {
-        const photoSize = 30; // 30mm photo
-        doc.addImage(cvData.personalInfo.photoDataUrl, 'JPEG', 180, 10, photoSize, photoSize);
-      } catch (error) {
-        console.error('Error adding photo to PDF:', error);
-      }
-    }
     
     // Apply template colors (jsPDF uses RGB values)
     const hexToRgb = (hex: string): [number, number, number] => {
       const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
       return result 
-        ? [parseInt(result[1]!, 16), parseInt(result[2]!, 16), parseInt(result[3]!, 16)]
+        ? [parseInt(result[1], 16), parseInt(result[2], 16), parseInt(result[3], 16)]
         : [0, 0, 0];
     };
     
@@ -274,11 +144,8 @@ export class DocumentGenerator {
     doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
     const fullName = `${cvData.personalInfo.firstName} ${cvData.personalInfo.middleName} ${cvData.personalInfo.lastName}`.trim();
     const headerAlign = template.layout.headerAlign === 'center' ? 'center' : template.layout.headerAlign === 'right' ? 'right' : 'left';
-    // Adjust x position if photo is present
-    const hasPhoto = cvData.personalInfo.photoDataUrl;
-    const xPosition = hasPhoto ? 20 : (headerAlign === 'center' ? 105 : headerAlign === 'right' ? 190 : 20);
-    const textAlign = hasPhoto ? 'left' : headerAlign;
-    doc.text(fullName, xPosition, yPosition, { align: textAlign });
+    const xPosition = headerAlign === 'center' ? 105 : headerAlign === 'right' ? 190 : 20;
+    doc.text(fullName, xPosition, yPosition, { align: headerAlign });
     
     yPosition += 10;
     
@@ -288,29 +155,24 @@ export class DocumentGenerator {
     const textColor = hexToRgb(template.colors.text);
     doc.setTextColor(textColor[0], textColor[1], textColor[2]);
     const contactLine1 = `${cvData.personalInfo.email} | ${cvData.personalInfo.countryCode}${cvData.personalInfo.phoneNumber}`;
-    doc.text(contactLine1, xPosition, yPosition, { align: textAlign });
+    doc.text(contactLine1, xPosition, yPosition, { align: headerAlign });
     
     yPosition += 5;
     
     if (cvData.personalInfo.linkedInUsername) {
       const contactLine2 = `linkedin.com/in/${cvData.personalInfo.linkedInUsername}`;
       if (cvData.personalInfo.githubUsername) {
-        doc.text(`${contactLine2} | github.com/${cvData.personalInfo.githubUsername}`, xPosition, yPosition, { align: textAlign });
+        doc.text(`${contactLine2} | github.com/${cvData.personalInfo.githubUsername}`, xPosition, yPosition, { align: headerAlign });
       } else {
-        doc.text(contactLine2, xPosition, yPosition, { align: textAlign });
+        doc.text(contactLine2, xPosition, yPosition, { align: headerAlign });
       }
       yPosition += 10;
     } else {
       yPosition += 5;
     }
     
-    // Add extra space if photo is present to avoid overlap
-    if (hasPhoto && yPosition < 50) {
-      yPosition = 50;
-    }
-    
     // Apply section spacing from template
-    const sectionSpacing = template?.layout?.sectionSpacing || 16;
+    const sectionSpacing = template.layout.sectionSpacing || 16;
     
     // Summary - section headings use accent color
     if (cvData.personalInfo.summary) {
@@ -372,7 +234,7 @@ export class DocumentGenerator {
         doc.setFontSize(9);
         doc.setFont('helvetica', 'italic');
         doc.setTextColor(textColor[0], textColor[1], textColor[2]);
-        doc.text(`${exp.startDate} - ${exp.currentlyWorking ? 'Present' : (exp.endDate || 'Present')} | ${exp.location}`, 20, yPosition);
+        doc.text(`${exp.startDate} - ${exp.endDate} | ${exp.location}`, 20, yPosition);
         yPosition += 6;
         
         doc.setFontSize(10);
@@ -418,7 +280,7 @@ export class DocumentGenerator {
         
         doc.setFontSize(9);
         doc.setFont('helvetica', 'italic');
-        doc.text(`${edu.startDate} - ${edu.currentlyStudying ? 'Expected' : edu.endDate}`, 20, yPosition);
+        doc.text(`${edu.startDate} - ${edu.endDate}`, 20, yPosition);
         yPosition += 8;
       });
     }
@@ -426,78 +288,17 @@ export class DocumentGenerator {
     doc.save(fileName);
   }
 
-  static async generateCoverLetterDOCX(coverLetter: string, name: string, fileName: string, templateId?: string): Promise<void> {
-    const template = templateId ? getCoverLetterTemplateById(templateId) : getDefaultCoverLetterTemplate();
-    
-    // Split into lines and paragraphs
-    const lines = coverLetter.split('\n');
-    const paragraphs: Paragraph[] = [];
-    
-    // Add date if template includes it
-    if (template.style.includeDate && lines[0]) {
-      paragraphs.push(new Paragraph({
-        text: lines[0],
-        alignment: template.style.headerFormat === 'center' ? AlignmentType.CENTER : 
-                   template.style.headerFormat === 'right' ? AlignmentType.RIGHT : 
-                   AlignmentType.LEFT,
+  static async generateCoverLetterDOCX(coverLetter: string, _name: string, fileName: string): Promise<void> {
+    const paragraphs = coverLetter.split('\n\n').map(para => 
+      new Paragraph({
+        text: para.trim(),
         spacing: { after: 200 },
-      }));
-      lines.shift();
-    }
-    
-    // Process rest of the content
-    let currentParagraph = '';
-    for (let i = 0; i < lines.length; i++) {
-      const line = lines[i]?.trim() || '';
-      
-      if (line === '') {
-        if (currentParagraph) {
-          // Check if it's a closing or signature
-          const isClosing = currentParagraph.match(/^(Sincerely|Best regards|Regards|Thank you)/i);
-          const isSignature = currentParagraph === name;
-          
-          const alignment = template.style.headerFormat === 'center' && (isClosing || isSignature) ? 
-            AlignmentType.CENTER : AlignmentType.LEFT;
-          
-          paragraphs.push(new Paragraph({
-            text: currentParagraph,
-            spacing: { after: template.style.paragraphSpacing * 20 },
-            alignment: alignment,
-          }));
-          currentParagraph = '';
-        }
-      } else {
-        currentParagraph += (currentParagraph ? ' ' : '') + line;
-      }
-    }
-    
-    // Add last paragraph if exists
-    if (currentParagraph) {
-      const isClosing = currentParagraph.match(/^(Sincerely|Best regards|Regards|Thank you)/i);
-      const isSignature = currentParagraph === name;
-      
-      const alignment = template.style.headerFormat === 'center' && (isClosing || isSignature) ? 
-        AlignmentType.CENTER : AlignmentType.LEFT;
-      
-      paragraphs.push(new Paragraph({
-        text: currentParagraph,
-        spacing: { after: template.style.paragraphSpacing * 20 },
-        alignment: alignment,
-      }));
-    }
+      })
+    );
 
     const doc = new Document({
       sections: [{
-        properties: {
-          page: {
-            margin: {
-              top: 1440, // 1 inch
-              right: 1440,
-              bottom: 1440,
-              left: 1440,
-            },
-          },
-        },
+        properties: {},
         children: paragraphs,
       }],
     });
@@ -506,97 +307,26 @@ export class DocumentGenerator {
     saveAs(blob, fileName);
   }
 
-  static async generateCoverLetterPDF(coverLetter: string, name: string, fileName: string, templateId?: string): Promise<void> {
-    const template = templateId ? getCoverLetterTemplateById(templateId) : getDefaultCoverLetterTemplate();
+  static async generateCoverLetterPDF(coverLetter: string, _name: string, fileName: string): Promise<void> {
     const doc = new jsPDF();
     let yPosition = 20;
     
-    // Helper to convert hex to RGB
-    const hexToRgb = (hex: string): [number, number, number] => {
-      const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-      return result 
-        ? [parseInt(result[1]!, 16), parseInt(result[2]!, 16), parseInt(result[3]!, 16)]
-        : [0, 0, 0];
-    };
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'normal');
     
-    // Set font based on template
-    const fontFamily = (template.style.fontFamily || 'Arial').includes('Times') ? 'times' : 
-                       (template.style.fontFamily || 'Arial').includes('Georgia') ? 'times' : 
-                       (template.style.fontFamily || 'Arial').includes('Courier') || (template.style.fontFamily || 'Arial').includes('monospace') ? 'courier' :
-                       'helvetica';
+    const paragraphs = coverLetter.split('\n\n');
     
-    doc.setFont(fontFamily, 'normal');
-    doc.setFontSize(template.style.fontSize);
-    
-    const textColor = hexToRgb(template.colors.text);
-    doc.setTextColor(textColor[0], textColor[1], textColor[2]);
-    
-    // Parse and render content
-    const lines = coverLetter.split('\n');
-    let currentParagraph = '';
-    
-    const renderParagraph = (text: string, isDate = false, isClosing = false, isSignature = false) => {
-      if (!text.trim()) return;
+    paragraphs.forEach((para) => {
+      const lines = doc.splitTextToSize(para.trim(), 170);
       
-      // Determine alignment
-      let align: 'left' | 'center' | 'right' = 'left';
-      if (template.style.headerFormat === 'center' && (isDate || isClosing || isSignature)) {
-        align = 'center';
-      } else if (template.style.headerFormat === 'right' && isDate) {
-        align = 'right';
-      }
-      
-      // Apply special formatting for signature
-      if (isSignature || isClosing) {
-        doc.setFont(fontFamily, isSignature ? 'bold' : 'italic');
-      }
-      
-      const maxWidth = 170;
-      const textLines = doc.splitTextToSize(text.trim(), maxWidth);
-      
-      // Check for page break
-      if (yPosition + textLines.length * (template.style.fontSize * 0.5) > 280) {
+      if (yPosition + lines.length * 5 > 280) {
         doc.addPage();
         yPosition = 20;
       }
       
-      // Render lines
-      const xPosition = align === 'center' ? 105 : align === 'right' ? 190 : 20;
-      doc.text(textLines, xPosition, yPosition, { align });
-      
-      yPosition += textLines.length * (template.style.fontSize * 0.5) + template.style.paragraphSpacing;
-      
-      // Reset font
-      if (isSignature || isClosing) {
-        doc.setFont(fontFamily, 'normal');
-      }
-    };
-    
-    // Process content
-    for (let i = 0; i < lines.length; i++) {
-      const line = lines[i]?.trim() || '';
-      
-      if (line === '') {
-        if (currentParagraph) {
-          // Determine paragraph type
-          const isDate = i < 3 && !!currentParagraph.match(/\d{4}/);
-          const isClosing = !!currentParagraph.match(/^(Sincerely|Best regards|Regards|Thank you)/i);
-          const isSignature = currentParagraph === name;
-          
-          renderParagraph(currentParagraph, isDate, isClosing, isSignature);
-          currentParagraph = '';
-        }
-      } else {
-        currentParagraph += (currentParagraph ? ' ' : '') + line;
-      }
-    }
-    
-    // Render last paragraph
-    if (currentParagraph) {
-      const isClosing = !!currentParagraph.match(/^(Sincerely|Best regards|Regards|Thank you)/i);
-      const isSignature = currentParagraph === name;
-      renderParagraph(currentParagraph, false, isClosing, isSignature);
-    }
+      doc.text(lines, 20, yPosition);
+      yPosition += lines.length * 5 + 8;
+    });
     
     doc.save(fileName);
   }

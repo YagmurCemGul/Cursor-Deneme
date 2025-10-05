@@ -1,18 +1,18 @@
 import React, { useState, useEffect } from 'react';
-import { CVTemplateStyle, defaultCVTemplates } from '../data/cvTemplates';
+import { CVTemplateStyle, defaultCVTemplates, getTemplateById } from '../data/cvTemplates';
 import { StorageService } from '../utils/storage';
 import { t, Lang } from '../i18n';
 
 interface CVTemplateManagerProps {
   language: Lang;
   onSelectTemplate: (templateId: string) => void;
-  currentTemplateId?: string | undefined;
+  currentTemplateId?: string;
 }
 
 export const CVTemplateManager: React.FC<CVTemplateManagerProps> = ({
   language,
   onSelectTemplate,
-  currentTemplateId,
+  currentTemplateId
 }) => {
   const [selectedTemplate, setSelectedTemplate] = useState<string>(currentTemplateId || 'classic');
   const [customTemplates, setCustomTemplates] = useState<CVTemplateStyle[]>([]);
@@ -24,7 +24,7 @@ export const CVTemplateManager: React.FC<CVTemplateManagerProps> = ({
 
   const loadCustomTemplates = async () => {
     // Load custom templates from storage
-    await StorageService.getTemplates();
+    const templates = await StorageService.getTemplates();
     // For now, we'll work with default templates
     setCustomTemplates([]);
   };
@@ -46,8 +46,12 @@ export const CVTemplateManager: React.FC<CVTemplateManagerProps> = ({
 
   return (
     <div className="section">
-      <h2 className="section-title">🎨 {t(language, 'templates.title')}</h2>
-      <p className="section-description">{t(language, 'templates.description')}</p>
+      <h2 className="section-title">
+        🎨 {t(language, 'templates.title')}
+      </h2>
+      <p className="section-description">
+        {t(language, 'templates.description')}
+      </p>
 
       <div className="template-grid">
         {allTemplates.map((template) => (
@@ -56,7 +60,9 @@ export const CVTemplateManager: React.FC<CVTemplateManagerProps> = ({
             className={`template-card ${selectedTemplate === template.id ? 'selected' : ''}`}
             onClick={() => handleSelectTemplate(template.id)}
           >
-            <div className="template-preview-icon">{template.preview}</div>
+            <div className="template-preview-icon">
+              {template.preview}
+            </div>
             <div className="template-info">
               <h3 className="template-name">{template.name}</h3>
               <p className="template-description">{template.description}</p>
@@ -89,37 +95,23 @@ export const CVTemplateManager: React.FC<CVTemplateManagerProps> = ({
       {/* Preview Modal */}
       {previewTemplate && (
         <div className="modal-overlay" onClick={closePreview}>
-          <div
-            className="modal-content template-preview-modal"
-            onClick={(e) => e.stopPropagation()}
-          >
+          <div className="modal-content template-preview-modal" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
               <h3>{previewTemplate.name}</h3>
-              <button className="modal-close" onClick={closePreview}>
-                ✕
-              </button>
+              <button className="modal-close" onClick={closePreview}>✕</button>
             </div>
             <div className="modal-body">
               <div className="template-preview-details">
                 <div className="preview-section">
                   <h4>{t(language, 'templates.colors')}</h4>
                   <div className="color-palette">
-                    <div
-                      className="color-swatch"
-                      style={{ backgroundColor: previewTemplate.colors.primary }}
-                    >
+                    <div className="color-swatch" style={{ backgroundColor: previewTemplate.colors.primary }}>
                       <span>Primary</span>
                     </div>
-                    <div
-                      className="color-swatch"
-                      style={{ backgroundColor: previewTemplate.colors.secondary }}
-                    >
+                    <div className="color-swatch" style={{ backgroundColor: previewTemplate.colors.secondary }}>
                       <span>Secondary</span>
                     </div>
-                    <div
-                      className="color-swatch"
-                      style={{ backgroundColor: previewTemplate.colors.accent }}
-                    >
+                    <div className="color-swatch" style={{ backgroundColor: previewTemplate.colors.accent }}>
                       <span>Accent</span>
                     </div>
                   </div>
@@ -134,15 +126,9 @@ export const CVTemplateManager: React.FC<CVTemplateManagerProps> = ({
                 </div>
                 <div className="preview-section">
                   <h4>{t(language, 'templates.layout')}</h4>
-                  <p>
-                    <strong>Header:</strong> {previewTemplate.layout.headerAlign}
-                  </p>
-                  <p>
-                    <strong>Columns:</strong> {previewTemplate.layout.columnLayout}
-                  </p>
-                  <p>
-                    <strong>Spacing:</strong> {previewTemplate.layout.sectionSpacing}px
-                  </p>
+                  <p><strong>Header:</strong> {previewTemplate.layout.headerAlign}</p>
+                  <p><strong>Columns:</strong> {previewTemplate.layout.columnLayout}</p>
+                  <p><strong>Spacing:</strong> {previewTemplate.layout.sectionSpacing}px</p>
                 </div>
               </div>
             </div>
