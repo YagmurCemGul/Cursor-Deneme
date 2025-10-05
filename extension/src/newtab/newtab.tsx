@@ -16,6 +16,7 @@ import { EmailComposer } from '../components/EmailComposer';
 import { BackupManager } from '../components/BackupManager';
 import { JobRecommendations } from '../components/JobRecommendations';
 import { JobMatchAnalyzer } from '../components/JobMatchAnalyzer';
+import { AIChat } from '../components/AIChat';
 import { TemplateType, TemplateColors, TemplateFonts } from '../lib/templates';
 import { exportToPDF, exportToImage, printCV, generatePDFFilename } from '../lib/pdfExport';
 import { calculateATSScore, ATSScore } from '../lib/atsScoring';
@@ -27,7 +28,7 @@ import { INDUSTRY_PROMPTS, getIndustriesByCategory, suggestIndustry } from '../l
 import '../styles/global.css';
 
 export function NewTab() {
-  const [active, setActive] = useState<'cv' | 'job' | 'preview' | 'downloads' | 'cover' | 'settings' | 'tracker' | 'recommendations'>('cv');
+  const [active, setActive] = useState<'cv' | 'job' | 'preview' | 'downloads' | 'cover' | 'settings' | 'tracker' | 'recommendations' | 'ai-coach'>('cv');
   const [profile, setProfile] = useState<ResumeProfile | undefined>();
   const [job, setJob] = useState<JobPost>({ id: crypto.randomUUID(), pastedText: '' });
   const [resumeMd, setResumeMd] = useState<string>('');
@@ -72,6 +73,7 @@ export function NewTab() {
   const [showEmailComposer, setShowEmailComposer] = useState(false);
   const [showBackupManager, setShowBackupManager] = useState(false);
   const [selectedIndustry, setSelectedIndustry] = useState<string>('generic-professional');
+  const [showAIChat, setShowAIChat] = useState(false);
 
   useEffect(() => {
     (async () => {
@@ -868,6 +870,7 @@ Make it compelling, highlight key strengths, and use action-oriented language.`;
             <TabButton id="cover" active={active} setActive={id => setActive(id as any)}>✉️ Cover Letter</TabButton>
             <TabButton id="recommendations" active={active} setActive={id => setActive(id as any)}>🎯 Job Matches</TabButton>
             <TabButton id="tracker" active={active} setActive={id => setActive(id as any)}>📚 Job Tracker</TabButton>
+            <TabButton id="ai-coach" active={active} setActive={id => setActive(id as any)}>💬 AI Coach</TabButton>
             <TabButton id="downloads" active={active} setActive={id => setActive(id as any)}>⬇️ Downloads</TabButton>
             <TabButton id="settings" active={active} setActive={id => setActive(id as any)}>⚙️ Settings</TabButton>
           </div>
@@ -2162,6 +2165,45 @@ Make it compelling, highlight key strengths, and use action-oriented language.`;
                   setActive('tracker');
                 }}
               />
+            )}
+
+            {active === 'ai-coach' && (
+              <div style={{ padding: 32 }}>
+                {!profile || !job.pastedText ? (
+                  <div style={{
+                    textAlign: 'center',
+                    padding: '60px 20px',
+                    background: 'linear-gradient(135deg, #667eea15 0%, #764ba215 100%)',
+                    borderRadius: 16,
+                    border: '2px dashed #667eea'
+                  }}>
+                    <div style={{ fontSize: 48, marginBottom: 16 }}>💬</div>
+                    <h3 style={{ margin: '0 0 8px', fontSize: 20, color: '#1e293b' }}>
+                      AI Resume Coach
+                    </h3>
+                    <p style={{ margin: 0, color: '#64748b', fontSize: 14 }}>
+                      {!profile ? 'Please fill in your CV profile first.' : 'Please add a job description to get personalized coaching.'}
+                    </p>
+                    <div style={{ marginTop: 20 }}>
+                      <Button
+                        variant="primary"
+                        onClick={() => setActive(!profile ? 'cv' : 'job')}
+                      >
+                        {!profile ? '→ Go to CV Profile' : '→ Add Job Description'}
+                      </Button>
+                    </div>
+                  </div>
+                ) : (
+                  <AIChat
+                    profile={profile}
+                    job={job}
+                    onProfileUpdate={(updatedProfile) => {
+                      setProfile(updatedProfile);
+                      saveOrUpdateProfile(updatedProfile);
+                    }}
+                  />
+                )}
+              </div>
             )}
 
             {active === 'tracker' && (
