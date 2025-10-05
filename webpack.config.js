@@ -10,13 +10,14 @@ module.exports = (env, argv) => {
       popup: './extension/src/popup/main.tsx',
       newtab: './extension/src/newtab/main.tsx',
       options: './extension/src/options/main.tsx',
-      background: './extension/src/background/index.ts'
+      background: './extension/src/background/index.ts',
+      content: './extension/src/content/content.ts'
     },
     output: {
       path: path.resolve(__dirname, 'dist'),
       filename: (pathData) => {
-        // Use simple name for background script (required by manifest v3)
-        return pathData.chunk.name === 'background' ? '[name].js' : '[name].[contenthash:8].js';
+        // Use simple name for background script and content script (required by manifest v3)
+        return ['background', 'content'].includes(pathData.chunk.name) ? '[name].js' : '[name].[contenthash:8].js';
       },
       chunkFilename: '[name].[contenthash:8].chunk.js',
       clean: true
@@ -117,8 +118,8 @@ module.exports = (env, argv) => {
       minimize: isProduction,
       splitChunks: {
         chunks: (chunk) => {
-          // Don't split chunks for background script
-          return chunk.name !== 'background';
+          // Don't split chunks for background script and content script
+          return !['background', 'content'].includes(chunk.name);
         },
         cacheGroups: {
           vendors: {
@@ -150,8 +151,8 @@ module.exports = (env, argv) => {
       },
       runtimeChunk: {
         name: (entrypoint) => {
-          // Background script shouldn't have runtime chunk
-          return entrypoint.name === 'background' ? false : 'runtime';
+          // Background script and content script shouldn't have runtime chunk
+          return ['background', 'content'].includes(entrypoint.name) ? false : 'runtime';
         }
       },
       usedExports: true,
