@@ -134,7 +134,7 @@ function Options() {
   }
 
   async function save() {
-    if (!apiKey) {
+    if (!apiKey || apiKey.trim().length === 0) {
       showMessage('error', language === 'tr' ? 'Lütfen API anahtarı girin' : 'Please enter API key');
       return;
     }

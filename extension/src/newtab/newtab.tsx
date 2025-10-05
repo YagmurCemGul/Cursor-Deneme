@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState, useCallback } from 'react';
 import { ResumeProfile, JobPost, AtsOptimization, EmploymentType, JobApplication } from '../lib/types';
 import { getActiveProfile, loadOptimizations, saveJobPost, saveOptimizations, saveOrUpdateProfile, loadOptions, loadJobPost, loadGeneratedResume, loadGeneratedCoverLetter, saveGeneratedResume, saveGeneratedCoverLetter, loadJobApplications, saveJobApplication, storage } from '../lib/storage';
-import { generateAtsResume, generateCoverLetter } from '../lib/ai';
+import { generateAtsResume, generateCoverLetter, callOpenAI } from '../lib/ai';
 import { TabButton, TextRow, SectionHeader, Pill, Button } from '../components/ui';
 import { validateEmail, validatePhone, validateURL, validateLinkedIn, validateGitHub, formatPhoneNumber, calculateDateDuration, formatDate, calculateProfileCompletion, getSkillSuggestions, skillSuggestions } from '../lib/validation';
 import { CVPreview } from '../components/CVPreview';
@@ -557,8 +557,8 @@ export function NewTab() {
 
   // AI generate summary
   async function generateAISummary() {
-    if (!profile || !apiKey) {
-      alert('Please set up your API key in Settings first!');
+    if (!profile) {
+      alert('Please complete your profile information first!');
       return;
     }
     
@@ -571,7 +571,8 @@ export function NewTab() {
       
       const skillsText = profile.skills.join(', ');
       
-      const prompt = `Write a professional summary (2-3 sentences, max 150 words) for a resume based on this information:
+      const systemPrompt = 'You are an expert resume writer specializing in creating compelling professional summaries.';
+      const userPrompt = `Write a professional summary (2-3 sentences, max 150 words) for a resume based on this information:
       
 Name: ${profile.personal.firstName} ${profile.personal.lastName}
 Experience: ${experienceText || 'Entry level'}
@@ -579,31 +580,35 @@ Skills: ${skillsText || 'Various skills'}
       
 Make it compelling, highlight key strengths, and use action-oriented language.`;
 
-      const response = await fetch('https://api.openai.com/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${apiKey}`
-        },
-        body: JSON.stringify({
-          model: 'gpt-3.5-turbo',
-          messages: [{ role: 'user', content: prompt }],
-          temperature: 0.7,
-          max_tokens: 200
-        })
+      // Use the proper AI provider system that handles multiple providers
+      const summary = await callOpenAI(systemPrompt, userPrompt, { 
+        temperature: 0.7,
+        model: 'gpt-3.5-turbo'
       });
-
-      if (!response.ok) throw new Error('Failed to generate summary');
       
-      const data = await response.json();
-      const summary = data.choices[0].message.content.trim();
+      // Check if we got an error message instead of actual content
+      if (summary.includes('API key not set') || summary.includes('error')) {
+        throw new Error(summary);
+      }
       
       saveProfile({
         ...profile,
-        personal: { ...profile.personal, summary }
+        personal: { ...profile.personal, summary: summary.trim() }
       });
-    } catch (error) {
-      alert('Failed to generate summary. Please check your API key and try again.');
+    } catch (error: any) {
+      console.error('Generate summary error:', error);
+      const errorMessage = error?.message || error?.toString() || 'Unknown error';
+      
+      // Provide more specific error messages
+      if (errorMessage.includes('API key not set') || errorMessage.includes('No API key found')) {
+        alert('Please configure your API key in Settings first!\n\nGo to Settings → AI Provider → Enter your API key');
+      } else if (errorMessage.includes('rate limit') || errorMessage.includes('429')) {
+        alert('API rate limit exceeded. Please wait a moment and try again.');
+      } else if (errorMessage.includes('Invalid API key') || errorMessage.includes('401')) {
+        alert('Invalid API key. Please check your API key in Settings and make sure it is correct.');
+      } else {
+        alert(`Failed to generate summary: ${errorMessage}\n\nPlease check your API key configuration in Settings.`);
+      }
     } finally {
       setIsGeneratingSummary(false);
     }

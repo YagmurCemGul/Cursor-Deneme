@@ -1,0 +1,19 @@
+# Unified AI Client - All AI APIs
+# Install: pip install -r requirements.txt
+
+# Core
+python-dotenv>=1.0.0
+requests>=2.31.0
+
+# AI APIs (install what you need)
+# FREE APIs:
+google-generativeai>=0.3.2  # Gemini (FREE - 60 req/min)
+groq>=0.4.0                 # Groq (FREE - 30 req/min)
+
+# PAID APIs (with free credits):
+openai>=1.12.0              # OpenAI ($5 credit)
+anthropic>=0.18.0           # Claude ($5 credit)
+
+# Optional:
+# cohere>=4.0.0             # Cohere (trial)
+# huggingface-hub>=0.20.0   # Hugging Face (FREE)
