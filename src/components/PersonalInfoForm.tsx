@@ -2,6 +2,16 @@ import React, { useRef, useState } from 'react';
 import { PersonalInfo } from '../types';
 import { t, Lang } from '../i18n';
 import { PhotoCropper } from './PhotoCropper';
+import {
+  validateLinkedInUsername,
+  validateGitHubUsername,
+  validatePortfolioUrl,
+  validateWhatsAppLink,
+  extractLinkedInUsername,
+  extractGitHubUsername,
+  buildWhatsAppLink,
+  ValidationResult
+} from '../utils/urlValidation';
 
 interface PersonalInfoFormProps {
   data: PersonalInfo;
@@ -18,10 +28,31 @@ export const PersonalInfoForm: React.FC<PersonalInfoFormProps> = ({ data, onChan
   const [showCropper, setShowCropper] = useState(false);
   const [tempPhotoUrl, setTempPhotoUrl] = useState<string>('');
   
+  // URL validation states
+  const [linkedInValidation, setLinkedInValidation] = useState<ValidationResult>({ isValid: true, message: '', type: '' });
+  const [githubValidation, setGithubValidation] = useState<ValidationResult>({ isValid: true, message: '', type: '' });
+  const [portfolioValidation, setPortfolioValidation] = useState<ValidationResult>({ isValid: true, message: '', type: '' });
+  const [whatsappValidation, setWhatsappValidation] = useState<ValidationResult>({ isValid: true, message: '', type: '' });
+  
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   const handleChange = (field: keyof PersonalInfo, value: string) => {
-    onChange({ ...data, [field]: value });
+    let processedValue = value;
+    
+    // Handle URL field validations and auto-extraction
+    if (field === 'linkedInUsername') {
+      processedValue = extractLinkedInUsername(value);
+      setLinkedInValidation(validateLinkedInUsername(processedValue));
+    } else if (field === 'githubUsername') {
+      processedValue = extractGitHubUsername(value);
+      setGithubValidation(validateGitHubUsername(processedValue));
+    } else if (field === 'portfolioUrl') {
+      setPortfolioValidation(validatePortfolioUrl(value));
+    } else if (field === 'whatsappLink') {
+      setWhatsappValidation(validateWhatsAppLink(value));
+    }
+    
+    onChange({ ...data, [field]: processedValue });
     
     // Enhanced email validation and suggestions
     if (field === 'email') {
@@ -344,11 +375,17 @@ export const PersonalInfoForm: React.FC<PersonalInfoFormProps> = ({ data, onChan
           <span className="input-prefix-text">https://www.linkedin.com/in/</span>
           <input
             type="text"
+            className={linkedInValidation.type === 'error' ? 'error' : ''}
             value={data.linkedInUsername}
             onChange={(e) => handleChange('linkedInUsername', e.target.value)}
             placeholder="your-username"
           />
         </div>
+        {linkedInValidation.message && (
+          <div className={`validation-message ${linkedInValidation.type}`}>
+            {linkedInValidation.message}
+          </div>
+        )}
       </div>
 
       <div className="form-group">
@@ -432,11 +469,17 @@ export const PersonalInfoForm: React.FC<PersonalInfoFormProps> = ({ data, onChan
           <span className="input-prefix-text">https://github.com/</span>
           <input
             type="text"
+            className={githubValidation.type === 'error' ? 'error' : ''}
             value={data.githubUsername}
             onChange={(e) => handleChange('githubUsername', e.target.value)}
             placeholder="your-username"
           />
         </div>
+        {githubValidation.message && (
+          <div className={`validation-message ${githubValidation.type}`}>
+            {githubValidation.message}
+          </div>
+        )}
       </div>
       
       <div className="form-row">
@@ -444,31 +487,41 @@ export const PersonalInfoForm: React.FC<PersonalInfoFormProps> = ({ data, onChan
           <label className="form-label">{t(language, 'personal.portfolio')}</label>
           <input
             type="url"
-            className="form-input"
+            className={`form-input ${portfolioValidation.type === 'error' ? 'error' : ''}`}
             value={data.portfolioUrl}
             onChange={(e) => handleChange('portfolioUrl', e.target.value)}
             placeholder="https://yourportfolio.com"
           />
+          {portfolioValidation.message && (
+            <div className={`validation-message ${portfolioValidation.type}`}>
+              {portfolioValidation.message}
+            </div>
+          )}
         </div>
         
         <div className="form-group">
           <label className="form-label">{t(language, 'personal.whatsapp')}</label>
           <input
             type="url"
-            className="form-input"
+            className={`form-input ${whatsappValidation.type === 'error' ? 'error' : ''}`}
             value={data.whatsappLink}
             onChange={(e) => handleChange('whatsappLink', e.target.value)}
             placeholder="https://wa.me/..."
           />
+          {whatsappValidation.message && (
+            <div className={`validation-message ${whatsappValidation.type}`}>
+              {whatsappValidation.message}
+            </div>
+          )}
           <div className="whatsapp-helper">
             <button
               className="btn btn-secondary"
               onClick={(e) => {
                 e.preventDefault();
-                const digits = (data.phoneNumber || '').replace(/\D/g, '');
-                const cc = (data.countryCode || '').replace(/\D/g, '');
-                if (cc && digits) {
-                  handleChange('whatsappLink', `https://wa.me/${cc}${digits}`);
+                const link = buildWhatsAppLink(data.countryCode, data.phoneNumber);
+                if (link) {
+                  handleChange('whatsappLink', link);
+                  setWhatsappValidation(validateWhatsAppLink(link));
                 }
               }}
             >
