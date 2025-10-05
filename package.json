@@ -1,10 +1,18 @@
 {
-  "name": "ai-cv-optimizer",
+  "name": "ai-cv-optimizer-workspace",
   "version": "2.0.0",
   "description": "AI-powered CV and Cover Letter Optimizer Chrome Extension with ML, Streaming, and Advanced Features",
+  "private": true,
+  "workspaces": [
+    "packages/*"
+  ],
   "scripts": {
     "build": "webpack --mode production",
     "dev": "webpack --mode development --watch",
+    "build:extension": "cd packages/job-ats-extension && pnpm build",
+    "dev:extension": "cd packages/job-ats-extension && pnpm dev",
+    "test:extension": "cd packages/job-ats-extension && pnpm test",
+    "lint:extension": "cd packages/job-ats-extension && pnpm lint",
     "type-check": "tsc --noEmit",
     "lint": "eslint . --ext .ts,.tsx",
     "lint:fix": "eslint . --ext .ts,.tsx --fix",

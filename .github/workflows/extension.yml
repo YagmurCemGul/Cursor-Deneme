@@ -1,0 +1,79 @@
+name: Extension Build & Test
+
+on:
+  push:
+    branches: [ feat/extension-ats-assistant ]
+    paths:
+      - 'packages/job-ats-extension/**'
+      - '.github/workflows/extension.yml'
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'packages/job-ats-extension/**'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8
+          
+      - name: Get pnpm store directory
+        id: pnpm-cache
+        shell: bash
+        run: |
+          echo "STORE_PATH=$(pnpm store path)" >> $GITHUB_OUTPUT
+          
+      - name: Setup pnpm cache
+        uses: actions/cache@v3
+        with:
+          path: ${{ steps.pnpm-cache.outputs.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+            
+      - name: Install dependencies
+        run: pnpm install
+        
+      - name: Type check
+        run: cd packages/job-ats-extension && pnpm type-check
+        
+      - name: Lint
+        run: cd packages/job-ats-extension && pnpm lint
+        
+      - name: Run tests
+        run: cd packages/job-ats-extension && pnpm test
+        
+      - name: Build extension
+        run: pnpm build:extension
+        
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: extension-dist
+          path: packages/job-ats-extension/dist/
+          retention-days: 7
+          
+      - name: Create extension zip (optional)
+        if: github.event_name == 'push' && github.ref == 'refs/heads/feat/extension-ats-assistant'
+        run: |
+          cd packages/job-ats-extension/dist
+          zip -r ../job-ats-extension.zip .
+          
+      - name: Upload extension zip
+        if: github.event_name == 'push' && github.ref == 'refs/heads/feat/extension-ats-assistant'
+        uses: actions/upload-artifact@v3
+        with:
+          name: extension-zip
+          path: packages/job-ats-extension/job-ats-extension.zip
+          retention-days: 30
