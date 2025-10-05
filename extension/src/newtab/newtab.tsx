@@ -14,6 +14,7 @@ import { DescriptionEnhancer } from '../components/DescriptionEnhancer';
 import { CoverLetterBuilder } from '../components/CoverLetterBuilder';
 import { EmailComposer } from '../components/EmailComposer';
 import { BackupManager } from '../components/BackupManager';
+import { JobRecommendations } from '../components/JobRecommendations';
 import { TemplateType, TemplateColors, TemplateFonts } from '../lib/templates';
 import { exportToPDF, exportToImage, printCV, generatePDFFilename } from '../lib/pdfExport';
 import { calculateATSScore, ATSScore } from '../lib/atsScoring';
@@ -24,7 +25,7 @@ import { performAutoBackupIfDue } from '../lib/cloudBackup';
 import '../styles/global.css';
 
 export function NewTab() {
-  const [active, setActive] = useState<'cv' | 'job' | 'preview' | 'downloads' | 'cover' | 'settings' | 'tracker'>('cv');
+  const [active, setActive] = useState<'cv' | 'job' | 'preview' | 'downloads' | 'cover' | 'settings' | 'tracker' | 'recommendations'>('cv');
   const [profile, setProfile] = useState<ResumeProfile | undefined>();
   const [job, setJob] = useState<JobPost>({ id: crypto.randomUUID(), pastedText: '' });
   const [resumeMd, setResumeMd] = useState<string>('');
@@ -855,6 +856,7 @@ Make it compelling, highlight key strengths, and use action-oriented language.`;
             <TabButton id="job" active={active} setActive={id => setActive(id as any)}>💼 Job Description</TabButton>
             <TabButton id="preview" active={active} setActive={id => setActive(id as any)}>👁️ Resume Preview</TabButton>
             <TabButton id="cover" active={active} setActive={id => setActive(id as any)}>✉️ Cover Letter</TabButton>
+            <TabButton id="recommendations" active={active} setActive={id => setActive(id as any)}>🎯 Job Matches</TabButton>
             <TabButton id="tracker" active={active} setActive={id => setActive(id as any)}>📚 Job Tracker</TabButton>
             <TabButton id="downloads" active={active} setActive={id => setActive(id as any)}>⬇️ Downloads</TabButton>
             <TabButton id="settings" active={active} setActive={id => setActive(id as any)}>⚙️ Settings</TabButton>
@@ -2047,6 +2049,23 @@ Make it compelling, highlight key strengths, and use action-oriented language.`;
                   </ul>
                 </div>
               </div>
+            )}
+
+            {active === 'recommendations' && profile && (
+              <JobRecommendations 
+                profile={profile}
+                language={currentLang}
+                onJobSelect={(job) => {
+                  // Auto-fill job post from recommendation
+                  setJob({
+                    id: crypto.randomUUID(),
+                    pastedText: job.description,
+                    title: job.title,
+                    company: job.company,
+                  });
+                  setActive('tracker');
+                }}
+              />
             )}
 
             {active === 'tracker' && (
