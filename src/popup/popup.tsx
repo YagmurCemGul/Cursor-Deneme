@@ -2,8 +2,9 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { ResumeProfile, JobPost, AtsOptimization } from '../lib/types';
 import { getActiveProfile, loadOptimizations, saveJobPost, saveOptimizations, saveOrUpdateProfile } from '../lib/storage';
 import { generateAtsResume, generateCoverLetter } from '../lib/ai';
+import { AutofillInterface } from '../components/AutofillInterface';
 
-type TabId = 'cv' | 'job' | 'preview' | 'downloads' | 'cover';
+type TabId = 'cv' | 'job' | 'preview' | 'downloads' | 'cover' | 'autofill';
 
 function TabButton({ id, active, setActive, children }: { id: TabId; active: TabId; setActive: (id: TabId) => void; children: React.ReactNode }) {
   return (
@@ -102,6 +103,7 @@ export function Popup() {
       <div className="tabbar">
         <TabButton id="cv" active={active} setActive={setActive}>CV</TabButton>
         <TabButton id="job" active={active} setActive={setActive}>Job</TabButton>
+        <TabButton id="autofill" active={active} setActive={setActive}>Autofill</TabButton>
         <TabButton id="preview" active={active} setActive={setActive}>Preview</TabButton>
         <TabButton id="cover" active={active} setActive={setActive}>Cover Letter</TabButton>
         <TabButton id="downloads" active={active} setActive={setActive}>Downloads</TabButton>
@@ -162,6 +164,20 @@ export function Popup() {
           <div className="row" style={{ justifyContent: 'flex-end' }}>
             <button className="btn" onClick={handleGenerateCoverLetter}>Generate Cover Letter</button>
           </div>
+        </div>
+      )}
+
+      {active === 'autofill' && (
+        <div className="col" style={{ gap: 10, padding: 0 }}>
+          <AutofillInterface 
+            profile={profile} 
+            onAutofill={(fields) => {
+              console.log('Autofilling with fields:', fields);
+              // Here you can implement the actual autofill logic
+              // For now, we'll just log the fields that should be autofilled
+              alert(`Autofilling ${fields.length} fields!`);
+            }} 
+          />
         </div>
       )}
 
