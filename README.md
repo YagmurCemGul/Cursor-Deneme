@@ -38,15 +38,11 @@ A powerful Chrome Extension that uses AI to optimize your CV and generate ATS-fr
 - **📋 Detailed View**: See before/after comparisons for each optimization
 
 ### CV Export
-- **📦 Batch Export**: Export to multiple formats simultaneously (PDF, DOCX, Google Docs, Sheets, Slides)
 - **📥 Multiple Formats**: Download as PDF, DOCX, or export to Google Drive
 - **☁️ Google Drive Integration**: Export directly to Google Docs, Sheets, or Slides
-- **📁 Folder Selection**: Choose or create Google Drive folders for organized exports
-- **📊 Export History**: Track all exports with timestamps, formats, and success rates
-- **📝 Custom File Naming**: Use templates with variables for consistent file naming
-- **🔗 Direct Sharing**: Share exported files via link or email directly from extension
 - **👁️ Live Preview**: See exactly how your CV will look before downloading
 - **🎨 Professional Formatting**: Clean, ATS-friendly templates
+- **📝 Smart Naming**: Automatically generates professional filenames
 - **📊 Structured Data Export**: Export to Google Sheets for data analysis
 
 ### Cover Letter Generation
@@ -143,13 +139,9 @@ The AI follows professional resume best practices:
    - Preview your optimized CV
 
 5. **Download or Export Your CV**
-   - Use **Batch Export** to export to multiple formats at once
-   - Download as PDF or DOCX locally
+   - Download as PDF or DOCX
    - Or export directly to Google Drive (Docs, Sheets, or Slides)
-   - Select a Google Drive folder for organized storage
-   - Files are named using customizable templates
-   - View export history and track success rates
-   - Share exported files directly via link or email
+   - Files are professionally named automatically
 
 6. **Generate Cover Letter**
    - Go to "Cover Letter" tab
@@ -252,17 +244,9 @@ ai-cv-optimizer/
 ✅ **Industry-Specific Template Designs**
 ✅ **Color Schemes and Layout Options**
 ✅ **Google Drive Integration (Docs, Sheets, Slides)**
-✅ **Google Drive Folder Selection & Creation**
-✅ **Batch Export to All Formats**
-✅ **Export History Tracking & Analytics**
-✅ **Custom File Naming Templates**
-✅ **Direct Sharing via Link or Email**
 ✅ **File Management in Google Drive**
 ✅ **OAuth2 Authentication**
 ✅ **Multi-format Export Support**
-✅ **Automatic Client ID Validation** 🆕
-✅ **Google Cloud Console API Integration** 🆕
-✅ **Video Setup Guide** 🆕
 
 ## 🎨 UI Components
 
@@ -284,28 +268,6 @@ ai-cv-optimizer/
 - Real-time updates
 - Print-friendly layout
 
-## ☁️ Google Cloud Setup
-
-### Quick Setup Guide
-
-To use Google Drive integration features, follow these steps:
-
-1. **📹 [Complete Video Setup Guide](VIDEO_SETUP_GUIDE.md)** - Step-by-step visual guide with timestamps
-2. **🚀 [Quick Start Guide](QUICK_START_GOOGLE_DRIVE.md)** - Fast setup instructions
-3. **📖 [Detailed Integration Guide](GOOGLE_DRIVE_INTEGRATION.md)** - Comprehensive documentation
-
-### ✨ New: Automatic Client ID Validation
-
-The extension now includes **automatic Client ID validation** that verifies your Google Cloud configuration:
-
-- ✅ One-click validation
-- ✅ Real-time API testing
-- ✅ Detailed error messages
-- ✅ No sign-in required
-- ✅ Instant feedback
-
-Simply navigate to **Google Drive Settings** → **Automatic Client ID Validation** and click **"Validate Client ID"** to verify your setup!
-
 ## 🔒 Privacy & Security
 
 - All data stored locally in Chrome storage
@@ -314,7 +276,6 @@ Simply navigate to **Google Drive Settings** → **Automatic Client ID Validatio
 - Export and delete data anytime
 - Google Drive integration uses OAuth2 for secure authentication
 - Only requested permissions are used (drive.file, documents, spreadsheets, presentations)
-- Client ID validation uses non-interactive API calls (no credentials required)
 
 ## 🤝 Contributing
 

@@ -18,7 +18,6 @@
       "https://www.googleapis.com/auth/presentations"
     ]
   },
-  "_comment_oauth2": "IMPORTANT: Replace 'YOUR_GOOGLE_CLIENT_ID' with your actual Google OAuth2 Client ID from Google Cloud Console. See GOOGLE_DRIVE_INTEGRATION.md or QUICK_START_GOOGLE_DRIVE.md for setup instructions.",
   "host_permissions": [
     "https://www.googleapis.com/*",
     "https://docs.googleapis.com/*",

@@ -12,41 +12,17 @@ export const GoogleDriveSettings: React.FC<GoogleDriveSettingsProps> = ({ langua
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showFileManager, setShowFileManager] = useState(false);
-  const [setupRequired, setSetupRequired] = useState(false);
-  const [showTroubleshooting, setShowTroubleshooting] = useState(false);
 
   useEffect(() => {
     checkAuthStatus();
-    checkSetupStatus();
   }, []);
-
-  const checkSetupStatus = () => {
-    try {
-      const manifest = chrome.runtime.getManifest();
-      const oauth2 = (manifest as any).oauth2;
-      
-      if (!oauth2 || !oauth2.client_id || 
-          oauth2.client_id === 'YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com' ||
-          oauth2.client_id.includes('YOUR_GOOGLE_CLIENT_ID')) {
-        setSetupRequired(true);
-        setError(t(language, 'googleDrive.clientIdPlaceholder'));
-      }
-    } catch (err) {
-      console.error('Failed to check setup status:', err);
-    }
-  };
 
   const checkAuthStatus = async () => {
     try {
       const authenticated = await GoogleDriveService.ensureAuthenticated();
       setIsAuthenticated(authenticated);
-      setError(null);
-    } catch (err: any) {
+    } catch (err) {
       setIsAuthenticated(false);
-      // Don't show auth errors if setup is not complete
-      if (!setupRequired) {
-        setError(err.message || 'Authentication check failed');
-      }
     }
   };
 
@@ -57,30 +33,11 @@ export const GoogleDriveSettings: React.FC<GoogleDriveSettingsProps> = ({ langua
       const success = await GoogleDriveService.authenticate();
       setIsAuthenticated(success);
       if (success) {
-        setSetupRequired(false);
         alert(t(language, 'googleDrive.signInSuccess'));
       }
     } catch (err: any) {
-      const errorMessage = err.message || 'Authentication failed';
-      
-      // Check for specific error types and provide helpful messages
-      if (errorMessage.includes('setup') || errorMessage.includes('Client ID')) {
-        setSetupRequired(true);
-        setError(errorMessage);
-        setShowTroubleshooting(true);
-      } else if (errorMessage.includes('bad client id') || errorMessage.includes('Invalid Client ID')) {
-        setError(t(language, 'googleDrive.badClientIdError'));
-        setShowTroubleshooting(true);
-      } else {
-        setError(errorMessage);
-      }
-      
-      // Show a more user-friendly alert
-      if (setupRequired) {
-        alert(t(language, 'googleDrive.setupRequired') + '\\n\\n' + errorMessage);
-      } else {
-        alert(t(language, 'googleDrive.signInError') + '\\n\\n' + errorMessage);
-      }
+      setError(err.message || 'Authentication failed');
+      alert(t(language, 'googleDrive.signInError'));
     } finally {
       setLoading(false);
     }
@@ -147,39 +104,6 @@ export const GoogleDriveSettings: React.FC<GoogleDriveSettingsProps> = ({ langua
         ☁️ {t(language, 'googleDrive.title')}
       </h2>
 
-      {setupRequired && (
-        <div className="alert alert-warning" style={{ marginBottom: '20px' }}>
-          <div style={{ marginBottom: '10px' }}>
-            <strong>⚠️ {t(language, 'googleDrive.setupRequired')}</strong>
-          </div>
-          <div style={{ marginBottom: '10px' }}>
-            {t(language, 'googleDrive.setupRequiredDesc')}
-          </div>
-          <ol style={{ marginLeft: '20px', marginTop: '10px' }}>
-            <li>{t(language, 'googleDrive.setupStep1')}</li>
-            <li>{t(language, 'googleDrive.setupStep2')}</li>
-            <li>{t(language, 'googleDrive.setupStep3')}</li>
-          </ol>
-          <div style={{ marginTop: '15px' }}>
-            <a 
-              href="https://console.cloud.google.com/apis/credentials"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="btn btn-primary btn-sm"
-              style={{ marginRight: '10px' }}
-            >
-              🔗 {t(language, 'googleDrive.openConsole')}
-            </a>
-            <button
-              className="btn btn-secondary btn-sm"
-              onClick={() => window.open('QUICK_START_GOOGLE_DRIVE.md', '_blank')}
-            >
-              📖 {t(language, 'googleDrive.viewFullGuide')}
-            </button>
-          </div>
-        </div>
-      )}
-
       <div className="google-drive-status">
         {isAuthenticated ? (
           <div className="alert alert-success">
@@ -198,8 +122,7 @@ export const GoogleDriveSettings: React.FC<GoogleDriveSettingsProps> = ({ langua
             <button 
               className="btn btn-primary btn-sm"
               onClick={handleSignIn}
-              disabled={loading || setupRequired}
-              title={setupRequired ? t(language, 'googleDrive.setupRequired') : ''}
+              disabled={loading}
             >
               {loading ? '⏳' : '🔑'} {t(language, 'googleDrive.signIn')}
             </button>
@@ -207,7 +130,7 @@ export const GoogleDriveSettings: React.FC<GoogleDriveSettingsProps> = ({ langua
         )}
       </div>
 
-      {error && !setupRequired && (
+      {error && (
         <div className="alert alert-error">
           ⚠️ {error}
         </div>
@@ -292,55 +215,24 @@ export const GoogleDriveSettings: React.FC<GoogleDriveSettingsProps> = ({ langua
         </>
       )}
 
-      {!isAuthenticated && (
-        <div className="google-drive-setup">
-          <h3 className="subsection-title">
-            ⚙️ {t(language, 'googleDrive.setupTitle')}
-          </h3>
-          <div className="info-text">
-            <p>{t(language, 'googleDrive.setupStep1')}</p>
-            <p>{t(language, 'googleDrive.setupStep2')}</p>
-            <p>{t(language, 'googleDrive.setupStep3')}</p>
-            <a 
-              href="https://console.cloud.google.com/apis/credentials"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="btn btn-link"
-            >
-              🔗 {t(language, 'googleDrive.openConsole')}
-            </a>
-          </div>
+      <div className="google-drive-setup">
+        <h3 className="subsection-title">
+          ⚙️ {t(language, 'googleDrive.setupTitle')}
+        </h3>
+        <div className="info-text">
+          <p>{t(language, 'googleDrive.setupStep1')}</p>
+          <p>{t(language, 'googleDrive.setupStep2')}</p>
+          <p>{t(language, 'googleDrive.setupStep3')}</p>
+          <a 
+            href="https://console.cloud.google.com/apis/credentials"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="btn btn-link"
+          >
+            🔗 {t(language, 'googleDrive.openConsole')}
+          </a>
         </div>
-      )}
-
-      {showTroubleshooting && (
-        <div className="google-drive-troubleshooting" style={{ marginTop: '20px' }}>
-          <h3 className="subsection-title">
-            🔧 {t(language, 'googleDrive.troubleshooting')}
-          </h3>
-          <div className="info-text">
-            <h4>{t(language, 'googleDrive.commonIssues')}</h4>
-            <div style={{ marginTop: '15px' }}>
-              <strong>1. {t(language, 'googleDrive.issue1')}</strong>
-              <p style={{ marginLeft: '20px', color: '#666' }}>
-                ✓ {t(language, 'googleDrive.solution1')}
-              </p>
-            </div>
-            <div style={{ marginTop: '15px' }}>
-              <strong>2. {t(language, 'googleDrive.issue2')}</strong>
-              <p style={{ marginLeft: '20px', color: '#666' }}>
-                ✓ {t(language, 'googleDrive.solution2')}
-              </p>
-            </div>
-            <div style={{ marginTop: '15px' }}>
-              <strong>3. {t(language, 'googleDrive.issue3')}</strong>
-              <p style={{ marginLeft: '20px', color: '#666' }}>
-                ✓ {t(language, 'googleDrive.solution3')}
-              </p>
-            </div>
-          </div>
-        </div>
-      )}
+      </div>
     </div>
   );
 };
