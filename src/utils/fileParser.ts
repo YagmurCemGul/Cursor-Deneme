@@ -11,6 +11,13 @@ pdfjsLib.GlobalWorkerOptions.workerSrc = new URL(
   import.meta.url
 ).toString();
 
+// Configure pdf.js worker for the new version
+// pdfjs-dist v5+ uses ESM and requires different worker configuration
+pdfjsLib.GlobalWorkerOptions.workerSrc = new URL(
+  'pdfjs-dist/build/pdf.worker.min.mjs',
+  import.meta.url
+).toString();
+
 export class FileParser {
   // Worker configuration is now handled at module load time
   static configurePdfJsWorker(): void {
