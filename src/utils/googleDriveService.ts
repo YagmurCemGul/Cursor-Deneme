@@ -768,8 +768,17 @@ export class GoogleDriveService {
   /**
    * Create a folder in Google Drive
    */
-  static async createFolder(name: string): Promise<GoogleDriveFile> {
+  static async createFolder(name: string, parentId?: string): Promise<GoogleDriveFile> {
     await this.ensureAuthenticated();
+
+    const body: any = {
+      name: name,
+      mimeType: 'application/vnd.google-apps.folder',
+    };
+
+    if (parentId) {
+      body.parents = [parentId];
+    }
 
     const response = await fetch('https://www.googleapis.com/drive/v3/files', {
       method: 'POST',
@@ -777,10 +786,7 @@ export class GoogleDriveService {
         Authorization: `Bearer ${this.accessToken}`,
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({
-        name: name,
-        mimeType: 'application/vnd.google-apps.folder',
-      }),
+      body: JSON.stringify(body),
     });
 
     const result = await response.json();
@@ -791,5 +797,177 @@ export class GoogleDriveService {
       webViewLink: result.webViewLink,
       createdTime: new Date().toISOString(),
     };
+  }
+
+  /**
+   * List folders in Google Drive
+   */
+  static async listFolders(parentId?: string): Promise<GoogleDriveFile[]> {
+    await this.ensureAuthenticated();
+
+    let query = "mimeType='application/vnd.google-apps.folder'";
+    if (parentId) {
+      query += ` and '${parentId}' in parents`;
+    }
+
+    const response = await fetch(
+      `https://www.googleapis.com/drive/v3/files?q=${encodeURIComponent(query)}&fields=files(id,name,mimeType,webViewLink,createdTime)&orderBy=name`,
+      {
+        headers: {
+          Authorization: `Bearer ${this.accessToken}`,
+        },
+      }
+    );
+
+    const result = await response.json();
+    return result.files || [];
+  }
+
+  /**
+   * Upload file to specific folder
+   */
+  static async uploadToFolder(
+    fileName: string,
+    content: string,
+    mimeType: string,
+    folderId?: string
+  ): Promise<GoogleDriveFile> {
+    await this.ensureAuthenticated();
+
+    const metadata: any = {
+      name: fileName,
+      mimeType: mimeType,
+    };
+
+    if (folderId) {
+      metadata.parents = [folderId];
+    }
+
+    // Create multipart upload
+    const boundary = '-------314159265358979323846';
+    const delimiter = `\r\n--${boundary}\r\n`;
+    const closeDelimiter = `\r\n--${boundary}--`;
+
+    const multipartRequestBody =
+      delimiter +
+      'Content-Type: application/json\r\n\r\n' +
+      JSON.stringify(metadata) +
+      delimiter +
+      `Content-Type: ${mimeType}\r\n\r\n` +
+      content +
+      closeDelimiter;
+
+    const response = await fetch(
+      'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart',
+      {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${this.accessToken}`,
+          'Content-Type': `multipart/related; boundary=${boundary}`,
+        },
+        body: multipartRequestBody,
+      }
+    );
+
+    const result = await response.json();
+    return {
+      id: result.id,
+      name: result.name,
+      mimeType: result.mimeType,
+      webViewLink: result.webViewLink || `https://drive.google.com/file/d/${result.id}/view`,
+      createdTime: result.createdTime || new Date().toISOString(),
+    };
+  }
+
+  /**
+   * Export CV with folder selection
+   */
+  static async exportToGoogleDocsWithFolder(
+    cvData: CVData,
+    optimizations: ATSOptimization[],
+    folderId?: string
+  ): Promise<GoogleDriveFile> {
+    await this.ensureAuthenticated();
+
+    const metadata: any = {
+      title: `${cvData.personalInfo.firstName}_${cvData.personalInfo.lastName}_Resume_${new Date().toISOString().split('T')[0]}`,
+    };
+
+    if (folderId) {
+      metadata.parents = [folderId];
+    }
+
+    // Create a new Google Doc
+    const createResponse = await fetch('https://docs.googleapis.com/v1/documents', {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${this.accessToken}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(metadata),
+    });
+
+    const doc = await createResponse.json();
+    const documentId = doc.documentId;
+
+    // Build content for the document
+    const requests = this.buildDocumentContent(cvData, optimizations);
+
+    // Update the document with content
+    await fetch(`https://docs.googleapis.com/v1/documents/${documentId}:batchUpdate`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${this.accessToken}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ requests }),
+    });
+
+    // If folder specified, move the file
+    if (folderId) {
+      await fetch(
+        `https://www.googleapis.com/drive/v3/files/${documentId}?addParents=${folderId}&fields=id,parents`,
+        {
+          method: 'PATCH',
+          headers: {
+            Authorization: `Bearer ${this.accessToken}`,
+          },
+        }
+      );
+    }
+
+    return {
+      id: documentId,
+      name: doc.title,
+      mimeType: 'application/vnd.google-apps.document',
+      webViewLink: `https://docs.google.com/document/d/${documentId}/edit`,
+      createdTime: new Date().toISOString(),
+    };
+  }
+
+  /**
+   * Bulk export multiple CVs to a folder
+   */
+  static async bulkExportToFolder(
+    cvDataList: Array<{ cvData: CVData; optimizations: ATSOptimization[] }>,
+    folderName: string
+  ): Promise<{ folder: GoogleDriveFile; files: GoogleDriveFile[] }> {
+    await this.ensureAuthenticated();
+
+    // Create folder for bulk export
+    const folder = await this.createFolder(folderName);
+
+    // Export all CVs to the folder
+    const files: GoogleDriveFile[] = [];
+    for (const { cvData, optimizations } of cvDataList) {
+      try {
+        const file = await this.exportToGoogleDocsWithFolder(cvData, optimizations, folder.id);
+        files.push(file);
+      } catch (error) {
+        logger.error(`Failed to export CV for ${cvData.personalInfo.firstName}:`, error);
+      }
+    }
+
+    return { folder, files };
   }
 }
