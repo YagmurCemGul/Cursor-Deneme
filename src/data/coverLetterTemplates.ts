@@ -20,6 +20,8 @@ export interface CoverLetterTemplate {
   };
   tone: 'formal' | 'professional' | 'modern' | 'creative' | 'executive' | 'friendly';
   features: string[];
+  industry?: string[];
+  tags?: string[];
 }
 
 export const defaultCoverLetterTemplates: CoverLetterTemplate[] = [
@@ -160,6 +162,108 @@ export const defaultCoverLetterTemplates: CoverLetterTemplate[] = [
     },
     tone: 'formal',
     features: ['Academic Format', 'Scholarly Tone', 'Research Focus', 'Publication Standard'],
+    industry: ['Academia', 'Research', 'Education', 'Science', 'Publishing'],
+    tags: ['academic', 'research', 'formal'],
+  },
+  {
+    id: 'healthcare',
+    name: 'Healthcare Professional',
+    description: 'Professional format for medical and healthcare positions',
+    preview: '🏥',
+    style: {
+      fontSize: 11,
+      fontFamily: 'Arial, sans-serif',
+      lineHeight: 1.5,
+      paragraphSpacing: 14,
+      headerFormat: 'left',
+      includeDate: true,
+      includeAddress: true,
+      signatureStyle: 'formal',
+    },
+    colors: {
+      primary: '#0369a1',
+      text: '#1e293b',
+      accent: '#0ea5e9',
+    },
+    tone: 'professional',
+    features: ['Healthcare Format', 'Compassionate Tone', 'Patient-Focused', 'Certification Emphasis'],
+    industry: ['Healthcare', 'Medical', 'Nursing', 'Pharmacy', 'Clinical'],
+    tags: ['healthcare', 'medical', 'professional'],
+  },
+  {
+    id: 'legal',
+    name: 'Legal Professional',
+    description: 'Formal format for legal and law positions',
+    preview: '⚖️',
+    style: {
+      fontSize: 12,
+      fontFamily: 'Times New Roman, serif',
+      lineHeight: 2.0,
+      paragraphSpacing: 16,
+      headerFormat: 'left',
+      includeDate: true,
+      includeAddress: true,
+      signatureStyle: 'formal',
+    },
+    colors: {
+      primary: '#18181b',
+      text: '#3f3f46',
+      accent: '#71717a',
+    },
+    tone: 'formal',
+    features: ['Legal Format', 'Authoritative Tone', 'Detail Oriented', 'Bar Standards'],
+    industry: ['Legal', 'Law', 'Attorney', 'Paralegal', 'Compliance'],
+    tags: ['legal', 'law', 'formal'],
+  },
+  {
+    id: 'sales',
+    name: 'Sales & Business Development',
+    description: 'Results-driven format for sales professionals',
+    preview: '📈',
+    style: {
+      fontSize: 11,
+      fontFamily: 'Arial, sans-serif',
+      lineHeight: 1.6,
+      paragraphSpacing: 14,
+      headerFormat: 'left',
+      includeDate: true,
+      includeAddress: false,
+      signatureStyle: 'modern',
+    },
+    colors: {
+      primary: '#047857',
+      text: '#1f2937',
+      accent: '#10b981',
+    },
+    tone: 'professional',
+    features: ['Achievement Focus', 'Metrics Driven', 'Results Oriented', 'Persuasive Tone'],
+    industry: ['Sales', 'Business Development', 'Account Management', 'Revenue', 'Commerce'],
+    tags: ['sales', 'results', 'business'],
+  },
+  {
+    id: 'engineering',
+    name: 'Engineering Professional',
+    description: 'Technical format for engineering positions',
+    preview: '⚙️',
+    style: {
+      fontSize: 11,
+      fontFamily: 'Arial, sans-serif',
+      lineHeight: 1.5,
+      paragraphSpacing: 14,
+      headerFormat: 'left',
+      includeDate: true,
+      includeAddress: true,
+      signatureStyle: 'formal',
+    },
+    colors: {
+      primary: '#0f172a',
+      text: '#334155',
+      accent: '#0ea5e9',
+    },
+    tone: 'professional',
+    features: ['Technical Format', 'Project Focused', 'Detail Oriented', 'Problem Solving'],
+    industry: ['Engineering', 'Technical', 'Manufacturing', 'Construction', 'Infrastructure'],
+    tags: ['engineering', 'technical', 'professional'],
   },
 ];
 

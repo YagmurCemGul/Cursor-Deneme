@@ -118,13 +118,13 @@ export class StorageService {
     return aiApiKeys;
   }
 
-  static async saveAIProvider(provider: 'openai' | 'gemini' | 'claude' | 'azure-openai' | 'ollama'): Promise<void> {
+  static async saveAIProvider(provider: 'openai' | 'gemini' | 'claude'): Promise<void> {
     const settings = (await this.getSettings()) || {};
     settings.aiProvider = provider;
     await this.saveSettings(settings);
   }
 
-  static async getAIProvider(): Promise<'openai' | 'gemini' | 'claude' | 'azure-openai' | 'ollama'> {
+  static async getAIProvider(): Promise<'openai' | 'gemini' | 'claude'> {
     const settings = (await this.getSettings()) as any;
     return settings?.aiProvider || 'openai';
   }
@@ -227,147 +227,418 @@ export class StorageService {
     }
   }
 
-  // Error Analytics
-  static async saveError(error: import('../types').ErrorLog): Promise<void> {
-    const { errorLogs = [] } = await chrome.storage.local.get('errorLogs');
-    errorLogs.push(error);
-    // Keep only last 500 error logs
-    const trimmed = errorLogs.slice(-500);
-    await chrome.storage.local.set({ errorLogs: trimmed });
+  // Template Enhancement Features
+  static async saveTemplateMetadata(templateId: string, metadata: import('../types').TemplateMetadata): Promise<void> {
+    const { templatesMetadata = {} } = await chrome.storage.local.get('templatesMetadata');
+    templatesMetadata[templateId] = metadata;
+    await chrome.storage.local.set({ templatesMetadata });
   }
 
-  static async getErrorLogs(): Promise<import('../types').ErrorLog[]> {
-    const { errorLogs = [] } = await chrome.storage.local.get('errorLogs');
-    return errorLogs.sort((a: import('../types').ErrorLog, b: import('../types').ErrorLog) => 
+  static async getTemplateMetadata(templateId: string): Promise<import('../types').TemplateMetadata | null> {
+    const { templatesMetadata = {} } = await chrome.storage.local.get('templatesMetadata');
+    return templatesMetadata[templateId] || null;
+  }
+
+  static async getAllTemplatesMetadata(): Promise<Record<string, import('../types').TemplateMetadata>> {
+    const { templatesMetadata = {} } = await chrome.storage.local.get('templatesMetadata');
+    return templatesMetadata;
+  }
+
+  static async toggleTemplateFavorite(templateId: string): Promise<void> {
+    const metadata = await this.getTemplateMetadata(templateId) || {
+      id: templateId,
+      isFavorite: false,
+      usageCount: 0,
+    };
+    metadata.isFavorite = !metadata.isFavorite;
+    await this.saveTemplateMetadata(templateId, metadata);
+  }
+
+  static async recordTemplateUsage(analytics: import('../types').TemplateUsageAnalytics): Promise<void> {
+    const { templateUsageAnalytics = [] } = await chrome.storage.local.get('templateUsageAnalytics');
+    templateUsageAnalytics.push(analytics);
+    
+    // Keep only last 500 analytics entries
+    const trimmed = templateUsageAnalytics.slice(-500);
+    await chrome.storage.local.set({ templateUsageAnalytics: trimmed });
+
+    // Update template metadata usage count
+    const metadata = await this.getTemplateMetadata(analytics.templateId) || {
+      id: analytics.templateId,
+      isFavorite: false,
+      usageCount: 0,
+    };
+    metadata.usageCount = (metadata.usageCount || 0) + 1;
+    metadata.lastUsed = analytics.timestamp;
+    metadata.industry = analytics.context?.industry;
+    await this.saveTemplateMetadata(analytics.templateId, metadata);
+  }
+
+  static async getTemplateUsageAnalytics(): Promise<import('../types').TemplateUsageAnalytics[]> {
+    const { templateUsageAnalytics = [] } = await chrome.storage.local.get('templateUsageAnalytics');
+    return templateUsageAnalytics.sort((a: import('../types').TemplateUsageAnalytics, b: import('../types').TemplateUsageAnalytics) => 
       new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
     );
   }
 
-  static async clearErrorLogs(): Promise<void> {
-    await chrome.storage.local.set({ errorLogs: [] });
+  static async saveCustomTemplate(template: import('../types').CustomTemplate): Promise<void> {
+    const { customTemplates = [] } = await chrome.storage.local.get('customTemplates');
+    const existingIndex = customTemplates.findIndex((t: import('../types').CustomTemplate) => t.id === template.id);
+
+    if (existingIndex >= 0) {
+      customTemplates[existingIndex] = { ...template, updatedAt: new Date().toISOString() };
+    } else {
+      customTemplates.push(template);
+    }
+
+    await chrome.storage.local.set({ customTemplates });
   }
 
-  static async markErrorResolved(errorId: string): Promise<void> {
-    const { errorLogs = [] } = await chrome.storage.local.get('errorLogs');
-    const error = errorLogs.find((e: import('../types').ErrorLog) => e.id === errorId);
+  static async getCustomTemplates(type?: 'cv' | 'cover-letter' | 'description'): Promise<import('../types').CustomTemplate[]> {
+    const { customTemplates = [] } = await chrome.storage.local.get('customTemplates');
+    return type 
+      ? customTemplates.filter((t: import('../types').CustomTemplate) => t.type === type)
+      : customTemplates;
+  }
+
+  static async deleteCustomTemplate(templateId: string): Promise<void> {
+    const { customTemplates = [] } = await chrome.storage.local.get('customTemplates');
+    const filtered = customTemplates.filter((t: import('../types').CustomTemplate) => t.id !== templateId);
+    await chrome.storage.local.set({ customTemplates: filtered });
+  }
+
+  // Template Ratings and Reviews
+  static async saveTemplateRating(rating: import('../types').TemplateRating): Promise<void> {
+    const { templateRatings = [] } = await chrome.storage.local.get('templateRatings');
+    const existingIndex = templateRatings.findIndex((r: import('../types').TemplateRating) => r.id === rating.id);
+
+    if (existingIndex >= 0) {
+      templateRatings[existingIndex] = { ...rating, updatedAt: new Date().toISOString() };
+    } else {
+      templateRatings.push(rating);
+    }
+
+    await chrome.storage.local.set({ templateRatings });
+  }
+
+  static async getTemplateRatings(templateId?: string): Promise<import('../types').TemplateRating[]> {
+    const { templateRatings = [] } = await chrome.storage.local.get('templateRatings');
+    return templateId 
+      ? templateRatings.filter((r: import('../types').TemplateRating) => r.templateId === templateId)
+      : templateRatings;
+  }
+
+  static async getAverageRating(templateId: string): Promise<{ average: number; count: number }> {
+    const ratings = await this.getTemplateRatings(templateId);
+    if (ratings.length === 0) return { average: 0, count: 0 };
     
-    if (error) {
-      error.resolved = true;
-      await chrome.storage.local.set({ errorLogs });
+    const sum = ratings.reduce((acc, r) => acc + r.rating, 0);
+    return {
+      average: sum / ratings.length,
+      count: ratings.length
+    };
+  }
+
+  static async saveTemplateReview(review: import('../types').TemplateReview): Promise<void> {
+    const { templateReviews = [] } = await chrome.storage.local.get('templateReviews');
+    const existingIndex = templateReviews.findIndex((r: import('../types').TemplateReview) => r.id === review.id);
+
+    if (existingIndex >= 0) {
+      templateReviews[existingIndex] = { ...review, updatedAt: new Date().toISOString() };
+    } else {
+      templateReviews.push(review);
+    }
+
+    await chrome.storage.local.set({ templateReviews });
+  }
+
+  static async getTemplateReviews(templateId?: string): Promise<import('../types').TemplateReview[]> {
+    const { templateReviews = [] } = await chrome.storage.local.get('templateReviews');
+    const filtered = templateId 
+      ? templateReviews.filter((r: import('../types').TemplateReview) => r.templateId === templateId)
+      : templateReviews;
+    
+    // Sort by helpful votes and date
+    return filtered.sort((a: import('../types').TemplateReview, b: import('../types').TemplateReview) => {
+      if (b.helpful !== a.helpful) return b.helpful - a.helpful;
+      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+    });
+  }
+
+  static async voteReviewHelpful(reviewId: string, helpful: boolean): Promise<void> {
+    const { templateReviews = [] } = await chrome.storage.local.get('templateReviews');
+    const review = templateReviews.find((r: import('../types').TemplateReview) => r.id === reviewId);
+    
+    if (review) {
+      if (helpful) {
+        review.helpful = (review.helpful || 0) + 1;
+      } else {
+        review.notHelpful = (review.notHelpful || 0) + 1;
+      }
+      await chrome.storage.local.set({ templateReviews });
     }
   }
 
-  static async getErrorAnalytics(): Promise<import('../types').ErrorAnalytics> {
-    const errorLogs = await this.getErrorLogs();
+  // Job Application Tracking
+  static async saveJobApplication(application: import('../types').JobApplication): Promise<void> {
+    const { jobApplications = [] } = await chrome.storage.local.get('jobApplications');
+    const existingIndex = jobApplications.findIndex((a: import('../types').JobApplication) => a.id === application.id);
+
+    if (existingIndex >= 0) {
+      jobApplications[existingIndex] = application;
+    } else {
+      jobApplications.push(application);
+    }
+
+    await chrome.storage.local.set({ jobApplications });
     
-    const totalErrors = errorLogs.length;
-    const errorsByType: Record<string, number> = {};
-    const errorsBySeverity: Record<string, number> = {};
-    const errorsByComponent: Record<string, number> = {};
-    const errorTrendsMap: Record<string, number> = {};
-    const errorGroups: Map<string, import('../types').ErrorGroup> = new Map();
+    // Update success metrics
+    await this.updateTemplateSuccessMetrics(application.templateId);
+  }
 
-    // Calculate time windows
-    const now = new Date();
-    const oneHourAgo = new Date(now.getTime() - 60 * 60 * 1000);
-    const oneDayAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
-    const oneWeekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+  static async getJobApplications(templateId?: string): Promise<import('../types').JobApplication[]> {
+    const { jobApplications = [] } = await chrome.storage.local.get('jobApplications');
+    return templateId 
+      ? jobApplications.filter((a: import('../types').JobApplication) => a.templateId === templateId)
+      : jobApplications;
+  }
 
-    let errorsLastHour = 0;
-    let errorsLastDay = 0;
-    let errorsLastWeek = 0;
+  static async updateJobApplicationStatus(
+    applicationId: string, 
+    status: import('../types').JobApplication['status']
+  ): Promise<void> {
+    const { jobApplications = [] } = await chrome.storage.local.get('jobApplications');
+    const application = jobApplications.find((a: import('../types').JobApplication) => a.id === applicationId);
+    
+    if (application) {
+      application.status = status;
+      application.statusDate = new Date().toISOString();
+      await chrome.storage.local.set({ jobApplications });
+      await this.updateTemplateSuccessMetrics(application.templateId);
+    }
+  }
 
-    let totalMemoryImpact = 0;
-    let totalLoadTimeImpact = 0;
-    let impactedOperations = 0;
+  static async updateTemplateSuccessMetrics(templateId: string): Promise<void> {
+    const applications = await this.getJobApplications(templateId);
+    
+    if (applications.length === 0) return;
 
-    errorLogs.forEach((error) => {
-      const errorTime = new Date(error.timestamp);
+    const interviews = applications.filter(a => 
+      ['interview', 'offer', 'accepted'].includes(a.status)
+    ).length;
+    
+    const offers = applications.filter(a => 
+      ['offer', 'accepted'].includes(a.status)
+    ).length;
+    
+    const accepted = applications.filter(a => a.status === 'accepted').length;
 
-      // Count by type
-      errorsByType[error.errorType] = (errorsByType[error.errorType] || 0) + 1;
-      
-      // Count by severity
-      errorsBySeverity[error.severity] = (errorsBySeverity[error.severity] || 0) + 1;
-      
-      // Count by component
-      if (error.component) {
-        errorsByComponent[error.component] = (errorsByComponent[error.component] || 0) + 1;
-      }
-      
-      // Count by date for trends
-      const date = new Date(error.timestamp).toISOString().split('T')[0];
-      errorTrendsMap[date] = (errorTrendsMap[date] || 0) + 1;
+    const industries = applications.reduce((acc, app) => {
+      acc[app.industry] = (acc[app.industry] || 0) + 1;
+      return acc;
+    }, {} as Record<string, number>);
 
-      // Error rate calculations
-      if (errorTime >= oneHourAgo) errorsLastHour++;
-      if (errorTime >= oneDayAgo) errorsLastDay++;
-      if (errorTime >= oneWeekAgo) errorsLastWeek++;
+    const companies = applications.reduce((acc, app) => {
+      acc[app.company] = (acc[app.company] || 0) + 1;
+      return acc;
+    }, {} as Record<string, number>);
 
-      // Performance impact
-      if (error.performanceImpact) {
-        if (error.performanceImpact.memoryUsage) {
-          totalMemoryImpact += error.performanceImpact.memoryUsage;
-        }
-        if (error.performanceImpact.loadTime) {
-          totalLoadTimeImpact += error.performanceImpact.loadTime;
-        }
-        impactedOperations++;
-      }
-
-      // Group errors
-      if (error.groupId) {
-        if (!errorGroups.has(error.groupId)) {
-          errorGroups.set(error.groupId, {
-            id: error.groupId,
-            message: error.message,
-            count: 0,
-            firstSeen: error.timestamp,
-            lastSeen: error.timestamp,
-            errorType: error.errorType,
-            severity: error.severity,
-            errors: [],
-          });
-        }
-
-        const group = errorGroups.get(error.groupId)!;
-        group.count++;
-        group.lastSeen = error.timestamp;
-        if (new Date(error.timestamp) < new Date(group.firstSeen)) {
-          group.firstSeen = error.timestamp;
-        }
-        // Only keep last 5 errors per group to save space
-        if (group.errors.length < 5) {
-          group.errors.push(error);
-        }
-      }
-    });
-
-    const errorTrends = Object.entries(errorTrendsMap)
-      .map(([date, count]) => ({ date, count }))
-      .sort((a, b) => a.date.localeCompare(b.date));
-
-    const groupedErrors = Array.from(errorGroups.values())
-      .sort((a, b) => b.count - a.count);
-
-    return {
-      totalErrors,
-      errorsByType,
-      errorsBySeverity,
-      errorsByComponent,
-      recentErrors: errorLogs.slice(0, 20),
-      errorTrends,
-      groupedErrors,
-      errorRate: {
-        lastHour: errorsLastHour,
-        lastDay: errorsLastDay,
-        lastWeek: errorsLastWeek,
-      },
-      performanceImpact: impactedOperations > 0 ? {
-        avgMemoryIncrease: totalMemoryImpact / impactedOperations,
-        avgLoadTimeIncrease: totalLoadTimeImpact / impactedOperations,
-        totalImpactedOperations: impactedOperations,
-      } : undefined,
+    const metrics: import('../types').TemplateSuccessMetrics = {
+      templateId,
+      totalApplications: applications.length,
+      interviewRate: (interviews / applications.length) * 100,
+      offerRate: (offers / applications.length) * 100,
+      acceptanceRate: (accepted / applications.length) * 100,
+      averageResponseTime: 0, // Calculate if needed
+      topIndustries: Object.entries(industries)
+        .sort(([, a], [, b]) => b - a)
+        .slice(0, 5)
+        .map(([ind]) => ind),
+      topCompanies: Object.entries(companies)
+        .sort(([, a], [, b]) => b - a)
+        .slice(0, 5)
+        .map(([comp]) => comp),
+      lastUpdated: new Date().toISOString()
     };
+
+    const { templateSuccessMetrics = {} } = await chrome.storage.local.get('templateSuccessMetrics');
+    templateSuccessMetrics[templateId] = metrics;
+    await chrome.storage.local.set({ templateSuccessMetrics });
+  }
+
+  static async getTemplateSuccessMetrics(templateId: string): Promise<import('../types').TemplateSuccessMetrics | null> {
+    const { templateSuccessMetrics = {} } = await chrome.storage.local.get('templateSuccessMetrics');
+    return templateSuccessMetrics[templateId] || null;
+  }
+
+  // Template Export/Import
+  static async exportCustomTemplates(templateIds?: string[]): Promise<string> {
+    const templates = await this.getCustomTemplates();
+    const toExport = templateIds 
+      ? templates.filter(t => templateIds.includes(t.id))
+      : templates;
+
+    const exportData = {
+      version: '1.0',
+      exportDate: new Date().toISOString(),
+      templates: toExport,
+      metadata: {
+        count: toExport.length,
+        types: [...new Set(toExport.map(t => t.type))]
+      }
+    };
+
+    return JSON.stringify(exportData, null, 2);
+  }
+
+  static async importCustomTemplates(jsonData: string): Promise<{ success: number; failed: number; errors: string[] }> {
+    try {
+      const importData = JSON.parse(jsonData);
+      
+      if (!importData.templates || !Array.isArray(importData.templates)) {
+        throw new Error('Invalid template data format');
+      }
+
+      const results = { success: 0, failed: 0, errors: [] as string[] };
+      
+      for (const template of importData.templates) {
+        try {
+          // Validate required fields
+          if (!template.name || !template.type || !template.content) {
+            throw new Error(`Invalid template: ${template.name || 'unnamed'}`);
+          }
+
+          // Generate new ID to avoid conflicts
+          const newTemplate = {
+            ...template,
+            id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString()
+          };
+
+          await this.saveCustomTemplate(newTemplate);
+          results.success++;
+        } catch (error) {
+          results.failed++;
+          results.errors.push(`${template.name}: ${error instanceof Error ? error.message : 'Unknown error'}`);
+        }
+      }
+
+      return results;
+    } catch (error) {
+      return {
+        success: 0,
+        failed: 1,
+        errors: [error instanceof Error ? error.message : 'Failed to parse import data']
+      };
+    }
+  }
+
+  // Template Folders
+  static async saveTemplateFolder(folder: import('../types').TemplateFolder): Promise<void> {
+    const { templateFolders = [] } = await chrome.storage.local.get('templateFolders');
+    const existingIndex = templateFolders.findIndex((f: import('../types').TemplateFolder) => f.id === folder.id);
+
+    if (existingIndex >= 0) {
+      templateFolders[existingIndex] = { ...folder, updatedAt: new Date().toISOString() };
+    } else {
+      templateFolders.push(folder);
+    }
+
+    await chrome.storage.local.set({ templateFolders });
+  }
+
+  static async getTemplateFolders(): Promise<import('../types').TemplateFolder[]> {
+    const { templateFolders = [] } = await chrome.storage.local.get('templateFolders');
+    return templateFolders.sort((a: import('../types').TemplateFolder, b: import('../types').TemplateFolder) => a.order - b.order);
+  }
+
+  static async deleteTemplateFolder(folderId: string): Promise<void> {
+    const { templateFolders = [] } = await chrome.storage.local.get('templateFolders');
+    const filtered = templateFolders.filter((f: import('../types').TemplateFolder) => f.id !== folderId);
+    await chrome.storage.local.set({ templateFolders: filtered });
+
+    // Remove folder reference from templates
+    const templates = await this.getCustomTemplates();
+    const updated = templates.map(t => {
+      if (t.folderId === folderId) {
+        return { ...t, folderId: undefined };
+      }
+      return t;
+    });
+    
+    await chrome.storage.local.set({ customTemplates: updated });
+  }
+
+  // Template Categories
+  static async saveTemplateCategory(category: import('../types').TemplateCategory): Promise<void> {
+    const { templateCategories = [] } = await chrome.storage.local.get('templateCategories');
+    const existingIndex = templateCategories.findIndex((c: import('../types').TemplateCategory) => c.id === category.id);
+
+    if (existingIndex >= 0) {
+      templateCategories[existingIndex] = { ...category, updatedAt: new Date().toISOString() };
+    } else {
+      templateCategories.push(category);
+    }
+
+    await chrome.storage.local.set({ templateCategories });
+  }
+
+  static async getTemplateCategories(): Promise<import('../types').TemplateCategory[]> {
+    const { templateCategories = [] } = await chrome.storage.local.get('templateCategories');
+    return templateCategories;
+  }
+
+  static async deleteTemplateCategory(categoryId: string): Promise<void> {
+    const { templateCategories = [] } = await chrome.storage.local.get('templateCategories');
+    const filtered = templateCategories.filter((c: import('../types').TemplateCategory) => c.id !== categoryId);
+    await chrome.storage.local.set({ templateCategories: filtered });
+  }
+
+  // Enhanced Analytics
+  static async getAnalyticsByDateRange(
+    dateRange: import('../types').AnalyticsDateRange
+  ): Promise<import('../types').TemplateUsageAnalytics[]> {
+    const allAnalytics = await this.getTemplateUsageAnalytics();
+    const start = new Date(dateRange.start).getTime();
+    const end = new Date(dateRange.end).getTime();
+
+    return allAnalytics.filter(a => {
+      const timestamp = new Date(a.timestamp).getTime();
+      return timestamp >= start && timestamp <= end;
+    });
+  }
+
+  static async exportAnalytics(options: import('../types').AnalyticsExportOptions): Promise<string> {
+    const analytics = await this.getAnalyticsByDateRange(options.dateRange);
+    const metadata = await this.getAllTemplatesMetadata();
+    
+    if (options.format === 'json') {
+      return JSON.stringify({
+        dateRange: options.dateRange,
+        exportDate: new Date().toISOString(),
+        analytics,
+        metadata,
+        summary: {
+          totalUsage: analytics.length,
+          uniqueTemplates: new Set(analytics.map(a => a.templateId)).size,
+          dateRange: options.dateRange
+        }
+      }, null, 2);
+    } else if (options.format === 'csv') {
+      const headers = ['Date', 'Template ID', 'Template Type', 'Industry', 'Job Title', 'Section'];
+      const rows = analytics.map(a => [
+        new Date(a.timestamp).toLocaleString(),
+        a.templateId,
+        a.templateType,
+        a.context?.industry || '',
+        a.context?.jobTitle || '',
+        a.context?.section || ''
+      ]);
+      
+      return [headers, ...rows].map(row => row.join(',')).join('\n');
+    }
+    
+    return JSON.stringify(analytics);
   }
 }
