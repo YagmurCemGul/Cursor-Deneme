@@ -17,6 +17,13 @@ import { BackupManager } from '../components/BackupManager';
 import { JobRecommendations } from '../components/JobRecommendations';
 import { JobMatchAnalyzer } from '../components/JobMatchAnalyzer';
 import { AIChat } from '../components/AIChat';
+import { ResumeAnalyticsDashboard } from '../components/ResumeAnalyticsDashboard';
+import { InterviewPrepUI } from '../components/InterviewPrepUI';
+import { SalaryNegotiationUI } from '../components/SalaryNegotiationUI';
+import { CareerPathVisualizer } from '../components/CareerPathVisualizer';
+import { OnboardingWizard } from '../components/OnboardingWizard';
+import { TipsBanner } from '../components/TipsBanner';
+import { StatsDashboard } from '../components/StatsDashboard';
 import { TemplateType, TemplateColors, TemplateFonts } from '../lib/templates';
 import { exportToPDF, exportToImage, printCV, generatePDFFilename } from '../lib/pdfExport';
 import { calculateATSScore, ATSScore } from '../lib/atsScoring';
@@ -27,8 +34,10 @@ import { performAutoBackupIfDue } from '../lib/cloudBackup';
 import { INDUSTRY_PROMPTS, getIndustriesByCategory, suggestIndustry } from '../lib/promptLibrary';
 import '../styles/global.css';
 
+type TabId = 'cv' | 'job' | 'preview' | 'downloads' | 'cover' | 'settings' | 'tracker' | 'recommendations' | 'ai-coach' | 'analytics' | 'interview' | 'salary' | 'career' | 'stats';
+
 export function NewTab() {
-  const [active, setActive] = useState<'cv' | 'job' | 'preview' | 'downloads' | 'cover' | 'settings' | 'tracker' | 'recommendations' | 'ai-coach'>('cv');
+  const [active, setActive] = useState<TabId>('cv');
   const [profile, setProfile] = useState<ResumeProfile | undefined>();
   const [job, setJob] = useState<JobPost>({ id: crypto.randomUUID(), pastedText: '' });
   const [resumeMd, setResumeMd] = useState<string>('');
@@ -75,6 +84,7 @@ export function NewTab() {
   const [selectedIndustry, setSelectedIndustry] = useState<string>('generic-professional');
   const [showAIChat, setShowAIChat] = useState(false);
   const [showModelSelector, setShowModelSelector] = useState(false);
+  const [showOnboarding, setShowOnboarding] = useState(false);
 
   useEffect(() => {
     (async () => {
@@ -97,6 +107,12 @@ export function NewTab() {
       if (googleAvailable && profiles.length > 0) {
         const activeProf = await getActiveProfile();
         await performAutoBackupIfDue(profiles, apps, activeProf?.id);
+      }
+      
+      // Check if onboarding is needed (first visit)
+      const hasSeenOnboarding = await storage.get<boolean>('onboarding_completed');
+      if (!hasSeenOnboarding && !profiles.length) {
+        setTimeout(() => setShowOnboarding(true), 1000);
       }
       
       // Check for pending job application from context menu
@@ -872,6 +888,11 @@ Make it compelling, highlight key strengths, and use action-oriented language.`;
             <TabButton id="recommendations" active={active} setActive={id => setActive(id as any)}>🎯 Job Matches</TabButton>
             <TabButton id="tracker" active={active} setActive={id => setActive(id as any)}>📚 Job Tracker</TabButton>
             <TabButton id="ai-coach" active={active} setActive={id => setActive(id as any)}>💬 AI Coach</TabButton>
+            <TabButton id="analytics" active={active} setActive={id => setActive(id as any)}>📊 Analytics</TabButton>
+            <TabButton id="interview" active={active} setActive={id => setActive(id as any)}>🎤 Interview</TabButton>
+            <TabButton id="salary" active={active} setActive={id => setActive(id as any)}>💰 Salary</TabButton>
+            <TabButton id="career" active={active} setActive={id => setActive(id as any)}>🚀 Career</TabButton>
+            <TabButton id="stats" active={active} setActive={id => setActive(id as any)}>📈 Stats</TabButton>
             <TabButton id="downloads" active={active} setActive={id => setActive(id as any)}>⬇️ Downloads</TabButton>
             <TabButton id="settings" active={active} setActive={id => setActive(id as any)}>⚙️ Settings</TabButton>
           </div>
@@ -887,6 +908,13 @@ Make it compelling, highlight key strengths, and use action-oriented language.`;
                 borderRight: showPreview ? '1px solid #e5e7eb' : 'none',
                 transition: 'flex 0.3s ease'
               }}>
+                {/* Tips Banner */}
+                {profile && (
+                  <div style={{ marginBottom: 20 }}>
+                    <TipsBanner profile={profile} job={job} context="cv" />
+                  </div>
+                )}
+                
                 {/* Preview Toggle Button */}
                 <div style={{ marginBottom: 16, display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 8 }}>
                   <div style={{ display: 'flex', gap: 8 }}>
@@ -2207,6 +2235,153 @@ Make it compelling, highlight key strengths, and use action-oriented language.`;
               </div>
             )}
 
+            {/* Analytics Tab */}
+            {active === 'analytics' && (
+              <div style={{ padding: 32 }}>
+                {!profile ? (
+                  <div style={{
+                    textAlign: 'center',
+                    padding: '60px 20px',
+                    background: 'linear-gradient(135deg, #667eea15 0%, #764ba215 100%)',
+                    borderRadius: 16,
+                    border: '2px dashed #667eea'
+                  }}>
+                    <div style={{ fontSize: 48, marginBottom: 16 }}>📊</div>
+                    <h3 style={{ margin: '0 0 8px', fontSize: 20, color: '#1e293b' }}>
+                      Resume Analytics
+                    </h3>
+                    <p style={{ margin: 0, color: '#64748b', fontSize: 14 }}>
+                      Please fill in your CV profile first to see analytics.
+                    </p>
+                    <div style={{ marginTop: 20 }}>
+                      <Button variant="primary" onClick={() => setActive('cv')}>
+                        → Go to CV Profile
+                      </Button>
+                    </div>
+                  </div>
+                ) : (
+                  <>
+                    <TipsBanner profile={profile} job={job} context="analytics" />
+                    <div style={{ marginTop: 20 }}>
+                      <ResumeAnalyticsDashboard profile={profile} job={job} />
+                    </div>
+                  </>
+                )}
+              </div>
+            )}
+
+            {/* Interview Prep Tab */}
+            {active === 'interview' && (
+              <div style={{ padding: 32 }}>
+                {!profile || !job.pastedText ? (
+                  <div style={{
+                    textAlign: 'center',
+                    padding: '60px 20px',
+                    background: 'linear-gradient(135deg, #667eea15 0%, #764ba215 100%)',
+                    borderRadius: 16,
+                    border: '2px dashed #667eea'
+                  }}>
+                    <div style={{ fontSize: 48, marginBottom: 16 }}>🎤</div>
+                    <h3 style={{ margin: '0 0 8px', fontSize: 20, color: '#1e293b' }}>
+                      Interview Preparation
+                    </h3>
+                    <p style={{ margin: 0, color: '#64748b', fontSize: 14 }}>
+                      {!profile ? 'Please fill in your CV profile first.' : 'Please add a job description to prepare for interviews.'}
+                    </p>
+                    <div style={{ marginTop: 20 }}>
+                      <Button variant="primary" onClick={() => setActive(!profile ? 'cv' : 'job')}>
+                        {!profile ? '→ Go to CV Profile' : '→ Add Job Description'}
+                      </Button>
+                    </div>
+                  </div>
+                ) : (
+                  <>
+                    <TipsBanner profile={profile} job={job} context="interview" />
+                    <div style={{ marginTop: 20 }}>
+                      <InterviewPrepUI profile={profile} job={job} />
+                    </div>
+                  </>
+                )}
+              </div>
+            )}
+
+            {/* Salary Negotiation Tab */}
+            {active === 'salary' && (
+              <div style={{ padding: 32 }}>
+                {!profile || !job.pastedText ? (
+                  <div style={{
+                    textAlign: 'center',
+                    padding: '60px 20px',
+                    background: 'linear-gradient(135deg, #10b98115 0%, #05966915 100%)',
+                    borderRadius: 16,
+                    border: '2px dashed #10b981'
+                  }}>
+                    <div style={{ fontSize: 48, marginBottom: 16 }}>💰</div>
+                    <h3 style={{ margin: '0 0 8px', fontSize: 20, color: '#1e293b' }}>
+                      Salary Negotiation
+                    </h3>
+                    <p style={{ margin: 0, color: '#64748b', fontSize: 14 }}>
+                      {!profile ? 'Please fill in your CV profile first.' : 'Please add a job description to research salary.'}
+                    </p>
+                    <div style={{ marginTop: 20 }}>
+                      <Button variant="primary" onClick={() => setActive(!profile ? 'cv' : 'job')}>
+                        {!profile ? '→ Go to CV Profile' : '→ Add Job Description'}
+                      </Button>
+                    </div>
+                  </div>
+                ) : (
+                  <>
+                    <TipsBanner profile={profile} job={job} context="salary" />
+                    <div style={{ marginTop: 20 }}>
+                      <SalaryNegotiationUI profile={profile} job={job} />
+                    </div>
+                  </>
+                )}
+              </div>
+            )}
+
+            {/* Career Path Tab */}
+            {active === 'career' && (
+              <div style={{ padding: 32 }}>
+                {!profile ? (
+                  <div style={{
+                    textAlign: 'center',
+                    padding: '60px 20px',
+                    background: 'linear-gradient(135deg, #8b5cf615 0%, #7c3aed15 100%)',
+                    borderRadius: 16,
+                    border: '2px dashed #8b5cf6'
+                  }}>
+                    <div style={{ fontSize: 48, marginBottom: 16 }}>🚀</div>
+                    <h3 style={{ margin: '0 0 8px', fontSize: 20, color: '#1e293b' }}>
+                      Career Path Planning
+                    </h3>
+                    <p style={{ margin: 0, color: '#64748b', fontSize: 14 }}>
+                      Please fill in your CV profile first to see career paths.
+                    </p>
+                    <div style={{ marginTop: 20 }}>
+                      <Button variant="primary" onClick={() => setActive('cv')}>
+                        → Go to CV Profile
+                      </Button>
+                    </div>
+                  </div>
+                ) : (
+                  <>
+                    <TipsBanner profile={profile} context="career" />
+                    <div style={{ marginTop: 20 }}>
+                      <CareerPathVisualizer profile={profile} />
+                    </div>
+                  </>
+                )}
+              </div>
+            )}
+
+            {/* Stats Tab */}
+            {active === 'stats' && (
+              <div style={{ padding: 32 }}>
+                <StatsDashboard />
+              </div>
+            )}
+
             {active === 'tracker' && (
               <JobTracker />
             )}
@@ -2475,6 +2650,14 @@ Make it compelling, highlight key strengths, and use action-oriented language.`;
         {/* Model Selector Modal */}
         {showModelSelector && (
           <ModelSelector onClose={() => setShowModelSelector(false)} />
+        )}
+
+        {/* Onboarding Wizard */}
+        {showOnboarding && (
+          <OnboardingWizard
+            onComplete={() => setShowOnboarding(false)}
+            onSkip={() => setShowOnboarding(false)}
+          />
         )}
 
         {/* Footer */}
