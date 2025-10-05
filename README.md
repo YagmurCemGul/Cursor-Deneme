@@ -247,6 +247,9 @@ ai-cv-optimizer/
 ✅ **File Management in Google Drive**
 ✅ **OAuth2 Authentication**
 ✅ **Multi-format Export Support**
+✅ **Automatic Client ID Validation** 🆕
+✅ **Google Cloud Console API Integration** 🆕
+✅ **Video Setup Guide** 🆕
 
 ## 🎨 UI Components
 
@@ -268,6 +271,28 @@ ai-cv-optimizer/
 - Real-time updates
 - Print-friendly layout
 
+## ☁️ Google Cloud Setup
+
+### Quick Setup Guide
+
+To use Google Drive integration features, follow these steps:
+
+1. **📹 [Complete Video Setup Guide](VIDEO_SETUP_GUIDE.md)** - Step-by-step visual guide with timestamps
+2. **🚀 [Quick Start Guide](QUICK_START_GOOGLE_DRIVE.md)** - Fast setup instructions
+3. **📖 [Detailed Integration Guide](GOOGLE_DRIVE_INTEGRATION.md)** - Comprehensive documentation
+
+### ✨ New: Automatic Client ID Validation
+
+The extension now includes **automatic Client ID validation** that verifies your Google Cloud configuration:
+
+- ✅ One-click validation
+- ✅ Real-time API testing
+- ✅ Detailed error messages
+- ✅ No sign-in required
+- ✅ Instant feedback
+
+Simply navigate to **Google Drive Settings** → **Automatic Client ID Validation** and click **"Validate Client ID"** to verify your setup!
+
 ## 🔒 Privacy & Security
 
 - All data stored locally in Chrome storage
@@ -276,6 +301,7 @@ ai-cv-optimizer/
 - Export and delete data anytime
 - Google Drive integration uses OAuth2 for secure authentication
 - Only requested permissions are used (drive.file, documents, spreadsheets, presentations)
+- Client ID validation uses non-interactive API calls (no credentials required)
 
 ## 🤝 Contributing
 

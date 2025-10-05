@@ -215,7 +215,7 @@ export const FallbackSettings: React.FC<FallbackSettingsProps> = ({ language, on
                       {language === 'en' ? 'Priority' : 'Öncelik'} #{index + 1}
                     </div>
                   </div>
-                  <div style={{ fontSize: '20px', opacity: 0.3' }}>⋮⋮</div>
+                  <div style={{ fontSize: '20px', opacity: 0.3 }}>⋮⋮</div>
                 </div>
               </div>
             ))}

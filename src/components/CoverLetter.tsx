@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { CVData, SavedPrompt } from '../types';
 import { DocumentGenerator } from '../utils/documentGenerator';
 import { GoogleDriveService } from '../utils/googleDriveService';
@@ -11,6 +11,14 @@ import {
   getCoverLetterTemplateDescriptionKey,
   getCoverLetterFeatureI18nKey,
 } from '../data/coverLetterTemplates';
+import {
+  AdvancedCoverLetterService,
+  CoverLetterOptions,
+  CoverLetterVersion,
+  UserEdit,
+} from '../utils/advancedCoverLetterService';
+import { AdvancedCoverLetterSettings } from './AdvancedCoverLetterSettings';
+import { CoverLetterVersions } from './CoverLetterVersions';
 
 interface CoverLetterProps {
   cvData: CVData;
@@ -38,10 +46,34 @@ export const CoverLetter: React.FC<CoverLetterProps> = ({
   const [selectedTemplateId, setSelectedTemplateId] = useState<string>('classic');
   const [showTemplateSelector, setShowTemplateSelector] = useState(false);
   const [isExportingToGoogle, setIsExportingToGoogle] = useState(false);
+  
+  // Advanced features state
+  const [showAdvancedSettings, setShowAdvancedSettings] = useState(false);
+  const [advancedOptions, setAdvancedOptions] = useState<CoverLetterOptions>({
+    language: language === 'tr' ? 'tr' : 'en',
+    industry: 'general',
+    tone: 'professional',
+    emphasizeQuantification: true,
+    includeCallToAction: true,
+    maxLength: 350,
+  });
+  const [versions, setVersions] = useState<CoverLetterVersion[]>([]);
+  const [showVersions, setShowVersions] = useState(false);
+  const [isGeneratingVersions, setIsGeneratingVersions] = useState(false);
+  const [advancedService] = useState(() => new AdvancedCoverLetterService(null));
 
-  React.useEffect(() => {
+  useEffect(() => {
     loadPrompts();
+    advancedService.loadLearningData();
   }, []);
+
+  useEffect(() => {
+    // Update language when app language changes
+    setAdvancedOptions(prev => ({
+      ...prev,
+      language: language === 'tr' ? 'tr' : 'en',
+    }));
+  }, [language]);
 
   const loadPrompts = async () => {
     const prompts = await StorageService.getPrompts();
@@ -131,6 +163,47 @@ export const CoverLetter: React.FC<CoverLetterProps> = ({
     }
   };
 
+  const handleGenerateVersions = async () => {
+    if (!jobDescription || isGeneratingVersions) return;
+
+    setIsGeneratingVersions(true);
+    try {
+      logger.info('Generating multiple cover letter versions');
+      const generatedVersions = await advancedService.generateMultipleVersions(
+        cvData,
+        jobDescription,
+        advancedOptions,
+        3
+      );
+      setVersions(generatedVersions);
+      setShowVersions(true);
+      
+      // Select the first version
+      if (generatedVersions.length > 0) {
+        onGenerate(generatedVersions[0].content);
+      }
+    } catch (error: any) {
+      logger.error('Error generating versions:', error);
+      alert(error.message || t(language, 'common.errorGeneratingDoc'));
+    } finally {
+      setIsGeneratingVersions(false);
+    }
+  };
+
+  const handleSelectVersion = (version: CoverLetterVersion) => {
+    onGenerate(version.content);
+  };
+
+  const handleRecordEdit = (edit: UserEdit) => {
+    advancedService.recordUserEdit(edit);
+  };
+
+  const handleAdvancedOptionsChange = (options: CoverLetterOptions) => {
+    setAdvancedOptions(options);
+    // Store in local storage for persistence
+    chrome.storage.local.set({ advancedCoverLetterOptions: options });
+  };
+
   const folders = [t(language, 'common.all'), ...new Set(savedPrompts.map((p) => p.folder))];
   const filteredPrompts =
     selectedFolder === t(language, 'common.all')
@@ -160,11 +233,46 @@ export const CoverLetter: React.FC<CoverLetterProps> = ({
               ? `⏳ ${t(language, 'cover.generating')}`
               : `✨ ${t(language, 'cover.generate')}`}
           </button>
+          <button 
+            className="btn btn-success" 
+            onClick={handleGenerateVersions}
+            disabled={isGeneratingVersions || !jobDescription}
+          >
+            {isGeneratingVersions
+              ? `⏳ ${t(language, 'advancedCoverLetter.generating')}`
+              : `🎯 ${t(language, 'advancedCoverLetter.generateVersions')}`}
+          </button>
+          <button 
+            className="btn btn-secondary" 
+            onClick={() => setShowAdvancedSettings(true)}
+          >
+            ⚙️ {t(language, 'advancedCoverLetter.openSettings')}
+          </button>
           <button className="btn btn-secondary" onClick={() => setShowSavePrompt(!showSavePrompt)}>
             💾 {t(language, 'cover.savePrompt')}
           </button>
         </div>
       </div>
+
+      {/* Advanced Settings Modal */}
+      {showAdvancedSettings && (
+        <AdvancedCoverLetterSettings
+          language={language}
+          options={advancedOptions}
+          onOptionsChange={handleAdvancedOptionsChange}
+          onClose={() => setShowAdvancedSettings(false)}
+        />
+      )}
+
+      {/* Versions Display */}
+      {showVersions && versions.length > 0 && (
+        <CoverLetterVersions
+          language={language}
+          versions={versions}
+          onSelectVersion={handleSelectVersion}
+          onRecordEdit={handleRecordEdit}
+        />
+      )}
 
       {/* Save Prompt Dialog */}
       {showSavePrompt && (

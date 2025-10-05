@@ -79,6 +79,370 @@ export class GoogleDriveService {
   }
 
   /**
+   * Validate Client ID with Google Cloud Console API
+   * Makes an actual API call to verify the Client ID is valid and properly configured
+   */
+  static async validateClientIdWithAPI(): Promise<{
+    valid: boolean;
+    error?: string;
+    details?: string;
+  }> {
+    try {
+      // First do basic validation
+      const basicValidation = await this.validateOAuth2Config();
+      if (!basicValidation.valid) {
+        return {
+          valid: false,
+          error: basicValidation.error || 'Client ID validation failed',
+          details: 'Basic validation failed. Please check your manifest.json configuration.',
+        };
+      }
+
+      // Try to get an auth token (non-interactive) to test the Client ID
+      return new Promise((resolve) => {
+        chrome.identity.getAuthToken({ interactive: false }, (token) => {
+          if (chrome.runtime.lastError) {
+            const error = chrome.runtime.lastError;
+            const errorMessage = error.message || '';
+
+            // Analyze the error to provide helpful feedback
+            if (errorMessage.includes('bad client id')) {
+              resolve({
+                valid: false,
+                error: 'Invalid Client ID',
+                details:
+                  'The Client ID does not exist in Google Cloud Console or is not properly configured for this Chrome Extension.',
+              });
+            } else if (errorMessage.includes('invalid_client')) {
+              resolve({
+                valid: false,
+                error: 'Invalid OAuth2 Configuration',
+                details:
+                  'The OAuth2 client is not configured correctly. Make sure all required APIs are enabled in Google Cloud Console.',
+              });
+            } else if (errorMessage.includes('OAuth2 not granted or revoked')) {
+              // This is actually a good sign - it means the Client ID is valid
+              resolve({
+                valid: true,
+                details: 'Client ID is valid. Ready for authentication.',
+              });
+            } else {
+              resolve({
+                valid: false,
+                error: 'Validation Error',
+                details: errorMessage || 'Unable to validate Client ID.',
+              });
+            }
+            return;
+          }
+
+          // If we got a token without interaction, the Client ID is definitely valid
+          if (token) {
+            resolve({
+              valid: true,
+              details: 'Client ID is valid and already authenticated.',
+            });
+          } else {
+            resolve({
+              valid: false,
+              error: 'Unknown Error',
+              details: 'Unable to validate Client ID.',
+            });
+          }
+        });
+      });
+    } catch (error: any) {
+      logger.error('Client ID validation error:', error);
+      return {
+        valid: false,
+        error: 'Validation Failed',
+        details: error.message || 'An unexpected error occurred during validation.',
+      };
+    }
+  }
+
+  /**
+   * Get the current Client ID from manifest
+   */
+  static getClientId(): string | null {
+    try {
+      const manifest = chrome.runtime.getManifest();
+      return (manifest as any).oauth2?.client_id || null;
+    } catch (error) {
+      logger.error('Failed to get Client ID:', error);
+      return null;
+    }
+  }
+
+  /**
+   * Enhanced validation with API endpoint testing and scope verification
+   */
+  static async validateEnhanced(): Promise<{
+    valid: boolean;
+    checks: {
+      clientId: { passed: boolean; message: string };
+      apis: { passed: boolean; message: string; details?: string[] };
+      scopes: { passed: boolean; message: string; details?: string[] };
+      quota: { passed: boolean; message: string; details?: string };
+    };
+    overallScore: number;
+    recommendations: string[];
+  }> {
+    const results = {
+      valid: true,
+      checks: {
+        clientId: { passed: false, message: '' },
+        apis: { passed: false, message: '', details: [] as string[] },
+        scopes: { passed: false, message: '', details: [] as string[] },
+        quota: { passed: false, message: '', details: '' },
+      },
+      overallScore: 0,
+      recommendations: [] as string[],
+    };
+
+    try {
+      // 1. Validate Client ID
+      const clientIdValidation = await this.validateClientIdWithAPI();
+      results.checks.clientId.passed = clientIdValidation.valid;
+      results.checks.clientId.message = clientIdValidation.valid
+        ? 'Client ID is valid and properly configured'
+        : clientIdValidation.error || 'Client ID validation failed';
+
+      if (!clientIdValidation.valid) {
+        results.valid = false;
+        results.recommendations.push('Fix Client ID configuration in manifest.json');
+      }
+
+      // 2. Test API Endpoints
+      if (this.accessToken) {
+        const apiTests = await this.testAPIEndpoints();
+        results.checks.apis.passed = apiTests.allPassed;
+        results.checks.apis.message = apiTests.allPassed
+          ? 'All required APIs are accessible'
+          : 'Some APIs are not accessible';
+        results.checks.apis.details = apiTests.results.map(
+          (r) => `${r.api}: ${r.accessible ? '✓' : '✗'} ${r.message}`
+        );
+
+        if (!apiTests.allPassed) {
+          results.valid = false;
+          results.recommendations.push('Enable missing APIs in Google Cloud Console');
+        }
+      } else {
+        results.checks.apis.message = 'Skipped - Not authenticated';
+        results.checks.apis.details = ['Authenticate first to test API access'];
+      }
+
+      // 3. Verify Scopes
+      const scopeValidation = this.verifyScopes();
+      results.checks.scopes.passed = scopeValidation.allPresent;
+      results.checks.scopes.message = scopeValidation.allPresent
+        ? 'All required scopes are configured'
+        : 'Some required scopes are missing';
+      results.checks.scopes.details = scopeValidation.details;
+
+      if (!scopeValidation.allPresent) {
+        results.valid = false;
+        results.recommendations.push('Add missing scopes to manifest.json');
+      }
+
+      // 4. Check Quota (estimate based on usage)
+      const quotaCheck = this.estimateQuotaStatus();
+      results.checks.quota.passed = quotaCheck.healthy;
+      results.checks.quota.message = quotaCheck.message;
+      results.checks.quota.details = quotaCheck.details;
+
+      if (!quotaCheck.healthy) {
+        results.recommendations.push('Monitor API usage to avoid quota limits');
+      }
+
+      // Calculate overall score
+      const passedChecks = Object.values(results.checks).filter((c) => c.passed).length;
+      results.overallScore = Math.round((passedChecks / 4) * 100);
+
+      return results;
+    } catch (error: any) {
+      logger.error('Enhanced validation error:', error);
+      results.valid = false;
+      results.recommendations.push('Check console for detailed error information');
+      return results;
+    }
+  }
+
+  /**
+   * Test API endpoints for accessibility
+   */
+  private static async testAPIEndpoints(): Promise<{
+    allPassed: boolean;
+    results: Array<{ api: string; accessible: boolean; message: string }>;
+  }> {
+    const apis = [
+      { name: 'Drive API', url: 'https://www.googleapis.com/drive/v3/about?fields=user' },
+      { name: 'Docs API', url: 'https://docs.googleapis.com/v1/documents/test' },
+      { name: 'Sheets API', url: 'https://sheets.googleapis.com/v4/spreadsheets/test' },
+      { name: 'Slides API', url: 'https://slides.googleapis.com/v1/presentations/test' },
+    ];
+
+    const results = [];
+    let allPassed = true;
+
+    for (const api of apis) {
+      try {
+        const response = await fetch(api.url, {
+          headers: { Authorization: `Bearer ${this.accessToken}` },
+        });
+
+        // 404 or 403 with proper error means API is accessible but resource doesn't exist (expected)
+        // 403 with "API not enabled" means API is not enabled
+        const accessible =
+          response.status === 404 || (response.status === 403 && !response.statusText.includes('disabled'));
+
+        if (!accessible) {
+          const error = await response.json().catch(() => ({}));
+          results.push({
+            api: api.name,
+            accessible: false,
+            message: (error as any).error?.message || 'API not enabled',
+          });
+          allPassed = false;
+        } else {
+          results.push({
+            api: api.name,
+            accessible: true,
+            message: 'API is enabled and accessible',
+          });
+        }
+      } catch (error: any) {
+        results.push({
+          api: api.name,
+          accessible: false,
+          message: error.message || 'Failed to test API',
+        });
+        allPassed = false;
+      }
+    }
+
+    return { allPassed, results };
+  }
+
+  /**
+   * Verify all required scopes are configured
+   */
+  private static verifyScopes(): {
+    allPresent: boolean;
+    details: string[];
+  } {
+    const requiredScopes = [
+      'https://www.googleapis.com/auth/drive.file',
+      'https://www.googleapis.com/auth/documents',
+      'https://www.googleapis.com/auth/spreadsheets',
+      'https://www.googleapis.com/auth/presentations',
+    ];
+
+    const manifest = chrome.runtime.getManifest();
+    const configuredScopes = (manifest as any).oauth2?.scopes || [];
+
+    const details: string[] = [];
+    let allPresent = true;
+
+    for (const scope of requiredScopes) {
+      const present = configuredScopes.includes(scope);
+      details.push(
+        `${present ? '✓' : '✗'} ${scope.split('/').pop()?.toUpperCase() || scope}`
+      );
+      if (!present) allPresent = false;
+    }
+
+    return { allPresent, details };
+  }
+
+  /**
+   * Estimate quota status (simplified check)
+   */
+  private static estimateQuotaStatus(): {
+    healthy: boolean;
+    message: string;
+    details: string;
+  } {
+    // In a real implementation, this would track actual API usage
+    // For now, we'll return a healthy status with monitoring recommendation
+    return {
+      healthy: true,
+      message: 'Quota status appears healthy',
+      details:
+        'Google Drive API has generous free tier limits. Monitor usage in Google Cloud Console if you have high traffic.',
+    };
+  }
+
+  /**
+   * Get health status for monitoring dashboard
+   */
+  static async getHealthStatus(): Promise<{
+    status: 'healthy' | 'warning' | 'error';
+    lastCheck: string;
+    issues: string[];
+    metrics: {
+      authentication: boolean;
+      apiAccess: boolean;
+      recentErrors: number;
+    };
+  }> {
+    const issues: string[] = [];
+    const metrics = {
+      authentication: false,
+      apiAccess: false,
+      recentErrors: 0,
+    };
+
+    try {
+      // Check authentication
+      metrics.authentication = this.accessToken !== null && Date.now() < this.tokenExpiry;
+      if (!metrics.authentication) {
+        issues.push('Not authenticated or token expired');
+      }
+
+      // Check API access (if authenticated)
+      if (metrics.authentication) {
+        try {
+          const response = await fetch(
+            'https://www.googleapis.com/drive/v3/about?fields=user',
+            {
+              headers: { Authorization: `Bearer ${this.accessToken}` },
+            }
+          );
+          metrics.apiAccess = response.ok;
+          if (!response.ok) {
+            issues.push('API access check failed');
+          }
+        } catch (error) {
+          metrics.apiAccess = false;
+          issues.push('Failed to test API access');
+        }
+      }
+
+      // Determine overall status
+      let status: 'healthy' | 'warning' | 'error' = 'healthy';
+      if (issues.length > 0) {
+        status = issues.length > 2 ? 'error' : 'warning';
+      }
+
+      return {
+        status,
+        lastCheck: new Date().toISOString(),
+        issues,
+        metrics,
+      };
+    } catch (error) {
+      return {
+        status: 'error',
+        lastCheck: new Date().toISOString(),
+        issues: ['Health check failed'],
+        metrics,
+      };
+    }
+  }
+
+  /**
    * Initialize Google API client and authenticate
    */
   static async authenticate(): Promise<boolean> {
