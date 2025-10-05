@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { ResumeProfile, JobPost, AtsOptimization } from '../lib/types';
-import { getActiveProfile, loadOptimizations, saveJobPost } from '../lib/storage';
+import { getActiveProfile, loadOptimizations, saveJobPost, saveGeneratedResume, saveGeneratedCoverLetter } from '../lib/storage';
 import { generateAtsResume, generateCoverLetter } from '../lib/ai';
 import { Button } from '../components/ui';
 import '../styles/global.css';
@@ -29,7 +29,9 @@ export function Popup() {
     setIsGenerating(true);
     setStatus('⏳ Generating ATS-optimized resume...');
     try {
-      await generateAtsResume(profile, job);
+      const result = await generateAtsResume(profile, job);
+      await saveGeneratedResume(result.text);
+      await saveJobPost(job);
       setStatus('✅ Resume generated! Open new tab to view.');
       setTimeout(() => chrome.tabs.create({ url: chrome.runtime.getURL('newtab.html') }), 500);
     } catch (error) {
@@ -47,7 +49,9 @@ export function Popup() {
     setIsGenerating(true);
     setStatus('⏳ Generating cover letter...');
     try {
-      await generateCoverLetter(profile, job, '');
+      const result = await generateCoverLetter(profile, job, '');
+      await saveGeneratedCoverLetter(result.text);
+      await saveJobPost(job);
       setStatus('✅ Cover letter generated! Open new tab to view.');
       setTimeout(() => chrome.tabs.create({ url: chrome.runtime.getURL('newtab.html') }), 500);
     } catch (error) {

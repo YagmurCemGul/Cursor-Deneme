@@ -6,7 +6,9 @@ const STORAGE_KEYS = {
   JOB_POST: 'jobPost',
   OPTS: 'options',
   OPTIMIZATIONS: 'optimizations',
-  COVER_LETTER_PROMPTS: 'coverLetterPrompts'
+  COVER_LETTER_PROMPTS: 'coverLetterPrompts',
+  GENERATED_RESUME: 'generatedResume',
+  GENERATED_COVER_LETTER: 'generatedCoverLetter'
 } as const;
 
 type Options = {
@@ -59,6 +61,10 @@ export async function saveJobPost(job: JobPost): Promise<void> {
   await storage.set(STORAGE_KEYS.JOB_POST, job);
 }
 
+export async function loadJobPost(): Promise<JobPost | undefined> {
+  return storage.get<JobPost>(STORAGE_KEYS.JOB_POST);
+}
+
 export async function saveOptimizations(list: AtsOptimization[]): Promise<void> {
   await storage.set(STORAGE_KEYS.OPTIMIZATIONS, list);
 }
@@ -73,4 +79,20 @@ export async function saveOptions(opts: Options): Promise<void> {
 
 export async function loadOptions(): Promise<Options | undefined> {
   return storage.get<Options>(STORAGE_KEYS.OPTS);
+}
+
+export async function saveGeneratedResume(markdown: string): Promise<void> {
+  await storage.set(STORAGE_KEYS.GENERATED_RESUME, markdown);
+}
+
+export async function loadGeneratedResume(): Promise<string | undefined> {
+  return storage.get<string>(STORAGE_KEYS.GENERATED_RESUME);
+}
+
+export async function saveGeneratedCoverLetter(markdown: string): Promise<void> {
+  await storage.set(STORAGE_KEYS.GENERATED_COVER_LETTER, markdown);
+}
+
+export async function loadGeneratedCoverLetter(): Promise<string | undefined> {
+  return storage.get<string>(STORAGE_KEYS.GENERATED_COVER_LETTER);
 }

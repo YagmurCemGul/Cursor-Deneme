@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { ResumeProfile, JobPost, AtsOptimization, EmploymentType } from '../lib/types';
-import { getActiveProfile, loadOptimizations, saveJobPost, saveOptimizations, saveOrUpdateProfile, loadOptions } from '../lib/storage';
+import { getActiveProfile, loadOptimizations, saveJobPost, saveOptimizations, saveOrUpdateProfile, loadOptions, loadJobPost, loadGeneratedResume, loadGeneratedCoverLetter, saveGeneratedResume, saveGeneratedCoverLetter } from '../lib/storage';
 import { generateAtsResume, generateCoverLetter } from '../lib/ai';
 import { TabButton, TextRow, SectionHeader, Pill, Button } from '../components/ui';
 import '../styles/global.css';
@@ -51,6 +51,22 @@ export function NewTab() {
         setApiProvider(opts.apiProvider ?? 'openai');
         setLanguage(opts.language ?? 'en');
       }
+
+      // Load saved job post, resume, and cover letter
+      const savedJob = await loadJobPost();
+      if (savedJob) {
+        setJob(savedJob);
+      }
+
+      const savedResume = await loadGeneratedResume();
+      if (savedResume) {
+        setResumeMd(savedResume);
+      }
+
+      const savedCoverLetter = await loadGeneratedCoverLetter();
+      if (savedCoverLetter) {
+        setCoverMd(savedCoverLetter);
+      }
     })();
   }, []);
 
@@ -65,6 +81,8 @@ export function NewTab() {
       setResumeMd(result.text);
       setOptimizations(result.optimizations);
       await saveOptimizations(result.optimizations);
+      await saveGeneratedResume(result.text);
+      await saveJobPost(job);
       setActive('preview');
     } finally {
       setIsGenerating(false);
@@ -77,6 +95,8 @@ export function NewTab() {
     try {
       const result = await generateCoverLetter(profile, job, extraPrompt);
       setCoverMd(result.text);
+      await saveGeneratedCoverLetter(result.text);
+      await saveJobPost(job);
       setActive('cover');
     } finally {
       setIsGenerating(false);
