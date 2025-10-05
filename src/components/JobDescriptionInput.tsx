@@ -1,29 +1,21 @@
 import React, { useState } from 'react';
 import { t, Lang } from '../i18n';
 import { JobDescriptionLibrary } from './JobDescriptionLibrary';
-import { JobDescriptionTemplates } from './JobDescriptionTemplates';
-import { LinkedInImporter } from './LinkedInImporter';
-import { EnhancedJobDescriptionEditor } from './EnhancedJobDescriptionEditor';
 import { StorageService } from '../utils/storage';
 import { SavedJobDescription } from '../types';
-import { AIConfig } from '../utils/aiProviders';
 
 interface JobDescriptionInputProps {
   value: string;
   onChange: (value: string) => void;
   language: Lang;
-  aiConfig?: AIConfig;
 }
 
 export const JobDescriptionInput: React.FC<JobDescriptionInputProps> = ({
   value,
   onChange,
   language,
-  aiConfig,
 }) => {
   const [showLibrary, setShowLibrary] = useState(false);
-  const [showTemplates, setShowTemplates] = useState(false);
-  const [showLinkedInImport, setShowLinkedInImport] = useState(false);
   const [showSaveDialog, setShowSaveDialog] = useState(false);
   const [saveName, setSaveName] = useState('');
   const [saveCategory, setSaveCategory] = useState('');
@@ -36,12 +28,11 @@ export const JobDescriptionInput: React.FC<JobDescriptionInputProps> = ({
       return;
     }
 
-    const trimmedCategory = saveCategory.trim();
     const jobDesc: SavedJobDescription = {
       id: Date.now().toString(),
       name: saveName.trim(),
       description: value,
-      ...(trimmedCategory ? { category: trimmedCategory } : {}),
+      ...(saveCategory.trim() && { category: saveCategory.trim() }),
       tags: saveTags.split(',').map((t) => t.trim()).filter(Boolean),
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
@@ -73,48 +64,35 @@ export const JobDescriptionInput: React.FC<JobDescriptionInputProps> = ({
     <div className="section">
       <h2 className="section-title">💼 {t(language, 'job.section')}</h2>
 
-      <div className="job-description-actions">
-        <button
-          type="button"
-          className="btn btn-secondary btn-sm"
-          onClick={() => setShowLibrary(true)}
-          title={t(language, 'jobLibrary.loadFromLibrary')}
-        >
-          📚 {t(language, 'jobLibrary.loadFromLibrary')}
-        </button>
-        <button
-          type="button"
-          className="btn btn-secondary btn-sm"
-          onClick={() => setShowTemplates(true)}
-          title={t(language, 'jobTemplates.title')}
-        >
-          📋 {t(language, 'jobTemplates.title')}
-        </button>
-        <button
-          type="button"
-          className="btn btn-secondary btn-sm"
-          onClick={() => setShowLinkedInImport(true)}
-          title={t(language, 'linkedinImport.title')}
-        >
-          🔗 {t(language, 'linkedinImport.title')}
-        </button>
-        <button
-          type="button"
-          className="btn btn-secondary btn-sm"
-          onClick={() => setShowSaveDialog(true)}
-          disabled={!value.trim()}
-          title={t(language, 'jobLibrary.saveToLibrary')}
-        >
-          💾 {t(language, 'jobLibrary.saveToLibrary')}
-        </button>
+      <div className="form-group">
+        <label className="form-label">{t(language, 'job.paste')}</label>
+        <div className="job-description-actions">
+          <button
+            type="button"
+            className="btn btn-secondary btn-sm"
+            onClick={() => setShowLibrary(true)}
+            title={t(language, 'jobLibrary.loadFromLibrary')}
+          >
+            📚 {t(language, 'jobLibrary.loadFromLibrary')}
+          </button>
+          <button
+            type="button"
+            className="btn btn-secondary btn-sm"
+            onClick={() => setShowSaveDialog(true)}
+            disabled={!value.trim()}
+            title={t(language, 'jobLibrary.saveToLibrary')}
+          >
+            💾 {t(language, 'jobLibrary.saveToLibrary')}
+          </button>
+        </div>
+        <textarea
+          className="form-textarea"
+          placeholder={t(language, 'job.placeholder')}
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          style={{ minHeight: '200px' }}
+        />
       </div>
-
-      <EnhancedJobDescriptionEditor
-        value={value}
-        onChange={onChange}
-        language={language}
-            aiConfig={aiConfig!}
-      />
 
       <div className="alert alert-info">💡 {t(language, 'job.tipFull')}</div>
 
@@ -185,30 +163,6 @@ export const JobDescriptionInput: React.FC<JobDescriptionInputProps> = ({
           language={language}
           onSelect={handleLoadFromLibrary}
           onClose={() => setShowLibrary(false)}
-        />
-      )}
-
-      {/* Templates Modal */}
-      {showTemplates && (
-        <JobDescriptionTemplates
-          language={language}
-          onSelect={(template) => {
-            onChange(template);
-            setShowTemplates(false);
-          }}
-          onClose={() => setShowTemplates(false)}
-        />
-      )}
-
-      {/* LinkedIn Import Modal */}
-      {showLinkedInImport && (
-        <LinkedInImporter
-          language={language}
-          onImport={(importedContent) => {
-            onChange(importedContent);
-            setShowLinkedInImport(false);
-          }}
-          onClose={() => setShowLinkedInImport(false)}
         />
       )}
     </div>
