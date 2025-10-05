@@ -1,58 +1,20 @@
 import React, { useRef, useState } from 'react';
 import { PersonalInfo } from '../types';
-import { t, Lang } from '../i18n';
-import { PhotoCropper } from './PhotoCropper';
-import {
-  validateLinkedInUsername,
-  validateGitHubUsername,
-  validatePortfolioUrl,
-  validateWhatsAppLink,
-  extractLinkedInUsername,
-  extractGitHubUsername,
-  buildWhatsAppLink,
-  ValidationResult
-} from '../utils/urlValidation';
 
 interface PersonalInfoFormProps {
   data: PersonalInfo;
   onChange: (data: PersonalInfo) => void;
-  language: Lang;
 }
 
-export const PersonalInfoForm: React.FC<PersonalInfoFormProps> = ({ data, onChange, language }) => {
+export const PersonalInfoForm: React.FC<PersonalInfoFormProps> = ({ data, onChange }) => {
   const [emailValidation, setEmailValidation] = useState<{ isValid: boolean; message: string }>({ isValid: true, message: '' });
   const [emailSuggestions, setEmailSuggestions] = useState<string[]>([]);
   const [showEmailSuggestions, setShowEmailSuggestions] = useState(false);
-  const [photoError, setPhotoError] = useState<string>('');
-  const [photoLoading, setPhotoLoading] = useState(false);
-  const [showCropper, setShowCropper] = useState(false);
-  const [tempPhotoUrl, setTempPhotoUrl] = useState<string>('');
-  
-  // URL validation states
-  const [linkedInValidation, setLinkedInValidation] = useState<ValidationResult>({ isValid: true, message: '', type: '' });
-  const [githubValidation, setGithubValidation] = useState<ValidationResult>({ isValid: true, message: '', type: '' });
-  const [portfolioValidation, setPortfolioValidation] = useState<ValidationResult>({ isValid: true, message: '', type: '' });
-  const [whatsappValidation, setWhatsappValidation] = useState<ValidationResult>({ isValid: true, message: '', type: '' });
   
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   const handleChange = (field: keyof PersonalInfo, value: string) => {
-    let processedValue = value;
-    
-    // Handle URL field validations and auto-extraction
-    if (field === 'linkedInUsername') {
-      processedValue = extractLinkedInUsername(value);
-      setLinkedInValidation(validateLinkedInUsername(processedValue));
-    } else if (field === 'githubUsername') {
-      processedValue = extractGitHubUsername(value);
-      setGithubValidation(validateGitHubUsername(processedValue));
-    } else if (field === 'portfolioUrl') {
-      setPortfolioValidation(validatePortfolioUrl(value));
-    } else if (field === 'whatsappLink') {
-      setWhatsappValidation(validateWhatsAppLink(value));
-    }
-    
-    onChange({ ...data, [field]: processedValue });
+    onChange({ ...data, [field]: value });
     
     // Enhanced email validation and suggestions
     if (field === 'email') {
@@ -71,14 +33,14 @@ export const PersonalInfoForm: React.FC<PersonalInfoFormProps> = ({ data, onChan
     }
     
     if (!emailRegex.test(email)) {
-      setEmailValidation({ isValid: false, message: t(language, 'personal.invalidEmailFormat') });
+      setEmailValidation({ isValid: false, message: 'Invalid email format' });
       return;
     }
     
     // Check for common typos in domain
     const [localPart, domain] = email.split('@');
     if (!domain || !localPart) {
-      setEmailValidation({ isValid: false, message: t(language, 'personal.invalidEmailFormat') });
+      setEmailValidation({ isValid: false, message: 'Invalid email format' });
       return;
     }
     
@@ -90,12 +52,12 @@ export const PersonalInfoForm: React.FC<PersonalInfoFormProps> = ({ data, onChan
     if (domainSuggestions.length > 0 && !commonDomains.includes(domain) && domainSuggestions[0]) {
       setEmailValidation({ 
         isValid: false, 
-        message: `${t(language, 'personal.didYouMean')} ${localPart}@${domainSuggestions[0]}?` 
+        message: `Did you mean ${localPart}@${domainSuggestions[0]}?` 
       });
       return;
     }
     
-    setEmailValidation({ isValid: true, message: t(language, 'personal.validEmail') });
+    setEmailValidation({ isValid: true, message: 'Valid email address' });
   };
 
   const calculateLevenshteinDistance = (str1: string, str2: string): number => {
@@ -155,132 +117,26 @@ export const PersonalInfoForm: React.FC<PersonalInfoFormProps> = ({ data, onChan
     validateEmail(suggestion);
   };
 
-  const compressImage = (file: File, maxSizeMB: number = 0.5): Promise<string> => {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const img = new Image();
-        img.onload = () => {
-          const canvas = document.createElement('canvas');
-          let width = img.width;
-          let height = img.height;
-          
-          // Maintain aspect ratio, max dimension 500px
-          const maxDimension = 500;
-          if (width > height && width > maxDimension) {
-            height = (height * maxDimension) / width;
-            width = maxDimension;
-          } else if (height > maxDimension) {
-            width = (width * maxDimension) / height;
-            height = maxDimension;
-          }
-          
-          canvas.width = width;
-          canvas.height = height;
-          const ctx = canvas.getContext('2d');
-          ctx?.drawImage(img, 0, 0, width, height);
-          
-          // Try different quality levels to meet size requirement
-          let quality = 0.9;
-          let dataUrl = canvas.toDataURL('image/jpeg', quality);
-          
-          // Estimate size and reduce quality if needed
-          while (dataUrl.length > maxSizeMB * 1024 * 1024 * 1.37 && quality > 0.1) {
-            quality -= 0.1;
-            dataUrl = canvas.toDataURL('image/jpeg', quality);
-          }
-          
-          resolve(dataUrl);
-        };
-        img.onerror = reject;
-        img.src = e.target?.result as string;
-      };
-      reader.onerror = reject;
-      reader.readAsDataURL(file);
-    });
-  };
-
   const handlePhotoSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    
-    setPhotoError('');
-    setPhotoLoading(true);
-    
-    // Validate file type
-    const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
-    if (!validTypes.includes(file.type)) {
-      setPhotoError('Please upload a valid image file (JPEG, PNG, or WebP)');
-      setPhotoLoading(false);
-      return;
-    }
-    
-    // Validate file size (max 10MB before compression)
-    const maxSize = 10 * 1024 * 1024;
-    if (file.size > maxSize) {
-      setPhotoError('Image is too large. Please upload an image smaller than 10MB.');
-      setPhotoLoading(false);
-      return;
-    }
-    
-    try {
-      // Load image for cropping
-      const reader = new FileReader();
-      reader.onload = () => {
-        setTempPhotoUrl(reader.result as string);
-        setShowCropper(true);
-        setPhotoLoading(false);
-      };
-      reader.readAsDataURL(file);
-    } catch (error) {
-      setPhotoError('Error processing image. Please try another file.');
-      console.error('Image processing error:', error);
-      setPhotoLoading(false);
-    } finally {
-      // Reset file input
-      if (fileInputRef.current) {
-        fileInputRef.current.value = '';
-      }
-    }
-  };
-
-  const handleCropComplete = async (croppedDataUrl: string) => {
-    setShowCropper(false);
-    setPhotoLoading(true);
-    
-    try {
-      // Create a file from the cropped data URL for compression
-      const response = await fetch(croppedDataUrl);
-      const blob = await response.blob();
-      const file = new File([blob], 'cropped.jpg', { type: 'image/jpeg' });
-      
-      // Compress the cropped image
-      const compressedDataUrl = await compressImage(file, 0.3);
-      onChange({ ...data, photoDataUrl: compressedDataUrl });
-    } catch (error) {
-      setPhotoError('Error processing cropped image. Please try again.');
-      console.error('Crop processing error:', error);
-    } finally {
-      setPhotoLoading(false);
-      setTempPhotoUrl('');
-    }
-  };
-
-  const handleCropCancel = () => {
-    setShowCropper(false);
-    setTempPhotoUrl('');
-    setPhotoLoading(false);
+    const reader = new FileReader();
+    reader.onload = () => {
+      const result = reader.result as string;
+      onChange({ ...data, photoDataUrl: result });
+    };
+    reader.readAsDataURL(file);
   };
 
   return (
     <div className="section">
       <h2 className="section-title">
-        👤 {t(language, 'personal.section')}
+        👤 Personal Information
       </h2>
       
       <div className="form-row-3">
         <div className="form-group">
-          <label className="form-label">{t(language, 'personal.firstName')} *</label>
+          <label className="form-label">First Name *</label>
           <input
             type="text"
             className="form-input"
@@ -291,7 +147,7 @@ export const PersonalInfoForm: React.FC<PersonalInfoFormProps> = ({ data, onChan
         </div>
         
         <div className="form-group">
-          <label className="form-label">{t(language, 'personal.middleName')}</label>
+          <label className="form-label">Middle Name</label>
           <input
             type="text"
             className="form-input"
@@ -302,7 +158,7 @@ export const PersonalInfoForm: React.FC<PersonalInfoFormProps> = ({ data, onChan
         </div>
         
         <div className="form-group">
-          <label className="form-label">{t(language, 'personal.lastName')} *</label>
+          <label className="form-label">Last Name *</label>
           <input
             type="text"
             className="form-input"
@@ -315,7 +171,7 @@ export const PersonalInfoForm: React.FC<PersonalInfoFormProps> = ({ data, onChan
       
       <div className="form-row">
       <div className="form-group">
-        <label className="form-label">{t(language, 'personal.email')} *</label>
+        <label className="form-label">Email *</label>
         <div className="email-input-wrapper">
           <input
             type="email"
@@ -349,7 +205,7 @@ export const PersonalInfoForm: React.FC<PersonalInfoFormProps> = ({ data, onChan
       </div>
         
         <div className="form-group">
-          <label className="form-label">{t(language, 'personal.phoneNumber')} *</label>
+          <label className="form-label">Phone Number *</label>
           <div className="phone-input-group">
             <input
               type="text"
@@ -370,169 +226,90 @@ export const PersonalInfoForm: React.FC<PersonalInfoFormProps> = ({ data, onChan
       </div>
       
       <div className="form-group">
-        <label className="form-label">{t(language, 'personal.linkedin')}</label>
+        <label className="form-label">LinkedIn Profile</label>
         <div className="input-prefix">
           <span className="input-prefix-text">https://www.linkedin.com/in/</span>
           <input
             type="text"
-            className={linkedInValidation.type === 'error' ? 'error' : ''}
             value={data.linkedInUsername}
             onChange={(e) => handleChange('linkedInUsername', e.target.value)}
             placeholder="your-username"
           />
         </div>
-        {linkedInValidation.message && (
-          <div className={`validation-message ${linkedInValidation.type}`}>
-            {linkedInValidation.message}
-          </div>
-        )}
       </div>
 
       <div className="form-group">
-        <label className="form-label">{t(language, 'personal.photo')}</label>
+        <label className="form-label">Profile Photo</label>
         <div className="photo-upload-container">
-          {photoLoading ? (
-            <div className="photo-preview-loading">
-              <div className="spinner"></div>
-            </div>
-          ) : data.photoDataUrl ? (
+          {data.photoDataUrl ? (
             <img src={data.photoDataUrl} alt="Profile" className="photo-preview" />
           ) : (
             <div className="photo-placeholder">📷</div>
           )}
           <div className="photo-actions">
-            <button 
-              className="btn btn-secondary" 
-              onClick={(e) => { e.preventDefault(); fileInputRef.current?.click(); }}
-              disabled={photoLoading}
-            >
-              {data.photoDataUrl ? '🔄 Change' : '📤 ' + t(language, 'personal.upload')}
-            </button>
+            <button className="btn btn-secondary" onClick={(e) => { e.preventDefault(); fileInputRef.current?.click(); }}>Upload</button>
             {data.photoDataUrl && (
-              <>
-                <button 
-                  className="btn btn-secondary" 
-                  onClick={(e) => { 
-                    e.preventDefault(); 
-                    setTempPhotoUrl(data.photoDataUrl!);
-                    setShowCropper(true);
-                  }}
-                  disabled={photoLoading}
-                >
-                  ✂️ Edit Photo
-                </button>
-                <button 
-                  className="btn btn-danger" 
-                  onClick={(e) => { 
-                    e.preventDefault(); 
-                    const { photoDataUrl, ...rest } = data;
-                    onChange(rest as PersonalInfo);
-                    setPhotoError('');
-                  }}
-                  disabled={photoLoading}
-                >
-                  {t(language, 'personal.remove')}
-                </button>
-              </>
+              <button className="btn btn-danger danger-btn-spacing" onClick={(e) => { e.preventDefault(); onChange({ ...data }); }}>Remove</button>
             )}
-            <input 
-              ref={fileInputRef} 
-              type="file" 
-              accept="image/jpeg,image/jpg,image/png,image/webp" 
-              onChange={handlePhotoSelect} 
-              style={{ display: 'none' }} 
-            />
+            <input ref={fileInputRef} type="file" accept="image/*" onChange={handlePhotoSelect} style={{ display: 'none' }} />
           </div>
         </div>
-        {photoError && (
-          <div className="validation-message error" style={{ marginTop: '8px' }}>
-            {photoError}
-          </div>
-        )}
-        {data.photoDataUrl && !photoError && (
-          <div className="validation-message success" style={{ marginTop: '8px' }}>
-            ✓ Photo uploaded successfully (optimized for ATS)
-          </div>
-        )}
-        {showCropper && tempPhotoUrl && (
-          <PhotoCropper
-            imageDataUrl={tempPhotoUrl}
-            onCrop={handleCropComplete}
-            onCancel={handleCropCancel}
-          />
-        )}
       </div>
       
       <div className="form-group">
-        <label className="form-label">{t(language, 'personal.github')}</label>
+        <label className="form-label">GitHub Profile</label>
         <div className="input-prefix">
           <span className="input-prefix-text">https://github.com/</span>
           <input
             type="text"
-            className={githubValidation.type === 'error' ? 'error' : ''}
             value={data.githubUsername}
             onChange={(e) => handleChange('githubUsername', e.target.value)}
             placeholder="your-username"
           />
         </div>
-        {githubValidation.message && (
-          <div className={`validation-message ${githubValidation.type}`}>
-            {githubValidation.message}
-          </div>
-        )}
       </div>
       
       <div className="form-row">
         <div className="form-group">
-          <label className="form-label">{t(language, 'personal.portfolio')}</label>
+          <label className="form-label">Portfolio Website</label>
           <input
             type="url"
-            className={`form-input ${portfolioValidation.type === 'error' ? 'error' : ''}`}
+            className="form-input"
             value={data.portfolioUrl}
             onChange={(e) => handleChange('portfolioUrl', e.target.value)}
             placeholder="https://yourportfolio.com"
           />
-          {portfolioValidation.message && (
-            <div className={`validation-message ${portfolioValidation.type}`}>
-              {portfolioValidation.message}
-            </div>
-          )}
         </div>
         
         <div className="form-group">
-          <label className="form-label">{t(language, 'personal.whatsapp')}</label>
+          <label className="form-label">WhatsApp Link</label>
           <input
             type="url"
-            className={`form-input ${whatsappValidation.type === 'error' ? 'error' : ''}`}
+            className="form-input"
             value={data.whatsappLink}
             onChange={(e) => handleChange('whatsappLink', e.target.value)}
             placeholder="https://wa.me/..."
           />
-          {whatsappValidation.message && (
-            <div className={`validation-message ${whatsappValidation.type}`}>
-              {whatsappValidation.message}
-            </div>
-          )}
           <div className="whatsapp-helper">
             <button
               className="btn btn-secondary"
               onClick={(e) => {
                 e.preventDefault();
-                const link = buildWhatsAppLink(data.countryCode, data.phoneNumber);
-                if (link) {
-                  handleChange('whatsappLink', link);
-                  setWhatsappValidation(validateWhatsAppLink(link));
+                const digits = (data.phoneNumber || '').replace(/\D/g, '');
+                const cc = (data.countryCode || '').replace(/\D/g, '');
+                if (cc && digits) {
+                  handleChange('whatsappLink', `https://wa.me/${cc}${digits}`);
                 }
               }}
             >
-              {t(language, 'personal.buildFromPhone')}
+              Build from phone
             </button>
           </div>
         </div>
       </div>
       
       <div className="form-group">
-        <label className="form-label">{t(language, 'personal.summary')}</label>
+        <label className="form-label">Professional Summary</label>
         <textarea
           className="form-textarea"
           value={data.summary}

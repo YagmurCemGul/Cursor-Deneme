@@ -1,10 +1,7 @@
 import React, { useState } from 'react';
 import { CVData, SavedPrompt } from '../types';
 import { DocumentGenerator } from '../utils/documentGenerator';
-import { GoogleDriveService } from '../utils/googleDriveService';
 import { StorageService } from '../utils/storage';
-import { t, Lang } from '../i18n';
-import { defaultCoverLetterTemplates } from '../data/coverLetterTemplates';
 
 interface CoverLetterProps {
   cvData: CVData;
@@ -12,7 +9,6 @@ interface CoverLetterProps {
   coverLetter: string;
   onGenerate: (extraPrompt: string) => void;
   isGenerating: boolean;
-  language: Lang;
 }
 
 export const CoverLetter: React.FC<CoverLetterProps> = ({ 
@@ -20,8 +16,7 @@ export const CoverLetter: React.FC<CoverLetterProps> = ({
   jobDescription, 
   coverLetter, 
   onGenerate,
-  isGenerating,
-  language 
+  isGenerating 
 }) => {
   const [extraPrompt, setExtraPrompt] = useState('');
   const [savedPrompts, setSavedPrompts] = useState<SavedPrompt[]>([]);
@@ -29,9 +24,6 @@ export const CoverLetter: React.FC<CoverLetterProps> = ({
   const [newPromptName, setNewPromptName] = useState('');
   const [newPromptFolder, setNewPromptFolder] = useState('General');
   const [selectedFolder, setSelectedFolder] = useState('All');
-  const [selectedTemplateId, setSelectedTemplateId] = useState<string>('classic');
-  const [showTemplateSelector, setShowTemplateSelector] = useState(false);
-  const [isExportingToGoogle, setIsExportingToGoogle] = useState(false);
 
   React.useEffect(() => {
     loadPrompts();
@@ -70,7 +62,7 @@ export const CoverLetter: React.FC<CoverLetterProps> = ({
 
   const handleCopy = () => {
     navigator.clipboard.writeText(coverLetter);
-    alert(t(language, 'cover.copied'));
+    alert('Cover letter copied to clipboard!');
   };
 
   const handleDownload = async (format: 'docx' | 'pdf') => {
@@ -79,61 +71,41 @@ export const CoverLetter: React.FC<CoverLetterProps> = ({
     
     try {
       if (format === 'docx') {
-        await DocumentGenerator.generateCoverLetterDOCX(coverLetter, name, fileName, selectedTemplateId);
+        await DocumentGenerator.generateCoverLetterDOCX(coverLetter, name, fileName);
       } else if (format === 'pdf') {
-        await DocumentGenerator.generateCoverLetterPDF(coverLetter, name, fileName, selectedTemplateId);
+        await DocumentGenerator.generateCoverLetterPDF(coverLetter, name, fileName);
       }
     } catch (error) {
       console.error('Error generating document:', error);
-      alert(t(language, 'common.errorGeneratingDoc'));
+      alert('Error generating document. Please try again.');
     }
   };
 
-  const selectedTemplate = defaultCoverLetterTemplates.find(t => t.id === selectedTemplateId)!;
-
-  const handleGoogleExport = async () => {
-    setIsExportingToGoogle(true);
-    try {
-      // For cover letter, we'll export to Google Docs
-      // First, create a temporary CVData object with just the cover letter content
-      const result = await GoogleDriveService.exportToGoogleDocs(cvData, [], selectedTemplateId);
-      
-      // Update the document with cover letter content instead
-      alert(`${t(language, 'googleDrive.exportSuccessCoverLetter')}\n${t(language, 'googleDrive.openFile')}`);
-      window.open(result.webViewLink, '_blank');
-    } catch (error: any) {
-      console.error('Error exporting to Google:', error);
-      if (error.message?.includes('authentication') || error.message?.includes('token')) {
-        alert(t(language, 'googleDrive.authRequired'));
-      } else {
-        alert(t(language, 'googleDrive.exportError') + '\n' + error.message);
-      }
-    } finally {
-      setIsExportingToGoogle(false);
-    }
+  const handleGoogleDoc = () => {
+    alert('Google Docs export: This feature requires Google Docs API integration. The DOCX file can be uploaded to Google Drive and opened with Google Docs.');
   };
 
-  const folders = [t(language, 'common.all'), ...new Set(savedPrompts.map(p => p.folder))];
-  const filteredPrompts = selectedFolder === t(language, 'common.all') 
+  const folders = ['All', ...new Set(savedPrompts.map(p => p.folder))];
+  const filteredPrompts = selectedFolder === 'All' 
     ? savedPrompts 
     : savedPrompts.filter(p => p.folder === selectedFolder);
 
   return (
     <div className="section">
       <h2 className="section-title">
-        ✉️ {t(language, 'cover.section')}
+        ✉️ Cover Letter
       </h2>
       
       {/* Extra Prompt Input */}
       <div className="form-group">
         <label className="form-label">
-          {t(language, 'cover.extraInstructions')}
+          Extra Instructions (Optional)
         </label>
         <textarea
           className="form-textarea prompt-textarea"
           value={extraPrompt}
           onChange={(e) => setExtraPrompt(e.target.value)}
-          placeholder={t(language, 'cover.placeholder')}
+          placeholder="Add any specific requirements or tone preferences for the cover letter..."
         />
         <div className="button-group">
           <button 
@@ -141,13 +113,13 @@ export const CoverLetter: React.FC<CoverLetterProps> = ({
             onClick={() => onGenerate(extraPrompt)}
             disabled={isGenerating || !jobDescription}
           >
-            {isGenerating ? `⏳ ${t(language, 'cover.generating')}` : `✨ ${t(language, 'cover.generate')}`}
+            {isGenerating ? '⏳ Generating...' : '✨ Generate Cover Letter'}
           </button>
           <button 
             className="btn btn-secondary"
             onClick={() => setShowSavePrompt(!showSavePrompt)}
           >
-            💾 {t(language, 'cover.savePrompt')}
+            💾 Save Prompt
           </button>
         </div>
       </div>
@@ -156,32 +128,32 @@ export const CoverLetter: React.FC<CoverLetterProps> = ({
       {showSavePrompt && (
         <div className="card save-prompt-card">
           <h3 className="card-subtitle">
-            {t(language, 'cover.savePromptTitle')}
+            Save Prompt
           </h3>
           <div className="form-row">
             <div className="form-group">
-              <label className="form-label">{t(language, 'cover.promptName')}</label>
+              <label className="form-label">Prompt Name</label>
               <input
                 type="text"
                 className="form-input"
                 value={newPromptName}
                 onChange={(e) => setNewPromptName(e.target.value)}
-                placeholder={t(language, 'cover.promptNamePlaceholder')}
+                placeholder="e.g., Formal Tone"
               />
             </div>
             <div className="form-group">
-              <label className="form-label">{t(language, 'cover.folder')}</label>
+              <label className="form-label">Folder</label>
               <input
                 type="text"
                 className="form-input"
                 value={newPromptFolder}
                 onChange={(e) => setNewPromptFolder(e.target.value)}
-                placeholder={t(language, 'cover.folderPlaceholder')}
+                placeholder="e.g., General, Tech Jobs"
               />
             </div>
           </div>
           <button className="btn btn-success" onClick={handleSavePrompt}>
-            ✓ {t(language, 'common.save')}
+            ✓ Save
           </button>
         </div>
       )}
@@ -190,7 +162,7 @@ export const CoverLetter: React.FC<CoverLetterProps> = ({
       {savedPrompts.length > 0 && (
         <div className="saved-prompts-section">
           <h3 className="card-subtitle">
-            {t(language, 'cover.savedPrompts')}
+            Saved Prompts
           </h3>
           
           <div className="folder-selector">
@@ -220,7 +192,7 @@ export const CoverLetter: React.FC<CoverLetterProps> = ({
                       className="btn btn-secondary btn-icon"
                       onClick={() => handleLoadPrompt(prompt)}
                     >
-                      📥 {t(language, 'cover.load')}
+                      📥 Load
                     </button>
                     <button
                       className="btn btn-danger btn-icon"
@@ -239,101 +211,39 @@ export const CoverLetter: React.FC<CoverLetterProps> = ({
         </div>
       )}
       
-      {/* Template Selector */}
+      {/* Cover Letter Preview */}
       {coverLetter && (
-        <>
-          <div className="template-selector-section">
-            <div className="template-selector-header">
-              <h3 className="subsection-title">
-                {t(language, 'coverTemplates.title')}
-              </h3>
-              <button 
-                className="btn btn-secondary btn-sm"
-                onClick={() => setShowTemplateSelector(!showTemplateSelector)}
-              >
-                {showTemplateSelector ? '▼' : '▶'} {selectedTemplate?.preview} {selectedTemplate?.name}
-              </button>
-            </div>
-            
-            {showTemplateSelector && (
-              <div className="template-grid">
-                {defaultCoverLetterTemplates.map(template => (
-                  <div 
-                    key={template.id}
-                    className={`template-card ${selectedTemplateId === template.id ? 'selected' : ''}`}
-                    onClick={() => {
-                      setSelectedTemplateId(template.id);
-                      setShowTemplateSelector(false);
-                    }}
-                  >
-                    <div className="template-card-header">
-                      <div className="template-preview">{template.preview}</div>
-                      <div className="template-info">
-                        <div className="template-name">{template.name}</div>
-                        <div className="template-description">{template.description}</div>
-                      </div>
-                    </div>
-                    <div className="template-features">
-                      {template.features.map((feature, idx) => (
-                        <span key={idx} className="feature-tag">✓ {feature}</span>
-                      ))}
-                    </div>
-                    {selectedTemplateId === template.id && (
-                      <div className="template-selected-badge">
-                        ✓ {t(language, 'templates.selected')}
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
+        <div className="preview-section">
+          <h3 className="subsection-title">
+            Preview
+          </h3>
           
-          {/* Cover Letter Preview */}
-          <div className="preview-section">
-            <h3 className="subsection-title">
-              {t(language, 'cover.preview')}
-            </h3>
-            
-            <div 
-              className="preview-container cover-letter-preview"
-              style={{
-                fontFamily: selectedTemplate?.style.fontFamily,
-                fontSize: `${selectedTemplate?.style.fontSize}px`,
-                lineHeight: selectedTemplate?.style.lineHeight,
-                color: selectedTemplate?.colors.text
-              }}
-            >
-              {coverLetter}
-            </div>
+          <div className="preview-container cover-letter-preview">
+            {coverLetter}
+          </div>
           
           <div className="download-options">
             <button className="btn btn-success" onClick={handleCopy}>
-              📋 {t(language, 'cover.copyToClipboard')}
+              📋 Copy to Clipboard
             </button>
             <button className="btn btn-primary" onClick={() => handleDownload('pdf')}>
-              📥 {t(language, 'preview.downloadPdf')}
+              📥 Download PDF
             </button>
             <button className="btn btn-primary" onClick={() => handleDownload('docx')}>
-              📥 {t(language, 'preview.downloadDocx')}
+              📥 Download DOCX
             </button>
-            <button 
-              className="btn btn-secondary" 
-              onClick={handleGoogleExport}
-              disabled={isExportingToGoogle}
-            >
-              {isExportingToGoogle ? '⏳' : '☁️'} {t(language, 'preview.exportGoogleDocs')}
+            <button className="btn btn-secondary" onClick={handleGoogleDoc}>
+              📄 Export to Google Docs
             </button>
           </div>
-          </div>
-        </>
+        </div>
       )}
       
       {!coverLetter && (
         <div className="empty-state empty-state-margin">
           <div className="empty-state-icon">✉️</div>
           <div className="empty-state-text">
-            {t(language, 'cover.emptyState')}
+            No cover letter generated yet. Fill in your CV and job description, then click "Generate Cover Letter".
           </div>
         </div>
       )}

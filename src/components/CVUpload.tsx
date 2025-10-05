@@ -1,15 +1,12 @@
 import React, { useState } from 'react';
 import { FileParser } from '../utils/fileParser';
 import { CVData } from '../types';
-import { logger } from '../utils/logger';
-import { t, Lang } from '../i18n';
 
 interface CVUploadProps {
   onCVParsed: (data: Partial<CVData>) => void;
-  language: Lang;
 }
 
-export const CVUpload: React.FC<CVUploadProps> = ({ onCVParsed, language }) => {
+export const CVUpload: React.FC<CVUploadProps> = ({ onCVParsed }) => {
   const [isDragging, setIsDragging] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [fileName, setFileName] = useState<string | null>(null);
@@ -26,7 +23,7 @@ export const CVUpload: React.FC<CVUploadProps> = ({ onCVParsed, language }) => {
   const handleDrop = async (e: React.DragEvent) => {
     e.preventDefault();
     setIsDragging(false);
-
+    
     const file = e.dataTransfer.files[0];
     if (file) {
       await processFile(file);
@@ -43,13 +40,13 @@ export const CVUpload: React.FC<CVUploadProps> = ({ onCVParsed, language }) => {
   const processFile = async (file: File) => {
     setIsLoading(true);
     setFileName(file.name);
-
+    
     try {
       const parsedData = await FileParser.parseFile(file);
       onCVParsed(parsedData);
     } catch (error) {
-      logger.error('Error parsing file:', error);
-      alert(t(language, 'upload.error'));
+      console.error('Error parsing file:', error);
+      alert('Error parsing file. Please make sure it\'s a valid PDF or DOCX file.');
     } finally {
       setIsLoading(false);
     }
@@ -57,8 +54,10 @@ export const CVUpload: React.FC<CVUploadProps> = ({ onCVParsed, language }) => {
 
   return (
     <div className="section">
-      <h2 className="section-title">📄 {t(language, 'upload.section')}</h2>
-
+      <h2 className="section-title">
+        📄 Upload Your CV
+      </h2>
+      
       <div
         className={`upload-zone ${isDragging ? 'drag-over' : ''}`}
         onDragOver={handleDragOver}
@@ -69,20 +68,20 @@ export const CVUpload: React.FC<CVUploadProps> = ({ onCVParsed, language }) => {
         {isLoading ? (
           <div className="loading">
             <div className="spinner"></div>
-            <p className="loading-text">{t(language, 'upload.uploading')}</p>
+            <p className="loading-text">Parsing your CV...</p>
           </div>
         ) : (
           <>
             <div className="upload-icon">📁</div>
             <div className="upload-text">
-              {fileName
-                ? `${t(language, 'upload.uploaded')}: ${fileName}`
-                : t(language, 'upload.drag')}
+              {fileName ? `Uploaded: ${fileName}` : 'Drag and drop your CV here or click to browse'}
             </div>
-            <div className="upload-subtext">{t(language, 'upload.supported')}</div>
+            <div className="upload-subtext">
+              Supported formats: PDF, DOCX, DOC
+            </div>
           </>
         )}
-
+        
         <input
           id="cv-upload-input"
           type="file"
