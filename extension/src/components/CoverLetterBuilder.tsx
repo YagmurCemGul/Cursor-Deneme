@@ -7,23 +7,27 @@ import {
   getTemplateRecommendation,
 } from '../lib/coverLetterTemplates';
 import { ResumeProfile, JobPost } from '../lib/types';
+import { Language } from '../lib/i18n';
 
 interface CoverLetterBuilderProps {
   profile: ResumeProfile;
   job: JobPost;
   onGenerate: (coverLetter: string) => void;
   onClose: () => void;
+  language?: Language;
 }
 
-export function CoverLetterBuilder({ profile, job, onGenerate, onClose }: CoverLetterBuilderProps) {
+export function CoverLetterBuilder({ profile, job, onGenerate, onClose, language = 'en' }: CoverLetterBuilderProps) {
   const [selectedTemplate, setSelectedTemplate] = useState<CoverLetterTemplate>(
     getTemplateRecommendation(job.pastedText, profile)
   );
+  const [coverLanguage, setCoverLanguage] = useState<Language>(language);
   const [customization, setCustomization] = useState({
     companyName: job.company || '',
-    hiringManager: 'Hiring Manager',
+    hiringManager: language === 'tr' ? 'İşe Alım Yöneticisi' : 'Hiring Manager',
     referralName: '',
     specificInterest: '',
+    language: language,
   });
   const [isGenerating, setIsGenerating] = useState(false);
   const [preview, setPreview] = useState('');
@@ -37,7 +41,7 @@ export function CoverLetterBuilder({ profile, job, onGenerate, onClose }: CoverL
         selectedTemplate,
         profile,
         job,
-        customization
+        { ...customization, language: coverLanguage }
       );
       
       setPreview(coverLetter);
@@ -206,16 +210,70 @@ export function CoverLetterBuilder({ profile, job, onGenerate, onClose }: CoverL
                 </div>
               </div>
 
+              {/* Language Selector */}
+              <div style={{ marginBottom: 24 }}>
+                <div style={{ fontSize: 16, fontWeight: 600, color: '#1e293b', marginBottom: 12 }}>
+                  Cover Letter Language
+                </div>
+                <div style={{ display: 'flex', gap: 8 }}>
+                  <button
+                    onClick={() => setCoverLanguage('en')}
+                    style={{
+                      flex: 1,
+                      padding: '12px 16px',
+                      background: coverLanguage === 'en' ? 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' : 'white',
+                      color: coverLanguage === 'en' ? 'white' : '#64748b',
+                      border: `2px solid ${coverLanguage === 'en' ? '#667eea' : '#cbd5e1'}`,
+                      borderRadius: 8,
+                      cursor: 'pointer',
+                      fontSize: 14,
+                      fontWeight: 500,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: 8,
+                    }}
+                  >
+                    <span style={{ fontSize: 24 }}>🇬🇧</span>
+                    <span>English</span>
+                  </button>
+                  <button
+                    onClick={() => {
+                      setCoverLanguage('tr');
+                      setCustomization({ ...customization, hiringManager: 'İşe Alım Yöneticisi' });
+                    }}
+                    style={{
+                      flex: 1,
+                      padding: '12px 16px',
+                      background: coverLanguage === 'tr' ? 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' : 'white',
+                      color: coverLanguage === 'tr' ? 'white' : '#64748b',
+                      border: `2px solid ${coverLanguage === 'tr' ? '#667eea' : '#cbd5e1'}`,
+                      borderRadius: 8,
+                      cursor: 'pointer',
+                      fontSize: 14,
+                      fontWeight: 500,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: 8,
+                    }}
+                  >
+                    <span style={{ fontSize: 24 }}>🇹🇷</span>
+                    <span>Türkçe</span>
+                  </button>
+                </div>
+              </div>
+
               {/* Customization Fields */}
               <div style={{ marginBottom: 24 }}>
                 <div style={{ fontSize: 16, fontWeight: 600, color: '#1e293b', marginBottom: 12 }}>
-                  Customize Details
+                  {coverLanguage === 'tr' ? 'Detayları Özelleştirin' : 'Customize Details'}
                 </div>
                 
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 16 }}>
                   <div>
                     <label style={{ display: 'block', fontSize: 13, fontWeight: 500, color: '#64748b', marginBottom: 6 }}>
-                      Company Name *
+                      {coverLanguage === 'tr' ? 'Şirket Adı' : 'Company Name'} *
                     </label>
                     <input
                       type="text"
@@ -234,13 +292,13 @@ export function CoverLetterBuilder({ profile, job, onGenerate, onClose }: CoverL
 
                   <div>
                     <label style={{ display: 'block', fontSize: 13, fontWeight: 500, color: '#64748b', marginBottom: 6 }}>
-                      Hiring Manager Name
+                      {coverLanguage === 'tr' ? 'İşe Alım Yöneticisi' : 'Hiring Manager Name'}
                     </label>
                     <input
                       type="text"
                       value={customization.hiringManager}
                       onChange={(e) => setCustomization({ ...customization, hiringManager: e.target.value })}
-                      placeholder="e.g., John Smith"
+                      placeholder={coverLanguage === 'tr' ? 'örn., Ahmet Yılmaz' : 'e.g., John Smith'}
                       style={{
                         width: '100%',
                         padding: '10px 12px',
@@ -254,13 +312,13 @@ export function CoverLetterBuilder({ profile, job, onGenerate, onClose }: CoverL
                   {selectedTemplate.id === 'referral-based' && (
                     <div>
                       <label style={{ display: 'block', fontSize: 13, fontWeight: 500, color: '#64748b', marginBottom: 6 }}>
-                        Referral Name
+                        {coverLanguage === 'tr' ? 'Referans Kişi' : 'Referral Name'}
                       </label>
                       <input
                         type="text"
                         value={customization.referralName}
                         onChange={(e) => setCustomization({ ...customization, referralName: e.target.value })}
-                        placeholder="e.g., Jane Doe"
+                        placeholder={coverLanguage === 'tr' ? 'örn., Ayşe Demir' : 'e.g., Jane Doe'}
                         style={{
                           width: '100%',
                           padding: '10px 12px',
@@ -274,13 +332,15 @@ export function CoverLetterBuilder({ profile, job, onGenerate, onClose }: CoverL
 
                   <div style={{ gridColumn: selectedTemplate.id === 'referral-based' ? 'auto' : 'span 2' }}>
                     <label style={{ display: 'block', fontSize: 13, fontWeight: 500, color: '#64748b', marginBottom: 6 }}>
-                      Specific Interest (Optional)
+                      {coverLanguage === 'tr' ? 'Özel İlgi Alanı (İsteğe Bağlı)' : 'Specific Interest (Optional)'}
                     </label>
                     <input
                       type="text"
                       value={customization.specificInterest}
                       onChange={(e) => setCustomization({ ...customization, specificInterest: e.target.value })}
-                      placeholder="e.g., AI-powered products, sustainable tech, remote-first culture"
+                      placeholder={coverLanguage === 'tr' 
+                        ? 'örn., Yapay zeka ürünleri, sürdürülebilir teknoloji' 
+                        : 'e.g., AI-powered products, sustainable tech'}
                       style={{
                         width: '100%',
                         padding: '10px 12px',
@@ -348,7 +408,9 @@ export function CoverLetterBuilder({ profile, job, onGenerate, onClose }: CoverL
                 disabled={isGenerating || !customization.companyName}
                 style={{ width: '100%' }}
               >
-                {isGenerating ? '✨ Generating...' : '✨ Generate Cover Letter'}
+                {isGenerating 
+                  ? (coverLanguage === 'tr' ? '✨ Oluşturuluyor...' : '✨ Generating...') 
+                  : (coverLanguage === 'tr' ? '✨ Ön Yazı Oluştur' : '✨ Generate Cover Letter')}
               </Button>
             </>
           ) : (

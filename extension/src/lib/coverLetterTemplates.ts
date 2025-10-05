@@ -104,13 +104,21 @@ export async function generateFromTemplate(
     hiringManager?: string;
     referralName?: string;
     specificInterest?: string;
+    language?: 'en' | 'tr';
   }
 ): Promise<string> {
   const company = customization?.companyName || job.company || '[Company Name]';
-  const manager = customization?.hiringManager || 'Hiring Manager';
-  const role = job.title || 'the position';
+  const manager = customization?.hiringManager || (customization?.language === 'tr' ? 'İşe Alım Yöneticisi' : 'Hiring Manager');
+  const role = job.title || (customization?.language === 'tr' ? 'bu pozisyon' : 'the position');
+  const lang = customization?.language || 'en';
   
-  const userPrompt = `Generate a cover letter with the following details:
+  const languageInstruction = lang === 'tr' 
+    ? 'ÖNEMLI: Ön yazıyı TÜRKÇE dilinde yaz. Tüm metni Türkçe olarak oluştur.'
+    : 'IMPORTANT: Write the cover letter in ENGLISH. Generate all text in English.';
+
+  const userPrompt = `${languageInstruction}
+
+Generate a cover letter with the following details:
 
 JOB INFORMATION:
 - Position: ${role}
@@ -134,17 +142,19 @@ ${customization?.specificInterest ? `- Specific Interest: ${customization.specif
 
 REQUIREMENTS:
 1. Start with proper header (candidate address, date, company address)
-2. Use "Dear ${manager}," as greeting
+2. Use "${manager}," as greeting ${lang === 'tr' ? '(Türkçe: "Sayın ' + manager + ',")' : ''}
 3. Write 3-4 well-structured paragraphs following the template style
 4. Include specific examples from the candidate's background
-5. Close with "Sincerely," and candidate's full name
+5. Close with "${lang === 'tr' ? 'Saygılarımla' : 'Sincerely'}," and candidate's full name
 6. Keep it to one page (300-400 words)
 7. Make it ATS-friendly with relevant keywords from job description
+8. ALL TEXT MUST BE IN ${lang === 'tr' ? 'TURKISH (TÜRKÇE)' : 'ENGLISH'}
 
 TONE: ${template.tone}
 STYLE: ${template.description}
+LANGUAGE: ${lang === 'tr' ? 'Turkish (Türkçe)' : 'English'}
 
-Generate the complete cover letter now.`;
+Generate the complete cover letter in ${lang === 'tr' ? 'TURKISH' : 'ENGLISH'} now.`;
 
   try {
     const coverLetter = await callOpenAI(

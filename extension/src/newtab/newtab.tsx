@@ -2062,6 +2062,7 @@ Make it compelling, highlight key strengths, and use action-oriented language.`;
           <CoverLetterBuilder
             profile={profile}
             job={job}
+            language={currentLang}
             onGenerate={(coverLetter) => {
               setCoverMd(coverLetter);
               saveGeneratedCoverLetter(coverLetter);
