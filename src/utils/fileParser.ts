@@ -11,18 +11,15 @@ pdfjsLib.GlobalWorkerOptions.workerSrc = new URL(
   import.meta.url
 ).toString();
 
-// Configure pdf.js worker for the new version
-// pdfjs-dist v5+ uses ESM and requires different worker configuration
-pdfjsLib.GlobalWorkerOptions.workerSrc = new URL(
-  'pdfjs-dist/build/pdf.worker.min.mjs',
-  import.meta.url
-).toString();
-
 export class FileParser {
-  // Worker configuration is now handled at module load time
+  /**
+   * Configure PDF.js worker
+   * Note: Worker is automatically configured at module load time,
+   * but this method is kept for backward compatibility
+   */
   static configurePdfJsWorker(): void {
-    // This method is kept for backward compatibility but is no longer needed
-    // The worker is configured at module initialization
+    // Worker is already configured at module initialization
+    logger.debug('PDF.js worker already configured');
   }
   static async parseFile(file: File): Promise<Partial<CVData>> {
     const fileType = file.name.split('.').pop()?.toLowerCase();

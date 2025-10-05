@@ -4,6 +4,7 @@
  */
 
 import { CVData, ATSOptimization } from '../types';
+import { logger } from './logger';
 
 export interface GoogleAuthConfig {
   clientId: string;
@@ -94,7 +95,7 @@ export class GoogleDriveService {
         chrome.identity.getAuthToken({ interactive: true }, (token) => {
           if (chrome.runtime.lastError) {
             const error = chrome.runtime.lastError;
-            console.error('Auth error:', error);
+            logger.error('Auth error:', error);
             
             // Provide helpful error messages
             let errorMessage = error.message || 'Authentication failed';
@@ -121,7 +122,7 @@ export class GoogleDriveService {
         });
       });
     } catch (error: any) {
-      console.error('Authentication failed:', error);
+      logger.error('Authentication failed:', error);
       throw error;
     }
   }
