@@ -1,4 +1,4 @@
-import type { ResumeProfile, TemplateMeta, JobPost, AtsOptimization } from './types';
+import type { ResumeProfile, TemplateMeta, JobPost, AtsOptimization, JobApplication } from './types';
 
 const STORAGE_KEYS = {
   PROFILES: 'profiles',
@@ -6,7 +6,10 @@ const STORAGE_KEYS = {
   JOB_POST: 'jobPost',
   OPTS: 'options',
   OPTIMIZATIONS: 'optimizations',
-  COVER_LETTER_PROMPTS: 'coverLetterPrompts'
+  COVER_LETTER_PROMPTS: 'coverLetterPrompts',
+  GENERATED_RESUME: 'generatedResume',
+  GENERATED_COVER_LETTER: 'generatedCoverLetter',
+  JOB_APPLICATIONS: 'jobApplications'
 } as const;
 
 type Options = {
@@ -59,6 +62,10 @@ export async function saveJobPost(job: JobPost): Promise<void> {
   await storage.set(STORAGE_KEYS.JOB_POST, job);
 }
 
+export async function loadJobPost(): Promise<JobPost | undefined> {
+  return storage.get<JobPost>(STORAGE_KEYS.JOB_POST);
+}
+
 export async function saveOptimizations(list: AtsOptimization[]): Promise<void> {
   await storage.set(STORAGE_KEYS.OPTIMIZATIONS, list);
 }
@@ -73,4 +80,76 @@ export async function saveOptions(opts: Options): Promise<void> {
 
 export async function loadOptions(): Promise<Options | undefined> {
   return storage.get<Options>(STORAGE_KEYS.OPTS);
+}
+
+export async function saveGeneratedResume(markdown: string): Promise<void> {
+  await storage.set(STORAGE_KEYS.GENERATED_RESUME, markdown);
+}
+
+export async function loadGeneratedResume(): Promise<string | undefined> {
+  return storage.get<string>(STORAGE_KEYS.GENERATED_RESUME);
+}
+
+export async function saveGeneratedCoverLetter(markdown: string): Promise<void> {
+  await storage.set(STORAGE_KEYS.GENERATED_COVER_LETTER, markdown);
+}
+
+export async function loadGeneratedCoverLetter(): Promise<string | undefined> {
+  return storage.get<string>(STORAGE_KEYS.GENERATED_COVER_LETTER);
+}
+
+// Job Applications
+export async function loadJobApplications(): Promise<JobApplication[]> {
+  return (await storage.get<JobApplication[]>(STORAGE_KEYS.JOB_APPLICATIONS)) ?? [];
+}
+
+export async function saveJobApplication(application: JobApplication): Promise<void> {
+  const applications = await loadJobApplications();
+  const idx = applications.findIndex((a) => a.id === application.id);
+  
+  application.updatedAt = new Date().toISOString();
+  
+  if (idx >= 0) {
+    applications[idx] = application;
+  } else {
+    application.createdAt = new Date().toISOString();
+    applications.push(application);
+  }
+  
+  await storage.set(STORAGE_KEYS.JOB_APPLICATIONS, applications);
+}
+
+export async function deleteJobApplication(id: string): Promise<void> {
+  const applications = await loadJobApplications();
+  const filtered = applications.filter((a) => a.id !== id);
+  await storage.set(STORAGE_KEYS.JOB_APPLICATIONS, filtered);
+}
+
+export async function getJobApplication(id: string): Promise<JobApplication | undefined> {
+  const applications = await loadJobApplications();
+  return applications.find((a) => a.id === id);
+}
+
+export async function updateApplicationStatus(
+  id: string,
+  status: JobApplication['status'],
+  note?: string
+): Promise<void> {
+  const application = await getJobApplication(id);
+  if (!application) return;
+
+  application.status = status;
+  application.updatedAt = new Date().toISOString();
+
+  // Add to timeline
+  if (!application.timeline) application.timeline = [];
+  application.timeline.push({
+    id: crypto.randomUUID(),
+    date: new Date().toISOString(),
+    status,
+    note,
+    type: 'status_change',
+  });
+
+  await saveJobApplication(application);
 }

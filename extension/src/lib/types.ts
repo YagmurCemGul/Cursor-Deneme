@@ -95,3 +95,66 @@ export interface AtsOptimization {
   after?: string;
   rationale: string;
 }
+
+export type ApplicationStatus = 
+  | "wishlist"
+  | "applied"
+  | "screening"
+  | "interview"
+  | "offer"
+  | "accepted"
+  | "rejected"
+  | "withdrawn";
+
+export interface JobApplication {
+  id: string;
+  jobTitle: string;
+  company: string;
+  location?: string;
+  salary?: string;
+  jobType?: "Full-time" | "Part-time" | "Contract" | "Internship" | "Remote";
+  jobDescription?: string;
+  jobUrl?: string;
+  applicationDate?: string; // ISO date
+  deadline?: string; // ISO date
+  status: ApplicationStatus;
+  priority?: "low" | "medium" | "high";
+  notes?: string;
+  contacts?: Array<{
+    name: string;
+    role?: string;
+    email?: string;
+    phone?: string;
+    linkedin?: string;
+  }>;
+  timeline?: Array<{
+    id: string;
+    date: string; // ISO
+    status: ApplicationStatus;
+    note?: string;
+    type?: "status_change" | "interview" | "note" | "reminder";
+  }>;
+  interviews?: Array<{
+    id: string;
+    date: string; // ISO
+    time?: string;
+    type?: "Phone" | "Video" | "On-site" | "Technical" | "HR" | "Final";
+    interviewer?: string;
+    notes?: string;
+    completed?: boolean;
+  }>;
+  documents?: Array<{
+    id: string;
+    name: string;
+    type: "resume" | "cover_letter" | "portfolio" | "other";
+    url?: string;
+  }>;
+  reminders?: Array<{
+    id: string;
+    date: string; // ISO
+    message: string;
+    completed?: boolean;
+  }>;
+  createdAt: string; // ISO
+  updatedAt: string; // ISO
+}

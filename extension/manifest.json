@@ -7,29 +7,74 @@
     "storage",
     "activeTab",
     "downloads",
-    "identity"
+    "identity",
+    "scripting",
+    "tabs",
+    "contextMenus",
+    "notifications"
   ],
+  "commands": {
+    "_execute_action": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+C",
+        "mac": "Command+Shift+C"
+      },
+      "description": "Open CV Builder"
+    },
+    "quick-capture": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+J",
+        "mac": "Command+Shift+J"
+      },
+      "description": "Quick capture job from current page"
+    },
+    "open-tracker": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+T",
+        "mac": "Command+Shift+T"
+      },
+      "description": "Open Job Tracker"
+    }
+  },
   "oauth2": {
     "client_id": "YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com",
     "scopes": [
       "https://www.googleapis.com/auth/drive.file",
       "https://www.googleapis.com/auth/documents",
       "https://www.googleapis.com/auth/spreadsheets",
-      "https://www.googleapis.com/auth/presentations"
+      "https://www.googleapis.com/auth/presentations",
+      "https://www.googleapis.com/auth/gmail.send"
     ]
   },
   "host_permissions": [
     "https://www.googleapis.com/*",
     "https://docs.googleapis.com/*",
     "https://sheets.googleapis.com/*",
-    "https://slides.googleapis.com/*"
+    "https://slides.googleapis.com/*",
+    "https://www.linkedin.com/*",
+    "https://*.indeed.com/*",
+    "https://*.glassdoor.com/*",
+    "https://*.remote.co/*"
+  ],
+  "content_scripts": [
+    {
+      "matches": [
+        "https://www.linkedin.com/jobs/*",
+        "https://*.indeed.com/*",
+        "https://*.glassdoor.com/*",
+        "https://*.remote.co/*",
+        "https://*.weworkremotely.com/*"
+      ],
+      "js": ["src/content/content.ts"],
+      "run_at": "document_idle"
+    }
   ],
   "background": {
-    "service_worker": "background.js",
+    "service_worker": "src/background/background.ts",
     "type": "module"
   },
   "action": {
-    "default_popup": "popup.html",
+    "default_popup": "src/popup/index.html",
     "default_icon": {
       "16": "icons/icon16.png",
       "48": "icons/icon48.png",
@@ -37,15 +82,16 @@
     }
   },
   "chrome_url_overrides": {
-    "newtab": "newtab.html"
+    "newtab": "src/newtab/index.html"
   },
   "icons": {
     "16": "icons/icon16.png",
     "48": "icons/icon48.png",
     "128": "icons/icon128.png"
   },
-  "options_page": "options.html",
+  "options_page": "src/options/index.html",
   "content_security_policy": {
     "extension_pages": "script-src 'self'; object-src 'self'"
   }
 }
+

@@ -1,5 +1,9 @@
 import type { ResumeProfile, JobPost, AtsOptimization } from './types';
 import { loadOptions } from './storage';
+import { generateIndustryPrompt, suggestIndustry, getIndustryPrompt } from './promptLibrary';
+import { analyzeJobPosting } from './jobAnalyzer';
+import { tailorResumeToJob } from './resumeTailoring';
+import { callAI, getProviderConfig, trackUsage, getRecommendedModel, type AIModel } from './aiProviders';
 
 export type GeneratedResume = {
   text: string;
@@ -54,14 +58,127 @@ CREATIVE: Acted, Composed, Conceived, Conceptualized, Created, Customized, Desig
 HELPING: Assessed, Assisted, Clarified, Coached, Counseled, Demonstrated, Diagnosed, Educated, Enhanced, Expedited, Facilitated, Familiarized, Guided, Motivated, Participated, Proposed, Provided, Referred, Rehabilitated, Represented, Served, Supported
 ORGANIZATIONAL: Approved, Accelerated, Added, Arranged, Broadened, Cataloged, Centralized, Changed, Classified, Collected, Compiled, Completed, Controlled, Defined, Dispatched, Executed, Expanded, Gained, Gathered, Generated, Implemented, Inspected, Launched, Monitored, Operated, Organized, Prepared, Processed, Purchased, Recorded, Reduced, Reinforced, Retrieved, Screened, Selected, Simplified, Sold, Specified, Steered, Structured, Systematized, Tabulated, Unified, Updated, Utilized, Validated, Verified`;
 
-export async function generateAtsResume(profile: ResumeProfile, job: JobPost): Promise<GeneratedResume> {
+export async function generateAtsResume(
+  profile: ResumeProfile, 
+  job: JobPost,
+  industryId?: string
+): Promise<GeneratedResume> {
   const opts = await loadOptions();
-  const system = `You are an expert resume writer optimizing for ATS. Follow rules strictly. Avoid personal pronouns. Use action verbs. Language: ${opts?.language ?? 'tr'}.`;
-  const prompt = `Job description:\n${job.pastedText}\n\nCandidate profile JSON:\n${JSON.stringify(profile, null, 2)}\n\nRules:\n${RESUME_RULES_TR}\n\nAction verbs:\n${ACTION_VERBS}\n\nReturn a concise, ATS-friendly resume body in Markdown sections: Summary, Skills, Experience (bullets), Education, Licenses/Certifications, Projects. Avoid headers like RESUME.`;
-  const text = await callOpenAI(system, prompt);
+  
+  // Auto-detect industry if not provided
+  const detectedIndustry = industryId || suggestIndustry(
+    profile.skills,
+    profile.experience.map(exp => exp.title)
+  );
+  
+  const industry = getIndustryPrompt(detectedIndustry);
+  
+  // Analyze job context for intelligent tailoring
+  const jobContext = analyzeJobPosting(job.pastedText, job.title);
+  const tailoringResult = tailorResumeToJob(profile, job.pastedText, job.title, false);
+  
+  // Create profile summary for context
+  const profileSummary = `
+Name: ${profile.personal.firstName} ${profile.personal.lastName}
+Skills: ${profile.skills.join(', ')}
+Experience: ${profile.experience.map(exp => `${exp.title} at ${exp.company}`).join('; ')}
+Education: ${profile.education.map(edu => `${edu.degree} in ${edu.fieldOfStudy || 'N/A'}`).join('; ')}
+  `.trim();
+  
+  // Use industry-specific prompt
+  const industryPrompt = generateIndustryPrompt(
+    detectedIndustry,
+    job.pastedText,
+    profileSummary
+  );
+  
+  const system = `You are an expert resume writer specializing in ${industry.name} roles. 
+You optimize resumes for both ATS systems and human readers.
+Language: ${opts?.language ?? 'en'}.
+
+CRITICAL RULES:
+${RESUME_RULES_TR}
+
+AVAILABLE ACTION VERBS:
+${ACTION_VERBS}`;
+
+  const prompt = `${industryPrompt}
+
+CANDIDATE FULL PROFILE:
+${JSON.stringify(profile, null, 2)}
+
+CONTEXT-AWARE INSIGHTS:
+- Match Score: ${tailoringResult.analysis.overallMatchScore}%
+- Required Skills Present: ${tailoringResult.analysis.skillMatches.filter(m => m.importance === 'required' && m.userHasIt).length}/${tailoringResult.analysis.skillMatches.filter(m => m.importance === 'required').length}
+- Experience Level Required: ${jobContext.experienceLevel}
+- Company Culture: ${jobContext.companyCulture.join(', ')}
+- Must-Have Keywords: ${jobContext.mustHaveKeywords.slice(0, 10).join(', ')}
+- Key Strengths to Emphasize: ${tailoringResult.strengthAreas.slice(0, 5).join(', ')}
+- Important Phrases from Job: ${jobContext.importantPhrases.slice(0, 3).join('; ')}
+
+TAILORING PRIORITIES:
+${tailoringResult.suggestions.slice(0, 5).map((s, i) => `${i + 1}. ${s.title}: ${s.description}`).join('\n')}
+
+TASK:
+Generate a professional, ATS-optimized resume in Markdown format with these sections:
+1. Professional Summary (3-4 lines, focused on ${industry.resumeStructure.summaryFocus})
+   - MUST naturally incorporate: ${jobContext.mustHaveKeywords.slice(0, 5).join(', ')}
+   - Emphasize: ${tailoringResult.strengthAreas.slice(0, 3).join(', ')}
+2. Skills (${industry.resumeStructure.skillsPresentation})
+   - Prioritize required skills: ${jobContext.requiredSkills.slice(0, 8).join(', ')}
+   - Order: Required skills first, then preferred, then additional
+3. Work Experience (emphasis on: ${industry.resumeStructure.experienceEmphasis.join(', ')})
+   - Use language from job posting: ${jobContext.importantPhrases.slice(0, 2).join('; ')}
+   - Align with responsibilities mentioned in job
+4. Education
+5. Certifications/Licenses (if applicable)
+6. Projects (if applicable)
+
+Use ${industry.name}-appropriate terminology and include metrics like: ${industry.successMetrics.slice(0, 3).join(', ')}.
+
+CRITICAL INSTRUCTIONS: 
+- Do NOT include a resume title or "RESUME" header
+- Use bullet points for experiences
+- Quantify ALL achievements with specific numbers
+- Naturally weave in keywords: ${jobContext.mustHaveKeywords.slice(0, 8).join(', ')}
+- Match the tone and language of the job posting
+- Maintain ${Math.round(industry.keywordDensity * 100)}% keyword density
+- Emphasize candidate's strengths that match job requirements
+- Use action verbs that align with ${industry.name} roles`;
+
+  // Use recommended model for resume generation
+  const recommendedModel = getRecommendedModel('resume');
+  const text = await callOpenAI(system, prompt, { temperature: 0.4, model: recommendedModel });
 
   const optimizations: AtsOptimization[] = [
-    { id: crypto.randomUUID(), kind: 'addition', section: 'Skills', after: 'Added keywords from job post', rationale: 'Increase ATS keyword match' }
+    { 
+      id: crypto.randomUUID(), 
+      kind: 'addition', 
+      section: 'Industry Optimization', 
+      after: `Applied ${industry.name} industry best practices`, 
+      rationale: `Optimized for ${industry.category} sector with ${industry.commonTerms.length} industry-specific keywords` 
+    },
+    { 
+      id: crypto.randomUUID(), 
+      kind: 'enhancement', 
+      section: 'Skills', 
+      after: 'Prioritized relevant skills for ATS', 
+      rationale: `Keyword density: ${Math.round(industry.keywordDensity * 100)}%, Match score: ${tailoringResult.analysis.overallMatchScore}%` 
+    },
+    { 
+      id: crypto.randomUUID(), 
+      kind: 'addition', 
+      section: 'Context Awareness', 
+      after: `Tailored to job requirements with ${tailoringResult.analysis.overallMatchScore}% match`, 
+      rationale: `Incorporated ${jobContext.mustHaveKeywords.length} must-have keywords and emphasized ${tailoringResult.strengthAreas.length} key strengths` 
+    },
+    { 
+      id: crypto.randomUUID(), 
+      kind: 'enhancement', 
+      section: 'Experience', 
+      after: 'Aligned experience descriptions with job responsibilities', 
+      rationale: `Matched ${tailoringResult.analysis.skillMatches.filter(m => m.userHasIt).length}/${tailoringResult.analysis.skillMatches.length} required skills` 
+    }
   ];
 
   return { text, optimizations };
@@ -76,15 +193,35 @@ export async function generateCoverLetter(profile: ResumeProfile, job: JobPost, 
   return { text };
 }
 
-async function callOpenAI(system: string, user: string): Promise<string> {
-  const opts = await loadOptions();
-  if (!opts?.apiKey) {
-    return 'API key not set. Go to Options to configure.';
-  }
-  
-  const provider = opts.apiProvider || 'openai';
+export async function callOpenAI(
+  system: string, 
+  user: string, 
+  options?: { temperature?: number; model?: AIModel }
+): Promise<string> {
+  const temperature = options?.temperature ?? 0.3;
+  const preferredModel = options?.model;
   
   try {
+    const config = await getProviderConfig(preferredModel);
+    config.temperature = temperature;
+    
+    const response = await callAI(system, user, config);
+    
+    // Track usage
+    await trackUsage(response);
+    
+    return response.content;
+  } catch (error: any) {
+    console.error('AI call error:', error);
+    
+    // Fallback to legacy system if new providers fail
+    const opts = await loadOptions();
+    if (!opts?.apiKey) {
+      return 'API key not set. Go to Options to configure.';
+    }
+    
+    const provider = opts.apiProvider || 'openai';
+    
     if (provider === 'openai' || provider === 'azure') {
       const endpoint = provider === 'azure' ? 'https://example-azure-endpoint' : 'https://api.openai.com/v1/chat/completions';
       
@@ -100,7 +237,7 @@ async function callOpenAI(system: string, user: string): Promise<string> {
             { role: 'system', content: system },
             { role: 'user', content: user }
           ],
-          temperature: 0.3,
+          temperature,
         })
       });
 
@@ -126,7 +263,7 @@ async function callOpenAI(system: string, user: string): Promise<string> {
             parts: [{ text: prompt }]
           }],
           generationConfig: {
-            temperature: 0.3,
+            temperature,
             topK: 40,
             topP: 0.95,
           }
