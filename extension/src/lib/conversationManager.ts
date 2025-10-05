@@ -7,6 +7,7 @@ import type { ResumeProfile, JobPost } from './types';
 import { callOpenAI } from './ai';
 import { analyzeJobPosting, JobContext } from './jobAnalyzer';
 import { tailorResumeToJob } from './resumeTailoring';
+import { getRecommendedModel } from './aiProviders';
 
 export interface ConversationTurn {
   id: string;
@@ -146,7 +147,9 @@ export class ConversationManager {
 Your goal is to improve their ${section} section to better match the job they're applying for.
 Be conversational, specific, and actionable. Provide concrete examples and explanations.`;
 
-    const suggestion = await callOpenAI(systemPrompt, prompt, { temperature: 0.7 });
+    // Use recommended model for chat
+    const chatModel = getRecommendedModel('chat');
+    const suggestion = await callOpenAI(systemPrompt, prompt, { temperature: 0.7, model: chatModel });
 
     // Generate profile changes
     const changes = this.generateChangesForSection(section, suggestion, sectionSuggestions);
@@ -184,7 +187,9 @@ ${question}
 
 Provide a helpful, conversational answer based on the candidate's context.`;
 
-    const answer = await callOpenAI(systemPrompt, contextPrompt, { temperature: 0.7 });
+    // Use fast model for quick Q&A
+    const qaModel = getRecommendedModel('quick-qa');
+    const answer = await callOpenAI(systemPrompt, contextPrompt, { temperature: 0.7, model: qaModel });
     return answer;
   }
 
@@ -353,7 +358,9 @@ ${userMessage}
 Respond conversationally and helpfully. If they want to improve something specific, guide them.
 If they're unsure, suggest what to work on based on their profile and the job.`;
 
-    return await callOpenAI(systemPrompt, contextPrompt, { temperature: 0.7 });
+    // Use chat model for general conversation
+    const chatModel = getRecommendedModel('chat');
+    return await callOpenAI(systemPrompt, contextPrompt, { temperature: 0.7, model: chatModel });
   }
 
   private buildSectionImprovementPrompt(

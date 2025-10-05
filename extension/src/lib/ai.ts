@@ -3,6 +3,7 @@ import { loadOptions } from './storage';
 import { generateIndustryPrompt, suggestIndustry, getIndustryPrompt } from './promptLibrary';
 import { analyzeJobPosting } from './jobAnalyzer';
 import { tailorResumeToJob } from './resumeTailoring';
+import { callAI, getProviderConfig, trackUsage, getRecommendedModel, type AIModel } from './aiProviders';
 
 export type GeneratedResume = {
   text: string;
@@ -145,7 +146,9 @@ CRITICAL INSTRUCTIONS:
 - Emphasize candidate's strengths that match job requirements
 - Use action verbs that align with ${industry.name} roles`;
 
-  const text = await callOpenAI(system, prompt, { temperature: 0.4 });
+  // Use recommended model for resume generation
+  const recommendedModel = getRecommendedModel('resume');
+  const text = await callOpenAI(system, prompt, { temperature: 0.4, model: recommendedModel });
 
   const optimizations: AtsOptimization[] = [
     { 
@@ -190,16 +193,35 @@ export async function generateCoverLetter(profile: ResumeProfile, job: JobPost, 
   return { text };
 }
 
-export async function callOpenAI(system: string, user: string, options?: { temperature?: number }): Promise<string> {
+export async function callOpenAI(
+  system: string, 
+  user: string, 
+  options?: { temperature?: number; model?: AIModel }
+): Promise<string> {
   const temperature = options?.temperature ?? 0.3;
-  const opts = await loadOptions();
-  if (!opts?.apiKey) {
-    return 'API key not set. Go to Options to configure.';
-  }
-  
-  const provider = opts.apiProvider || 'openai';
+  const preferredModel = options?.model;
   
   try {
+    const config = await getProviderConfig(preferredModel);
+    config.temperature = temperature;
+    
+    const response = await callAI(system, user, config);
+    
+    // Track usage
+    await trackUsage(response);
+    
+    return response.content;
+  } catch (error: any) {
+    console.error('AI call error:', error);
+    
+    // Fallback to legacy system if new providers fail
+    const opts = await loadOptions();
+    if (!opts?.apiKey) {
+      return 'API key not set. Go to Options to configure.';
+    }
+    
+    const provider = opts.apiProvider || 'openai';
+    
     if (provider === 'openai' || provider === 'azure') {
       const endpoint = provider === 'azure' ? 'https://example-azure-endpoint' : 'https://api.openai.com/v1/chat/completions';
       

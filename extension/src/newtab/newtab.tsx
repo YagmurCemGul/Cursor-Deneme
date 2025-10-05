@@ -74,6 +74,7 @@ export function NewTab() {
   const [showBackupManager, setShowBackupManager] = useState(false);
   const [selectedIndustry, setSelectedIndustry] = useState<string>('generic-professional');
   const [showAIChat, setShowAIChat] = useState(false);
+  const [showModelSelector, setShowModelSelector] = useState(false);
 
   useEffect(() => {
     (async () => {
@@ -2212,6 +2213,28 @@ Make it compelling, highlight key strengths, and use action-oriented language.`;
 
             {active === 'settings' && (
               <div className="col" style={{ gap: 20 }}>
+                {/* AI Model Configuration */}
+                <div>
+                  <SectionHeader title="🤖 AI Model Configuration" />
+                  <p style={{ margin: '0 0 16px', color: '#64748b', fontSize: 14 }}>
+                    {currentLang === 'tr' 
+                      ? 'OpenAI, Anthropic Claude ve Google Gemini modelleri arasından seçim yapın' 
+                      : 'Choose between OpenAI, Anthropic Claude, and Google Gemini models'}
+                  </p>
+                  <Button
+                    variant="primary"
+                    onClick={() => setShowModelSelector(true)}
+                    style={{ fontSize: 14 }}
+                  >
+                    ⚙️ {currentLang === 'tr' ? 'AI Modellerini Yapılandır' : 'Configure AI Models'}
+                  </Button>
+                  <div style={{ marginTop: 12, padding: 12, background: '#f8fafc', borderRadius: 8, fontSize: 12, color: '#64748b' }}>
+                    💡 {currentLang === 'tr' 
+                      ? 'GPT-4 Turbo, Claude 3, Gemini Pro ve daha fazlası' 
+                      : 'GPT-4 Turbo, Claude 3, Gemini Pro and more'}
+                  </div>
+                </div>
+                
                 {/* Cloud Backup */}
                 <div>
                   <SectionHeader title="☁️ Cloud Backup" />
@@ -2447,6 +2470,11 @@ Make it compelling, highlight key strengths, and use action-oriented language.`;
             onRestore={handleBackupRestore}
             onClose={() => setShowBackupManager(false)}
           />
+        )}
+        
+        {/* Model Selector Modal */}
+        {showModelSelector && (
+          <ModelSelector onClose={() => setShowModelSelector(false)} />
         )}
 
         {/* Footer */}
