@@ -7,9 +7,11 @@ import { validateEmail, validatePhone, validateURL, validateLinkedIn, validateGi
 import { CVPreview } from '../components/CVPreview';
 import { TemplateGallery } from '../components/TemplateGallery';
 import { ATSScoreCard } from '../components/ATSScoreCard';
+import { LinkedInImport } from '../components/LinkedInImport';
 import { TemplateType, TemplateColors, TemplateFonts } from '../lib/templates';
 import { exportToPDF, exportToImage, printCV, generatePDFFilename } from '../lib/pdfExport';
 import { calculateATSScore, ATSScore } from '../lib/atsScoring';
+import { convertLinkedInToProfile, LinkedInProfile } from '../lib/linkedinImport';
 import '../styles/global.css';
 
 export function NewTab() {
@@ -41,6 +43,7 @@ export function NewTab() {
   const [isExporting, setIsExporting] = useState(false);
   const [atsScore, setAtsScore] = useState<ATSScore | null>(null);
   const [showATSScore, setShowATSScore] = useState(false);
+  const [showLinkedInImport, setShowLinkedInImport] = useState(false);
 
   useEffect(() => {
     (async () => {
@@ -193,6 +196,17 @@ export function NewTab() {
       setAtsScore(score);
     }
   }, [profile, job.pastedText, showATSScore]);
+
+  // Handle LinkedIn import
+  async function handleLinkedInImport(linkedinProfile: Partial<LinkedInProfile>) {
+    if (!profile) return;
+    
+    const updatedProfile = convertLinkedInToProfile(linkedinProfile, profile);
+    await saveProfile(updatedProfile);
+    
+    alert('✅ LinkedIn profile imported successfully!');
+    setShowLinkedInImport(false);
+  }
 
   const linkedInUrl = useMemo(() => profile?.personal.linkedin ? `https://www.linkedin.com/in/${profile.personal.linkedin}` : '', [profile]);
   const githubUrl = useMemo(() => profile?.personal.github ? `https://github.com/${profile.personal.github}` : '', [profile]);
@@ -671,6 +685,36 @@ Make it compelling, highlight key strengths, and use action-oriented language.`;
 
             {active === 'cv' && (
               <div className="col" style={{ gap: 16 }}>
+                {/* LinkedIn Import Banner */}
+                <div style={{
+                  background: 'linear-gradient(135deg, #0077b5 0%, #00a0dc 100%)',
+                  padding: '16px 20px',
+                  borderRadius: 12,
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  marginBottom: 16,
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                    <span style={{ fontSize: 32 }}>💼</span>
+                    <div>
+                      <div style={{ color: 'white', fontWeight: 600, fontSize: 15, marginBottom: 2 }}>
+                        Import from LinkedIn
+                      </div>
+                      <div style={{ color: 'rgba(255,255,255,0.9)', fontSize: 12 }}>
+                        Save time by importing your LinkedIn profile data
+                      </div>
+                    </div>
+                  </div>
+                  <Button 
+                    variant="secondary"
+                    onClick={() => setShowLinkedInImport(true)}
+                    style={{ background: 'white', color: '#0077b5', border: 'none', fontWeight: 600 }}
+                  >
+                    Import Now
+                  </Button>
+                </div>
+
                 <SectionHeader 
                   title="Personal Information" 
                   actions={
@@ -1646,6 +1690,14 @@ Make it compelling, highlight key strengths, and use action-oriented language.`;
               saveTemplatePreferences(cvTemplate, colors, fonts);
             }}
             onClose={() => setShowTemplateGallery(false)}
+          />
+        )}
+
+        {/* LinkedIn Import Modal */}
+        {showLinkedInImport && (
+          <LinkedInImport
+            onImport={handleLinkedInImport}
+            onClose={() => setShowLinkedInImport(false)}
           />
         )}
 
