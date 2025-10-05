@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { loadOptions, saveOptions } from '../lib/storage';
 import { Button, SectionHeader, TextRow } from '../components/ui';
 import { authenticateWithGoogle, revokeAuthToken, isAuthenticated, getUserProfile } from '../lib/googleAuth';
+import { setupAutoBackup, disableAutoBackup, getBackupSettings } from '../lib/cloudBackup';
 import '../styles/global.css';
 
 export function Options() {
@@ -12,6 +13,9 @@ export function Options() {
   const [googleAuth, setGoogleAuth] = useState(false);
   const [googleProfile, setGoogleProfile] = useState<{ email: string; name: string; picture?: string } | null>(null);
   const [authLoading, setAuthLoading] = useState(false);
+  const [autoBackupEnabled, setAutoBackupEnabled] = useState(false);
+  const [autoBackupInterval, setAutoBackupInterval] = useState(24);
+  const [lastBackupTime, setLastBackupTime] = useState<number>(0);
 
   useEffect(() => {
     (async () => {
@@ -33,6 +37,12 @@ export function Options() {
           console.error('Failed to get user profile:', error);
         }
       }
+
+      // Load backup settings
+      const backupSettings = await getBackupSettings();
+      setAutoBackupEnabled(backupSettings.enabled);
+      setAutoBackupInterval(backupSettings.interval);
+      setLastBackupTime(backupSettings.lastBackup);
     })();
   }, []);
 
@@ -65,11 +75,44 @@ export function Options() {
       await revokeAuthToken();
       setGoogleAuth(false);
       setGoogleProfile(null);
+      // Also disable auto-backup when signing out
+      await disableAutoBackup();
+      setAutoBackupEnabled(false);
     } catch (error: any) {
       console.error('Sign out error:', error);
     } finally {
       setAuthLoading(false);
     }
+  }
+
+  async function handleAutoBackupToggle(enabled: boolean) {
+    setAutoBackupEnabled(enabled);
+    if (enabled) {
+      await setupAutoBackup(autoBackupInterval);
+    } else {
+      await disableAutoBackup();
+    }
+  }
+
+  async function handleAutoBackupIntervalChange(interval: number) {
+    setAutoBackupInterval(interval);
+    if (autoBackupEnabled) {
+      await setupAutoBackup(interval);
+    }
+  }
+
+  function formatLastBackupTime(): string {
+    if (!lastBackupTime) return 'Never';
+    const date = new Date(lastBackupTime);
+    const now = Date.now();
+    const diff = now - lastBackupTime;
+    
+    const hours = Math.floor(diff / (1000 * 60 * 60));
+    const days = Math.floor(hours / 24);
+    
+    if (days > 0) return `${days} day${days > 1 ? 's' : ''} ago`;
+    if (hours > 0) return `${hours} hour${hours > 1 ? 's' : ''} ago`;
+    return 'Just now';
   }
 
   return (
@@ -241,6 +284,63 @@ export function Options() {
               >
                 {authLoading ? '⏳ Disconnecting...' : '🔓 Sign Out'}
               </Button>
+            </div>
+          )}
+
+          {/* Auto-Backup Settings */}
+          {googleAuth && (
+            <div style={{ marginTop: 24, padding: 16, background: '#f8fafc', borderRadius: 12, border: '1px solid #e2e8f0' }}>
+              <h3 style={{ margin: '0 0 16px', fontSize: 16, color: '#1e293b' }}>☁️ Auto-Backup Settings</h3>
+              
+              <div style={{ marginBottom: 16 }}>
+                <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer' }}>
+                  <input
+                    type="checkbox"
+                    checked={autoBackupEnabled}
+                    onChange={(e) => handleAutoBackupToggle(e.target.checked)}
+                  />
+                  <span style={{ fontSize: 14, color: '#1e293b', fontWeight: 500 }}>
+                    Enable automatic backups to Google Drive
+                  </span>
+                </label>
+              </div>
+
+              {autoBackupEnabled && (
+                <>
+                  <div style={{ marginBottom: 16 }}>
+                    <label style={{ display: 'block', fontSize: 13, fontWeight: 500, color: '#64748b', marginBottom: 8 }}>
+                      Backup Interval
+                    </label>
+                    <select
+                      value={autoBackupInterval}
+                      onChange={(e) => handleAutoBackupIntervalChange(Number(e.target.value))}
+                      style={{
+                        width: '100%',
+                        padding: '8px 12px',
+                        border: '1px solid #cbd5e1',
+                        borderRadius: 8,
+                        fontSize: 14,
+                      }}
+                    >
+                      <option value={1}>Every hour</option>
+                      <option value={6}>Every 6 hours</option>
+                      <option value={12}>Every 12 hours</option>
+                      <option value={24}>Every 24 hours (daily)</option>
+                      <option value={168}>Every week</option>
+                    </select>
+                  </div>
+
+                  <div style={{ padding: 12, background: 'white', borderRadius: 8, fontSize: 13, color: '#64748b' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
+                      <span>Last backup:</span>
+                      <span style={{ fontWeight: 500, color: '#1e293b' }}>{formatLastBackupTime()}</span>
+                    </div>
+                    <div style={{ fontSize: 12, opacity: 0.8, marginTop: 8 }}>
+                      💡 Backups are created automatically when you make changes after the interval period.
+                    </div>
+                  </div>
+                </>
+              )}
             </div>
           )}
         </div>

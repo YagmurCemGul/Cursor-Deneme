@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState, useCallback } from 'react';
-import { ResumeProfile, JobPost, AtsOptimization, EmploymentType } from '../lib/types';
-import { getActiveProfile, loadOptimizations, saveJobPost, saveOptimizations, saveOrUpdateProfile, loadOptions, loadJobPost, loadGeneratedResume, loadGeneratedCoverLetter, saveGeneratedResume, saveGeneratedCoverLetter } from '../lib/storage';
+import { ResumeProfile, JobPost, AtsOptimization, EmploymentType, JobApplication } from '../lib/types';
+import { getActiveProfile, loadOptimizations, saveJobPost, saveOptimizations, saveOrUpdateProfile, loadOptions, loadJobPost, loadGeneratedResume, loadGeneratedCoverLetter, saveGeneratedResume, saveGeneratedCoverLetter, loadJobApplications, saveJobApplication, storage } from '../lib/storage';
 import { generateAtsResume, generateCoverLetter } from '../lib/ai';
 import { TabButton, TextRow, SectionHeader, Pill, Button } from '../components/ui';
 import { validateEmail, validatePhone, validateURL, validateLinkedIn, validateGitHub, formatPhoneNumber, calculateDateDuration, formatDate, calculateProfileCompletion, getSkillSuggestions, skillSuggestions } from '../lib/validation';
@@ -13,12 +13,14 @@ import { ProfileManager } from '../components/ProfileManager';
 import { DescriptionEnhancer } from '../components/DescriptionEnhancer';
 import { CoverLetterBuilder } from '../components/CoverLetterBuilder';
 import { EmailComposer } from '../components/EmailComposer';
+import { BackupManager } from '../components/BackupManager';
 import { TemplateType, TemplateColors, TemplateFonts } from '../lib/templates';
 import { exportToPDF, exportToImage, printCV, generatePDFFilename } from '../lib/pdfExport';
 import { calculateATSScore, ATSScore } from '../lib/atsScoring';
 import { convertLinkedInToProfile, LinkedInProfile } from '../lib/linkedinImport';
 import { initLanguage, setLanguage, getCurrentLanguage, t, Language } from '../lib/i18n';
 import { exportToGoogleDocs, isGoogleDocsAvailable } from '../lib/googleDocsExport';
+import { performAutoBackupIfDue } from '../lib/cloudBackup';
 import '../styles/global.css';
 
 export function NewTab() {
@@ -65,6 +67,7 @@ export function NewTab() {
   const [isGoogleDocsConnected, setIsGoogleDocsConnected] = useState(false);
   const [isExportingToDocs, setIsExportingToDocs] = useState(false);
   const [showEmailComposer, setShowEmailComposer] = useState(false);
+  const [showBackupManager, setShowBackupManager] = useState(false);
 
   useEffect(() => {
     (async () => {
@@ -79,6 +82,15 @@ export function NewTab() {
       // Load all profiles
       const profiles = await storage.get<ResumeProfile[]>(storage.keys.PROFILES) || [];
       setAllProfiles(profiles);
+      
+      // Load job applications for auto-backup
+      const apps = await loadJobApplications();
+      
+      // Check and perform auto-backup if due
+      if (googleAvailable && profiles.length > 0) {
+        const activeProf = await getActiveProfile();
+        await performAutoBackupIfDue(profiles, apps, activeProf?.id);
+      }
       
       let p = await getActiveProfile();
       if (!p) {
@@ -345,6 +357,39 @@ export function NewTab() {
     // Update profiles list
     const profiles = await storage.get<ResumeProfile[]>(storage.keys.PROFILES) || [];
     setAllProfiles(profiles);
+  }
+
+  async function handleBackupRestore(profiles: ResumeProfile[], applications: JobApplication[], activeProfileId?: string) {
+    try {
+      // Save all profiles
+      await storage.set(storage.keys.PROFILES, profiles);
+      setAllProfiles(profiles);
+      
+      // Save all applications
+      for (const app of applications) {
+        await saveJobApplication(app);
+      }
+      
+      // Set active profile
+      if (activeProfileId) {
+        const activeProfile = profiles.find(p => p.id === activeProfileId);
+        if (activeProfile) {
+          setProfile(activeProfile);
+          await saveOrUpdateProfile(activeProfile);
+        }
+      } else if (profiles.length > 0) {
+        setProfile(profiles[0]);
+        await saveOrUpdateProfile(profiles[0]);
+      }
+      
+      // Reload data
+      window.location.reload();
+    } catch (error) {
+      console.error('Restore error:', error);
+      alert(currentLang === 'tr' 
+        ? 'Geri yükleme sırasında hata oluştu' 
+        : 'Error during restore');
+    }
   }
 
   // Validate field with real-time feedback
@@ -1942,6 +1987,28 @@ Make it compelling, highlight key strengths, and use action-oriented language.`;
 
             {active === 'settings' && (
               <div className="col" style={{ gap: 20 }}>
+                {/* Cloud Backup */}
+                <div>
+                  <SectionHeader title="☁️ Cloud Backup" />
+                  <p style={{ margin: '0 0 16px', color: '#64748b', fontSize: 14 }}>
+                    {currentLang === 'tr' 
+                      ? 'Verilerinizi Google Drive\'a yedekleyin ve geri yükleyin' 
+                      : 'Backup and restore your data to Google Drive'}
+                  </p>
+                  <Button
+                    variant="primary"
+                    onClick={() => setShowBackupManager(true)}
+                    style={{ fontSize: 14 }}
+                  >
+                    {currentLang === 'tr' ? '☁️ Yedekleme Yöneticisi' : '☁️ Backup Manager'}
+                  </Button>
+                  <p style={{ margin: '12px 0 0', fontSize: 13, color: '#64748b' }}>
+                    {currentLang === 'tr'
+                      ? '💡 Otomatik yedekleme için Settings sayfasına gidin'
+                      : '💡 Go to Settings page for automatic backup'}
+                  </p>
+                </div>
+
                 {/* Language Settings */}
                 <div>
                   <SectionHeader title={t('settings.language', currentLang) + ' / Language'} />
@@ -2142,6 +2209,18 @@ Make it compelling, highlight key strengths, and use action-oriented language.`;
             language={currentLang}
             cvElementId="cv-preview-content"
             onClose={() => setShowEmailComposer(false)}
+          />
+        )}
+
+        {/* Backup Manager Modal */}
+        {showBackupManager && profile && (
+          <BackupManager
+            profiles={allProfiles}
+            applications={[]}
+            activeProfileId={profile.id}
+            language={currentLang}
+            onRestore={handleBackupRestore}
+            onClose={() => setShowBackupManager(false)}
           />
         )}
 
