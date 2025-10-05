@@ -2,13 +2,21 @@ import React, { useState, useEffect } from 'react';
 import { t, Lang } from '../i18n';
 import { StorageService } from '../utils/storage';
 import { AIApiKeys } from '../types/storage';
+import type { AIProvider } from '../utils/aiProviders';
+
+type ProviderConfigOverrides = Partial<{
+  provider: AIProvider;
+  apiKeys: AIApiKeys;
+  model: string;
+  temperature: number;
+  legacyKey: string | null;
+  language: Lang;
+}>;
 
 interface AISettingsProps {
   language: Lang;
-  onConfigChange?: () => void;
+  onConfigChange?: (overrides?: ProviderConfigOverrides) => void | Promise<void>;
 }
-
-type AIProvider = 'openai' | 'gemini' | 'claude';
 
 interface ModelOption {
   value: string;
@@ -69,8 +77,15 @@ export const AISettings: React.FC<AISettingsProps> = ({ language, onConfigChange
       ]);
 
       setProvider(savedProvider);
-      setApiKeys(savedApiKeys);
-      setModel(savedModel || MODEL_OPTIONS[savedProvider][0]?.value || '');
+      setApiKeys(savedApiKeys || {});
+
+      const availableModels = MODEL_OPTIONS[savedProvider] || [];
+      const hasSavedModel = savedModel && availableModels.some(option => option.value === savedModel);
+      const initialModel = hasSavedModel
+        ? (savedModel as string)
+        : availableModels[0]?.value || '';
+
+      setModel(initialModel);
       setTemperature((settings as any)?.aiTemperature || 0.3);
     } catch (error) {
       console.error('Error loading AI settings:', error);
@@ -98,21 +113,29 @@ export const AISettings: React.FC<AISettingsProps> = ({ language, onConfigChange
     setSaveMessage('');
     
     try {
+      const existingSettings = await StorageService.getSettings() || {};
+
       await Promise.all([
         StorageService.saveAIProvider(provider),
         StorageService.saveAPIKeys(apiKeys),
         StorageService.saveAIModel(model),
         StorageService.saveSettings({
-          ...await StorageService.getSettings() || {},
+          ...existingSettings,
           aiTemperature: temperature
         })
       ]);
 
       setSaveMessage(t(language, 'settings.saveSuccess'));
-      
+
       // Notify parent component that config has changed
       if (onConfigChange) {
-        onConfigChange();
+        await onConfigChange({
+          provider,
+          apiKeys,
+          model,
+          temperature,
+          language
+        });
       }
 
       setTimeout(() => setSaveMessage(''), 3000);

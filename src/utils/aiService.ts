@@ -29,6 +29,13 @@ export class AIService {
   }
 
   /**
+   * Clear the configured AI provider (used when API keys are removed)
+   */
+  clearConfig(): void {
+    this.provider = null;
+  }
+
+  /**
    * Check if AI provider is configured
    */
   isConfigured(): boolean {
