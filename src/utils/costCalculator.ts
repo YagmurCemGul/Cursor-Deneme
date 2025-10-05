@@ -3,6 +3,8 @@
  * Calculates costs based on token usage and provider pricing
  */
 
+import { logger } from './logger';
+
 export interface PricingInfo {
   provider: string;
   model: string;
@@ -116,7 +118,7 @@ export function calculateCost(
     }
     
     // Default fallback
-    console.warn(`No pricing info for model: ${model}, using default`);
+    logger.warn(`No pricing info for model: ${model}, using default`);
     return 0;
   }
   

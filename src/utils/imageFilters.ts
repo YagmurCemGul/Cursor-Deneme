@@ -1,4 +1,5 @@
 import { PhotoFilters } from '../types';
+import { logger } from './logger';
 
 /**
  * Apply advanced image filters to a canvas context
@@ -275,7 +276,7 @@ export class ImageFilterProcessor {
     // - MediaPipe Face Detection
     // - Cloud Vision API
     
-    console.log('Face detection requires ML library integration');
+    logger.info('Face detection requires ML library integration');
     
     // Return mock face for demo purposes
     return [{

@@ -1,5 +1,6 @@
 import { SavedJobDescription } from '../types';
 import { AIService } from './aiService';
+import { logger } from './logger';
 
 /**
  * Multi-Language Job Description Support
@@ -200,7 +201,7 @@ Respond with only a number between 0 and 100.`;
     const score = parseInt(result.match(/\d+/)?.[0] || '0');
     return Math.min(Math.max(score, 0), 100);
   } catch (error) {
-    console.error('Quality validation failed:', error);
+    logger.error('Quality validation failed:', error);
     return 50; // Default middle score
   }
 }
