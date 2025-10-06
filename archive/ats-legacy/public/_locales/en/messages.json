@@ -1,0 +1,26 @@
+{
+  "extensionName": {
+    "message": "Job Autofill & ATS Assistant",
+    "description": "Extension name"
+  },
+  "extensionDescription": {
+    "message": "AI-powered job application automation with ATS scoring, autofill, and tracking",
+    "description": "Extension description"
+  },
+  "openDashboard": {
+    "message": "Open Dashboard",
+    "description": "Tooltip for opening dashboard"
+  },
+  "commandAutofill": {
+    "message": "Auto-fill current form",
+    "description": "Command to autofill forms"
+  },
+  "commandScore": {
+    "message": "Calculate ATS score",
+    "description": "Command to calculate ATS match score"
+  },
+  "commandPanel": {
+    "message": "Toggle side panel",
+    "description": "Command to toggle side panel"
+  }
+}

@@ -1,0 +1,131 @@
+{
+  "manifest_version": 3,
+  "name": "__MSG_extensionName__",
+  "version": "1.0.0",
+  "description": "__MSG_extensionDescription__",
+  "default_locale": "en",
+  "permissions": [
+    "storage",
+    "activeTab",
+    "scripting",
+    "contextMenus",
+    "sidePanel"
+  ],
+  "host_permissions": [
+    "https://api.openai.com/*",
+    "*://*.myworkdayjobs.com/*",
+    "*://*.workday.com/*",
+    "*://*.greenhouse.io/*",
+    "*://boards.greenhouse.io/*",
+    "*://*.lever.co/*",
+    "*://jobs.lever.co/*",
+    "*://*.ashbyhq.com/*",
+    "*://jobs.ashbyhq.com/*",
+    "*://*.smartrecruiters.com/*",
+    "*://jobs.smartrecruiters.com/*",
+    "*://*.successfactors.com/*",
+    "*://*.successfactors.eu/*",
+    "*://*.workable.com/*",
+    "*://apply.workable.com/*",
+    "*://*.icims.com/*",
+    "*://careers.icims.com/*",
+    "*://*.linkedin.com/*",
+    "*://*.indeed.com/*",
+    "*://*.indeed.co.uk/*",
+    "*://*.indeed.ca/*",
+    "*://*.glassdoor.com/*",
+    "*://*.glassdoor.co.uk/*"
+  ],
+  "background": {
+    "service_worker": "src/background/index.ts",
+    "type": "module"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "*://*.myworkdayjobs.com/*",
+        "*://*.workday.com/*",
+        "*://*.greenhouse.io/*",
+        "*://boards.greenhouse.io/*",
+        "*://*.lever.co/*",
+        "*://jobs.lever.co/*",
+        "*://*.ashbyhq.com/*",
+        "*://jobs.ashbyhq.com/*",
+        "*://*.smartrecruiters.com/*",
+        "*://jobs.smartrecruiters.com/*",
+        "*://*.successfactors.com/*",
+        "*://*.successfactors.eu/*",
+        "*://*.workable.com/*",
+        "*://apply.workable.com/*",
+        "*://*.icims.com/*",
+        "*://careers.icims.com/*",
+        "*://*.linkedin.com/*",
+        "*://*.indeed.com/*",
+        "*://*.indeed.co.uk/*",
+        "*://*.indeed.ca/*",
+        "*://*.glassdoor.com/*",
+        "*://*.glassdoor.co.uk/*"
+      ],
+      "js": ["src/content/index.ts"],
+      "run_at": "document_idle"
+    }
+  ],
+  "action": {
+    "default_title": "__MSG_openDashboard__"
+  },
+  "side_panel": {
+    "default_path": "src/tab/index.html"
+  },
+  "options_page": "src/options/index.html",
+  "web_accessible_resources": [
+    {
+      "resources": ["src/tab/*", "src/styles/*"],
+      "matches": [
+        "*://*.myworkdayjobs.com/*",
+        "*://*.workday.com/*",
+        "*://*.greenhouse.io/*",
+        "*://*.lever.co/*",
+        "*://*.ashbyhq.com/*",
+        "*://*.smartrecruiters.com/*",
+        "*://*.successfactors.com/*",
+        "*://*.workable.com/*",
+        "*://*.icims.com/*",
+        "*://*.linkedin.com/*",
+        "*://*.indeed.com/*",
+        "*://*.glassdoor.com/*"
+      ]
+    }
+  ],
+  "commands": {
+    "autofill": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+A",
+        "mac": "Command+Shift+A"
+      },
+      "description": "__MSG_commandAutofill__"
+    },
+    "score": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+M",
+        "mac": "Command+Shift+M"
+      },
+      "description": "__MSG_commandScore__"
+    },
+    "toggle_panel": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+L",
+        "mac": "Command+Shift+L"
+      },
+      "description": "__MSG_commandPanel__"
+    }
+  },
+  "icons": {
+    "16": "icon16.svg",
+    "32": "icon32.svg",
+    "48": "icon48.svg",
+    "128": "icon128.svg"
+  },
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'self'"
+  }
+}
