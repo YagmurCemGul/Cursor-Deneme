@@ -16,6 +16,9 @@ export function Options() {
   const [autoBackupEnabled, setAutoBackupEnabled] = useState(false);
   const [autoBackupInterval, setAutoBackupInterval] = useState(24);
   const [lastBackupTime, setLastBackupTime] = useState<number>(0);
+  const [atsEnabled, setAtsEnabled] = useState(false);
+  const [atsDebugLogs, setAtsDebugLogs] = useState(false);
+  const [atsAutoOpenPanel, setAtsAutoOpenPanel] = useState(false);
 
   useEffect(() => {
     (async () => {
@@ -43,11 +46,35 @@ export function Options() {
       setAutoBackupEnabled(backupSettings.enabled);
       setAutoBackupInterval(backupSettings.interval);
       setLastBackupTime(backupSettings.lastBackup);
+
+      // Load ATS settings
+      const result = await chrome.storage.local.get(['settings']);
+      if (result.settings?.ats) {
+        setAtsEnabled(result.settings.ats.enabled || false);
+        setAtsDebugLogs(result.settings.ats.debugLogs || false);
+        setAtsAutoOpenPanel(result.settings.ats.autoOpenPanel || false);
+      }
     })();
   }, []);
 
   async function handleSave() {
     await saveOptions({ apiKey, apiProvider, language });
+    
+    // Save ATS settings
+    const result = await chrome.storage.local.get(['settings']);
+    const settings = result.settings || {};
+    await chrome.storage.local.set({
+      settings: {
+        ...settings,
+        ats: {
+          ...(settings.ats || {}),
+          enabled: atsEnabled,
+          debugLogs: atsDebugLogs,
+          autoOpenPanel: atsAutoOpenPanel,
+        },
+      },
+    });
+    
     setSaved(true);
     setTimeout(() => setSaved(false), 3000);
   }
@@ -343,6 +370,93 @@ export function Options() {
               )}
             </div>
           )}
+        </div>
+
+        {/* ATS Settings Section */}
+        <div style={{ background: 'white', borderRadius: 16, padding: 32, boxShadow: '0 10px 40px rgba(0,0,0,0.1)', marginTop: 24 }}>
+          <h2 style={{ margin: '0 0 8px', fontSize: 20, color: '#1e293b' }}>🎯 ATS Auto-Fill Features</h2>
+          <p style={{ margin: '0 0 24px', color: '#64748b', fontSize: 14 }}>
+            Automatically fill job application forms on ATS platforms
+          </p>
+
+          <div className="col" style={{ gap: 16 }}>
+            <div>
+              <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer' }}>
+                <input
+                  type="checkbox"
+                  checked={atsEnabled}
+                  onChange={(e) => setAtsEnabled(e.target.checked)}
+                />
+                <span style={{ fontSize: 14, color: '#1e293b', fontWeight: 500 }}>
+                  Enable ATS Auto-Fill
+                </span>
+              </label>
+              <p style={{ margin: '8px 0 0 28px', fontSize: 12, color: '#64748b' }}>
+                Automatically detect and fill job application forms on supported platforms
+              </p>
+            </div>
+
+            {atsEnabled && (
+              <>
+                <div style={{ padding: 16, background: '#f8fafc', borderRadius: 12, border: '1px solid #e2e8f0' }}>
+                  <h3 style={{ margin: '0 0 12px', fontSize: 14, color: '#1e293b' }}>🌐 Supported Platforms:</h3>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px 16px', fontSize: 13, color: '#475569' }}>
+                    <div>✓ Workday</div>
+                    <div>✓ Greenhouse</div>
+                    <div>✓ Lever</div>
+                    <div>✓ Ashby</div>
+                    <div>✓ SmartRecruiters</div>
+                    <div>✓ SAP SuccessFactors</div>
+                    <div>✓ Workable</div>
+                    <div>✓ iCIMS</div>
+                    <div>✓ LinkedIn</div>
+                    <div>✓ Indeed</div>
+                    <div>✓ Glassdoor</div>
+                    <div>+ More coming soon</div>
+                  </div>
+                </div>
+
+                <div>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer' }}>
+                    <input
+                      type="checkbox"
+                      checked={atsAutoOpenPanel}
+                      onChange={(e) => setAtsAutoOpenPanel(e.target.checked)}
+                    />
+                    <span style={{ fontSize: 14, color: '#1e293b' }}>
+                      Auto-open side panel on job pages
+                    </span>
+                  </label>
+                  <p style={{ margin: '8px 0 0 28px', fontSize: 12, color: '#64748b' }}>
+                    Automatically show job details when visiting supported job pages
+                  </p>
+                </div>
+
+                <div>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer' }}>
+                    <input
+                      type="checkbox"
+                      checked={atsDebugLogs}
+                      onChange={(e) => setAtsDebugLogs(e.target.checked)}
+                    />
+                    <span style={{ fontSize: 14, color: '#1e293b' }}>
+                      Enable debug logging
+                    </span>
+                  </label>
+                  <p style={{ margin: '8px 0 0 28px', fontSize: 12, color: '#64748b' }}>
+                    Show detailed logs in browser console (useful for troubleshooting)
+                  </p>
+                </div>
+
+                <div style={{ padding: 16, background: '#fef3c7', borderRadius: 12, border: '1px solid #fbbf24', marginTop: 8 }}>
+                  <p style={{ margin: 0, fontSize: 13, color: '#92400e' }}>
+                    <strong>ℹ️ Note:</strong> To use ATS Auto-Fill, make sure to set up your profile first in the main extension. 
+                    Right-click on any application form and select "ATS Auto-Fill Form" from the context menu.
+                  </p>
+                </div>
+              </>
+            )}
+          </div>
         </div>
       </div>
     </div>
