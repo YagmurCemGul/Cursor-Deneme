@@ -56,3 +56,4 @@ This includes:
 ## License
 
 See [LICENSE](./LICENSE) file for details.
+> Chrome → chrome://extensions → Geliştirici mod → Paketlenmemiş yükle → **/workspace/dist** klasörünü seçin.
