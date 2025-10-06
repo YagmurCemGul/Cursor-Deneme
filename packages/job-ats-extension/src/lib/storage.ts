@@ -9,6 +9,8 @@ export interface Settings {
   encryptionPassword?: string;
   apiKey?: string;
   debugLogs?: boolean;
+  killSwitch?: boolean;
+  autoOpenPanel?: boolean;
 }
 
 export interface Profile {
@@ -184,6 +186,27 @@ export async function deleteTrackedJob(id: string): Promise<void> {
   const jobs = await getTrackedJobs();
   const filtered = jobs.filter(j => j.id !== id);
   await saveTrackedJobs(filtered);
+}
+
+/**
+ * Wipe all extension data (nuclear option)
+ */
+export async function wipeAllData(): Promise<void> {
+  // Clear chrome.storage.local
+  await chrome.storage.local.clear();
+  
+  // Clear chrome.storage.sync
+  await chrome.storage.sync.clear();
+  
+  // Clear IndexedDB
+  if (typeof indexedDB !== 'undefined') {
+    const databases = await indexedDB.databases();
+    for (const db of databases) {
+      if (db.name && db.name.includes('job-ats')) {
+        indexedDB.deleteDatabase(db.name);
+      }
+    }
+  }
 }
 
 /**

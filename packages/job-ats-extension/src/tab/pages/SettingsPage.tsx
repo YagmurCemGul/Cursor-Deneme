@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
-import { Save, Key, Globe, Lock, Download, Upload, Wrench, Bug } from 'lucide-react';
-import { getSettings, saveSettings, type Settings } from '../../lib/storage';
+import { Save, Key, Globe, Lock, Download, Upload, Wrench, Bug, AlertTriangle, Trash2 } from 'lucide-react';
+import { getSettings, saveSettings, wipeAllData, type Settings } from '../../lib/storage';
 import { ATS_DOMAINS, setAdapterEnabled, loadAdapterSettings } from '../../lib/domains';
 import { logger } from '../../lib/logger';
 
@@ -14,6 +14,8 @@ export default function SettingsPage() {
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [adapters, setAdapters] = useState(Object.values(ATS_DOMAINS));
+  const [showWipeConfirm, setShowWipeConfirm] = useState(false);
+  const [wipeInput, setWipeInput] = useState('');
 
   useEffect(() => {
     loadSettings();
@@ -44,6 +46,24 @@ export default function SettingsPage() {
       setTimeout(() => setSaved(false), 3000);
     } finally {
       setSaving(false);
+    }
+  }
+
+  async function handleWipeData() {
+    if (wipeInput !== 'DELETE ALL DATA') {
+      return;
+    }
+
+    try {
+      await wipeAllData();
+      setShowWipeConfirm(false);
+      setWipeInput('');
+      
+      // Reload to show empty state
+      window.location.reload();
+    } catch (error) {
+      console.error('Failed to wipe data:', error);
+      alert('Failed to wipe data. Check console for details.');
     }
   }
 
@@ -157,11 +177,39 @@ export default function SettingsPage() {
         )}
       </div>
 
-      {/* Debug Settings */}
+      {/* Advanced Settings */}
       <div className="card" style={{ marginBottom: '1.5rem' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem' }}>
           <Bug size={20} />
-          <h2 style={{ marginBottom: 0 }}>Developer Options</h2>
+          <h2 style={{ marginBottom: 0 }}>Advanced Settings</h2>
+        </div>
+
+        <div className="form-group">
+          <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
+            <input
+              type="checkbox"
+              checked={settings.killSwitch || false}
+              onChange={(e) => setSettings({ ...settings, killSwitch: e.target.checked })}
+            />
+            <span style={{ fontWeight: '500' }}>Kill Switch (Disable All Content Scripts)</span>
+          </label>
+          <span className="form-hint">
+            When enabled, prevents all content scripts from running. Use if you experience conflicts with other extensions.
+          </span>
+        </div>
+
+        <div className="form-group">
+          <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
+            <input
+              type="checkbox"
+              checked={settings.autoOpenPanel || false}
+              onChange={(e) => setSettings({ ...settings, autoOpenPanel: e.target.checked })}
+            />
+            <span>Auto-open panel on supported pages</span>
+          </label>
+          <span className="form-hint">
+            Automatically open the side panel when visiting job application pages.
+          </span>
         </div>
 
         <div className="form-group">
@@ -233,7 +281,7 @@ export default function SettingsPage() {
       <div className="card">
         <h2>Data Management</h2>
 
-        <div style={{ display: 'flex', gap: '1rem' }}>
+        <div style={{ display: 'flex', gap: '1rem', marginBottom: '1.5rem' }}>
           <button className="btn btn-secondary">
             <Upload size={16} />
             Import Profile
@@ -244,9 +292,72 @@ export default function SettingsPage() {
           </button>
         </div>
 
-        <p style={{ fontSize: '0.875rem', color: 'var(--color-text-secondary)', marginTop: '1rem', marginBottom: 0 }}>
+        <p style={{ fontSize: '0.875rem', color: 'var(--color-text-secondary)', marginBottom: '1.5rem' }}>
           Export your profile data as JSON for backup or transfer to another device.
         </p>
+
+        {/* Data Wipe */}
+        <div style={{
+          padding: '1rem',
+          background: 'rgba(239, 68, 68, 0.05)',
+          borderRadius: 'var(--radius-md)',
+          border: '1px solid rgba(239, 68, 68, 0.2)',
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
+            <AlertTriangle size={18} color="var(--color-danger)" />
+            <h3 style={{ fontSize: '0.9375rem', marginBottom: 0, color: 'var(--color-danger)' }}>
+              Danger Zone
+            </h3>
+          </div>
+
+          <p style={{ fontSize: '0.8125rem', color: 'var(--color-text-secondary)', marginBottom: '1rem' }}>
+            Permanently delete all extension data including profile, settings, tracked jobs, and cached data.
+            This action cannot be undone.
+          </p>
+
+          {!showWipeConfirm ? (
+            <button
+              className="btn btn-danger btn-sm"
+              onClick={() => setShowWipeConfirm(true)}
+            >
+              <Trash2 size={14} />
+              Wipe All Data
+            </button>
+          ) : (
+            <div>
+              <p style={{ fontSize: '0.875rem', fontWeight: '500', marginBottom: '0.5rem' }}>
+                Type "DELETE ALL DATA" to confirm:
+              </p>
+              <input
+                type="text"
+                className="form-input"
+                style={{ marginBottom: '0.75rem' }}
+                value={wipeInput}
+                onChange={(e) => setWipeInput(e.target.value)}
+                placeholder="DELETE ALL DATA"
+                autoFocus
+              />
+              <div style={{ display: 'flex', gap: '0.5rem' }}>
+                <button
+                  className="btn btn-danger btn-sm"
+                  onClick={handleWipeData}
+                  disabled={wipeInput !== 'DELETE ALL DATA'}
+                >
+                  Confirm Deletion
+                </button>
+                <button
+                  className="btn btn-secondary btn-sm"
+                  onClick={() => {
+                    setShowWipeConfirm(false);
+                    setWipeInput('');
+                  }}
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

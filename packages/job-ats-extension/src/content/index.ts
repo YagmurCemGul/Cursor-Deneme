@@ -20,7 +20,18 @@ import * as workable from './adapters/workable';
 import * as successfactors from './adapters/successfactors';
 import * as icims from './adapters/icims';
 
-logger.info('🦉 Job ATS Extension content script loaded');
+// Check kill switch before doing anything
+chrome.storage.local.get(['settings'], (result) => {
+  if (result.settings?.killSwitch) {
+    logger.info('🦉 Content script disabled by kill switch');
+    return;
+  }
+  
+  logger.info('🦉 Job ATS Extension content script loaded');
+  initializeContentScript();
+});
+
+function initializeContentScript() {
 
 /**
  * Detect which ATS platform is being used
@@ -349,26 +360,33 @@ window.addEventListener('beforeunload', () => {
   stopObserver();
 });
 
-// Auto-detect and cache job description on job pages
-if (window.location.href.includes('job') || window.location.href.includes('career')) {
-  setTimeout(() => {
-    const jd = extractJobDescription();
-    if (jd && jd.title) {
-      logger.info('Job description detected:', jd.title);
-      
-      // Cache it
-      jobCache.save({
-        id: crypto.randomUUID(),
-        url: jd.url,
-        title: jd.title,
-        company: jd.company,
-        description: jd.description,
-        requirements: jd.requirements,
-        responsibilities: jd.responsibilities,
-        benefits: jd.benefits,
-        location: jd.location,
-        extractedAt: Date.now(),
-      }).catch(console.error);
-    }
-  }, 2000);
+  // Auto-detect and cache job description on job pages
+  if (window.location.href.includes('job') || window.location.href.includes('career')) {
+    setTimeout(async () => {
+      const jd = extractJobDescription();
+      if (jd && jd.title) {
+        logger.info('Job description detected:', jd.title);
+        
+        // Cache it
+        jobCache.save({
+          id: crypto.randomUUID(),
+          url: jd.url,
+          title: jd.title,
+          company: jd.company,
+          description: jd.description,
+          requirements: jd.requirements,
+          responsibilities: jd.responsibilities,
+          benefits: jd.benefits,
+          location: jd.location,
+          extractedAt: Date.now(),
+        }).catch(console.error);
+
+        // Auto-open panel if enabled
+        const { settings } = await chrome.storage.local.get(['settings']);
+        if (settings?.autoOpenPanel) {
+          chrome.runtime.sendMessage({ type: 'AUTO_OPEN_PANEL' });
+        }
+      }
+    }, 2000);
+  }
 }
