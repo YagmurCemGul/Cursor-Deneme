@@ -5,6 +5,10 @@
 
 import * as fs from 'fs';
 import * as path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const SIZES = [16, 32, 48, 128, 256];
 const SVG_PATH = path.join(__dirname, '../assets/icon.svg');

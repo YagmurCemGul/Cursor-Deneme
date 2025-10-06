@@ -120,10 +120,10 @@
     }
   },
   "icons": {
-    "16": "icon16.png",
-    "32": "icon32.png",
-    "48": "icon48.png",
-    "128": "icon128.png"
+    "16": "icon16.svg",
+    "32": "icon32.svg",
+    "48": "icon48.svg",
+    "128": "icon128.svg"
   },
   "content_security_policy": {
     "extension_pages": "script-src 'self'; object-src 'self'"

@@ -42,22 +42,30 @@ AI-powered Chrome extension for automating job applications with ATS scoring, sm
    pnpm install
    ```
 
-2. **Build the Extension**
+2. **Generate Icons**
+
+   ```bash
+   pnpm icons
+   ```
+
+   This generates PNG icons from the SVG source. Requires `sharp` package (already in devDependencies).
+
+3. **Build the Extension**
 
    ```bash
    # Development mode with hot reload
    pnpm dev
 
-   # Production build
+   # Production build (includes icon generation)
    pnpm build
    ```
 
-3. **Load in Chrome**
+4. **Load in Chrome**
 
    - Open Chrome and navigate to `chrome://extensions/`
-   - Enable "Developer mode"
+   - Enable "Developer mode" (toggle in top right)
    - Click "Load unpacked"
-   - Select the `dist` folder from the extension directory
+   - Select the `dist` folder from `packages/job-ats-extension/dist/`
 
 ### Configuration
 
