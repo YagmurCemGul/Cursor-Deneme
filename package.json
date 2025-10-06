@@ -7,8 +7,8 @@
     "packages/*"
   ],
   "scripts": {
-    "build": "webpack --mode production",
-    "dev": "webpack --mode development --watch",
+    "build": "vite build",
+    "dev": "vite",
     "build:extension": "cd packages/job-ats-extension && pnpm build",
     "dev:extension": "cd packages/job-ats-extension && pnpm dev",
     "test:extension": "cd packages/job-ats-extension && pnpm test",
@@ -24,7 +24,8 @@
     "test:ui": "vitest --ui",
     "e2e": "playwright test",
     "e2e:headed": "playwright test --headed",
-    "demo": "cd demo && python -m http.server 8000"
+    "demo": "cd demo && python -m http.server 8000",
+    "preview": "vite preview"
   },
   "dependencies": {
     "docx": "^9.5.1",
@@ -40,6 +41,7 @@
     "react-icons": "^4.12.0"
   },
   "devDependencies": {
+    "@crxjs/vite-plugin": "^2.2.0",
     "@playwright/test": "^1.40.0",
     "@testing-library/jest-dom": "^6.1.0",
     "@testing-library/react": "^14.0.0",
@@ -51,25 +53,21 @@
     "@types/react-dom": "^18.2.17",
     "@typescript-eslint/eslint-plugin": "^6.0.0",
     "@typescript-eslint/parser": "^6.0.0",
-    "@vitest/ui": "^1.0.0",
+    "@vitejs/plugin-react": "^5.0.4",
     "@vitest/coverage-v8": "^1.0.0",
-    "copy-webpack-plugin": "^13.0.1",
-    "css-loader": "^6.8.1",
+    "@vitest/ui": "^1.0.0",
+    "chrome-types": "^0.1.380",
     "eslint": "^8.45.0",
     "eslint-plugin-react": "^7.33.0",
     "eslint-plugin-react-hooks": "^4.6.0",
     "happy-dom": "^12.10.0",
-    "html-webpack-plugin": "^5.6.0",
     "identity-obj-proxy": "^3.0.0",
     "jsdom": "^23.0.0",
     "prettier": "^3.0.0",
-    "style-loader": "^3.3.3",
-    "ts-loader": "^9.5.1",
+    "ts-node": "^10.9.2",
     "typescript": "^5.3.3",
     "vite": "^5.0.0",
-    "vitest": "^1.0.0",
-    "webpack": "^5.89.0",
-    "webpack-cli": "^5.1.4"
+    "vitest": "^1.0.0"
   },
   "keywords": [
     "cv",
@@ -82,5 +80,6 @@
     "chrome-extension"
   ],
   "author": "CV Optimizer Team",
-  "license": "MIT"
+  "license": "MIT",
+  "type": "module"
 }
