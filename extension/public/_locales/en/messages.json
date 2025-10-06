@@ -1,0 +1,245 @@
+{
+  "extName": {
+    "message": "AI CV & Cover Letter Optimizer"
+  },
+  "extDescription": {
+    "message": "AI-powered CV and Cover Letter optimization with ATS compatibility"
+  },
+  "country": {
+    "message": "Country"
+  },
+  "city": {
+    "message": "City"
+  },
+  "searchCountry": {
+    "message": "Search country..."
+  },
+  "searchCity": {
+    "message": "Search city..."
+  },
+  "noCountries": {
+    "message": "No countries found"
+  },
+  "noCities": {
+    "message": "No cities found"
+  },
+  "optimized": {
+    "message": "Optimized"
+  },
+  "showOptimizedSection": {
+    "message": "Show optimized section"
+  },
+  "highlightedOptimizedSection": {
+    "message": "Highlighted optimized section"
+  },
+  "rationale": {
+    "message": "Rationale:"
+  },
+  "before": {
+    "message": "Before:"
+  },
+  "after": {
+    "message": "After:"
+  },
+  "additionalQuestions": {
+    "message": "Additional Questions"
+  },
+  "question": {
+    "message": "Question:"
+  },
+  "questionType": {
+    "message": "Question Type:"
+  },
+  "shortText": {
+    "message": "Short Text"
+  },
+  "longText": {
+    "message": "Long Text"
+  },
+  "singleSelect": {
+    "message": "Single Select"
+  },
+  "multiSelect": {
+    "message": "Multi Select"
+  },
+  "yesNo": {
+    "message": "Yes/No"
+  },
+  "date": {
+    "message": "Date"
+  },
+  "file": {
+    "message": "File"
+  },
+  "link": {
+    "message": "Link"
+  },
+  "number": {
+    "message": "Number"
+  },
+  "options": {
+    "message": "Options:"
+  },
+  "addOption": {
+    "message": "Add Option"
+  },
+  "yes": {
+    "message": "Yes"
+  },
+  "no": {
+    "message": "No"
+  },
+  "save": {
+    "message": "Save"
+  },
+  "cancel": {
+    "message": "Cancel"
+  },
+  "edit": {
+    "message": "Edit"
+  },
+  "delete": {
+    "message": "Delete"
+  },
+  "addQuestion": {
+    "message": "Add Question"
+  },
+  "photoEditor": {
+    "message": "Photo Editor"
+  },
+  "uploadPhoto": {
+    "message": "Upload Photo"
+  },
+  "brightness": {
+    "message": "Brightness"
+  },
+  "contrast": {
+    "message": "Contrast"
+  },
+  "zoom": {
+    "message": "Zoom"
+  },
+  "roundMask": {
+    "message": "Round mask"
+  },
+  "backgroundBlur": {
+    "message": "Background Blur"
+  },
+  "aiEnhance": {
+    "message": "AI Enhance"
+  },
+  "aiEnhanceWarning": {
+    "message": "AI Enhancement will send your image to OpenAI for automatic improvement."
+  },
+  "processing": {
+    "message": "Processing..."
+  },
+  "cvTemplates": {
+    "message": "CV Templates"
+  },
+  "modern": {
+    "message": "Modern"
+  },
+  "classic": {
+    "message": "Classic"
+  },
+  "minimal": {
+    "message": "Minimal"
+  },
+  "ats": {
+    "message": "ATS"
+  },
+  "coverLetterTemplates": {
+    "message": "Cover Letter Templates"
+  },
+  "standard": {
+    "message": "Standard"
+  },
+  "short": {
+    "message": "Short"
+  },
+  "star": {
+    "message": "STAR"
+  },
+  "concise": {
+    "message": "Concise"
+  },
+  "managerial": {
+    "message": "Managerial"
+  },
+  "generateCoverLetter": {
+    "message": "Generate Cover Letter"
+  },
+  "aiSettings": {
+    "message": "AI Settings"
+  },
+  "provider": {
+    "message": "Provider"
+  },
+  "model": {
+    "message": "Model"
+  },
+  "temperature": {
+    "message": "Temperature"
+  },
+  "apiKey": {
+    "message": "API Key"
+  },
+  "testConnection": {
+    "message": "Test Connection"
+  },
+  "connectionSuccess": {
+    "message": "Connection successful!"
+  },
+  "connectionFailed": {
+    "message": "Connection failed"
+  },
+  "googleIntegration": {
+    "message": "Google Integration"
+  },
+  "connect": {
+    "message": "Connect"
+  },
+  "disconnect": {
+    "message": "Disconnect"
+  },
+  "connected": {
+    "message": "Connected"
+  },
+  "exportToDocs": {
+    "message": "Export to Google Docs"
+  },
+  "exportToSheets": {
+    "message": "Export to Google Sheets"
+  },
+  "exportToSlides": {
+    "message": "Export to Google Slides"
+  },
+  "uploadToDrive": {
+    "message": "Upload to Drive"
+  },
+  "createGmailDraft": {
+    "message": "Create Gmail Draft"
+  },
+  "experience": {
+    "message": "Experience"
+  },
+  "education": {
+    "message": "Education"
+  },
+  "skills": {
+    "message": "Skills"
+  },
+  "projects": {
+    "message": "Projects"
+  },
+  "licenses": {
+    "message": "Licenses & Certifications"
+  },
+  "present": {
+    "message": "Present"
+  },
+  "professionalSummary": {
+    "message": "Professional Summary"
+  }
+}
