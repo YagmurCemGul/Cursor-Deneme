@@ -1,0 +1,8 @@
+export { default as HomePage } from './Home'
+export { default as DashboardPage } from './Dashboard'
+export { default as CVBuilderPage } from './CVBuilder'
+export { default as CoverLetterPage } from './CoverLetter'
+export { default as JobListingsPage } from './JobListings'
+export { default as ProfilePage } from './Profile'
+export { default as SettingsPage } from './Settings'
+export { default as NotFoundPage } from './NotFound'
