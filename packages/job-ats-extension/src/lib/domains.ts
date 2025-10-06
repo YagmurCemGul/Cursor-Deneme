@@ -1,12 +1,16 @@
 /**
  * Domain allowlist for ATS platforms and job sites
  * Used for least-privilege host permissions
+ * Note: Default domains are defined in src/content/allowlist.ts
  */
+
+import { ADAPTER_ALLOWLIST, getCustomDomains, type AdapterId } from '../content/allowlist';
 
 export interface AdapterConfig {
   id: string;
   name: string;
   domains: string[];
+  customDomains: string[];
   enabled: boolean;
 }
 
@@ -14,100 +18,78 @@ export const ATS_DOMAINS: Record<string, AdapterConfig> = {
   workday: {
     id: 'workday',
     name: 'Workday',
-    domains: [
-      '*://*.myworkdayjobs.com/*',
-      '*://*.workday.com/*',
-    ],
+    domains: ADAPTER_ALLOWLIST.workday,
+    customDomains: [],
     enabled: true,
   },
   greenhouse: {
     id: 'greenhouse',
     name: 'Greenhouse',
-    domains: [
-      '*://*.greenhouse.io/*',
-      '*://boards.greenhouse.io/*',
-    ],
+    domains: ADAPTER_ALLOWLIST.greenhouse,
+    customDomains: [],
     enabled: true,
   },
   lever: {
     id: 'lever',
     name: 'Lever',
-    domains: [
-      '*://*.lever.co/*',
-      '*://jobs.lever.co/*',
-    ],
+    domains: ADAPTER_ALLOWLIST.lever,
+    customDomains: [],
     enabled: true,
   },
   ashby: {
     id: 'ashby',
     name: 'Ashby',
-    domains: [
-      '*://*.ashbyhq.com/*',
-      '*://jobs.ashbyhq.com/*',
-    ],
+    domains: ADAPTER_ALLOWLIST.ashby,
+    customDomains: [],
     enabled: true,
   },
   smartrecruiters: {
     id: 'smartrecruiters',
     name: 'SmartRecruiters',
-    domains: [
-      '*://*.smartrecruiters.com/*',
-      '*://jobs.smartrecruiters.com/*',
-    ],
+    domains: ADAPTER_ALLOWLIST.smartrecruiters,
+    customDomains: [],
     enabled: true,
   },
   successfactors: {
     id: 'successfactors',
     name: 'SAP SuccessFactors',
-    domains: [
-      '*://*.successfactors.com/*',
-      '*://*.successfactors.eu/*',
-    ],
+    domains: ADAPTER_ALLOWLIST.successfactors,
+    customDomains: [],
     enabled: true,
   },
   workable: {
     id: 'workable',
     name: 'Workable',
-    domains: [
-      '*://*.workable.com/*',
-      '*://apply.workable.com/*',
-    ],
+    domains: ADAPTER_ALLOWLIST.workable,
+    customDomains: [],
     enabled: true,
   },
   icims: {
     id: 'icims',
     name: 'iCIMS',
-    domains: [
-      '*://*.icims.com/*',
-      '*://careers.icims.com/*',
-    ],
+    domains: ADAPTER_ALLOWLIST.icims,
+    customDomains: [],
     enabled: true,
   },
   linkedin: {
     id: 'linkedin',
     name: 'LinkedIn',
-    domains: [
-      '*://*.linkedin.com/*',
-    ],
+    domains: ADAPTER_ALLOWLIST.linkedin,
+    customDomains: [],
     enabled: true,
   },
   indeed: {
     id: 'indeed',
     name: 'Indeed',
-    domains: [
-      '*://*.indeed.com/*',
-      '*://*.indeed.co.uk/*',
-      '*://*.indeed.ca/*',
-    ],
+    domains: ADAPTER_ALLOWLIST.indeed,
+    customDomains: [],
     enabled: true,
   },
   glassdoor: {
     id: 'glassdoor',
     name: 'Glassdoor',
-    domains: [
-      '*://*.glassdoor.com/*',
-      '*://*.glassdoor.co.uk/*',
-    ],
+    domains: ADAPTER_ALLOWLIST.glassdoor,
+    customDomains: [],
     enabled: true,
   },
 };
@@ -179,11 +161,21 @@ export async function setAdapterEnabled(id: string, enabled: boolean): Promise<v
  * Load adapter settings from storage
  */
 export async function loadAdapterSettings(): Promise<void> {
-  const { adapterSettings = {} } = await chrome.storage.sync.get('adapterSettings');
+  const { adapterSettings = {}, customDomains = {} } = await chrome.storage.sync.get([
+    'adapterSettings',
+    'customDomains',
+  ]);
   
   for (const [id, enabled] of Object.entries(adapterSettings)) {
     if (ATS_DOMAINS[id]) {
       ATS_DOMAINS[id].enabled = enabled as boolean;
+    }
+  }
+  
+  // Load custom domains
+  for (const [id, domains] of Object.entries(customDomains)) {
+    if (ATS_DOMAINS[id]) {
+      ATS_DOMAINS[id].customDomains = domains as string[];
     }
   }
 }

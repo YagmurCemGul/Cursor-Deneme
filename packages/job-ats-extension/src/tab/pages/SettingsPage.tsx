@@ -190,30 +190,41 @@ export default function SettingsPage() {
           Enable or disable specific ATS platform adapters. Disabling unused adapters improves performance.
         </p>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '0.75rem' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
           {adapters.map(adapter => (
-            <label
+            <div
               key={adapter.id}
               style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.5rem',
-                padding: '0.75rem',
+                padding: '1rem',
                 background: 'var(--color-bg-secondary)',
                 borderRadius: 'var(--radius-md)',
-                cursor: 'pointer',
               }}
             >
-              <input
-                type="checkbox"
-                checked={adapter.enabled}
-                onChange={async (e) => {
-                  await setAdapterEnabled(adapter.id, e.target.checked);
-                  await loadAdapters();
-                }}
-              />
-              <span style={{ fontSize: '0.875rem' }}>{adapter.name}</span>
-            </label>
+              <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', marginBottom: '0.5rem' }}>
+                <input
+                  type="checkbox"
+                  checked={adapter.enabled}
+                  onChange={async (e) => {
+                    await setAdapterEnabled(adapter.id, e.target.checked);
+                    await loadAdapters();
+                  }}
+                />
+                <span style={{ fontSize: '0.875rem', fontWeight: '500' }}>{adapter.name}</span>
+              </label>
+              
+              {adapter.customDomains && adapter.customDomains.length > 0 && (
+                <div style={{ marginTop: '0.5rem', paddingLeft: '1.5rem' }}>
+                  <p style={{ fontSize: '0.75rem', color: 'var(--color-text-secondary)', marginBottom: '0.25rem' }}>
+                    Custom domains:
+                  </p>
+                  {adapter.customDomains.map((domain: string, idx: number) => (
+                    <span key={idx} className="badge badge-primary" style={{ marginRight: '0.25rem', fontSize: '0.7rem' }}>
+                      {domain}
+                    </span>
+                  ))}
+                </div>
+              )}
+            </div>
           ))}
         </div>
       </div>
