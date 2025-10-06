@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Software Engineer - Greenhouse Test</title>
+  <style>
+    body { font-family: Arial, sans-serif; max-width: 800px; margin: 2rem auto; padding: 0 1rem; }
+    .field { margin-bottom: 1rem; }
+    label { display: block; font-weight: 600; margin-bottom: 0.25rem; }
+    input, textarea, select { width: 100%; padding: 0.5rem; border: 1px solid #ccc; border-radius: 4px; }
+    button { background: #2563eb; color: white; padding: 0.75rem 1.5rem; border: none; border-radius: 4px; cursor: pointer; }
+  </style>
+</head>
+<body>
+  <h1>Apply for Software Engineer</h1>
+  <h2>Tech Corp Inc.</h2>
+  <p>San Francisco, CA • Remote OK</p>
+
+  <div id="application_form">
+    <h3>Application Form</h3>
+
+    <div class="field">
+      <label for="first_name">First Name</label>
+      <input type="text" id="first_name" name="job_application[first_name]" />
+    </div>
+
+    <div class="field">
+      <label for="last_name">Last Name</label>
+      <input type="text" id="last_name" name="job_application[last_name]" />
+    </div>
+
+    <div class="field">
+      <label for="email">Email</label>
+      <input type="email" id="email" name="job_application[email]" />
+    </div>
+
+    <div class="field">
+      <label for="phone">Phone</label>
+      <input type="tel" id="phone" name="job_application[phone]" />
+    </div>
+
+    <div class="field">
+      <label for="resume">Resume/CV</label>
+      <input type="file" id="resume" name="job_application[resume]" accept=".pdf,.doc,.docx" />
+    </div>
+
+    <div class="field">
+      <label for="cover_letter">Cover Letter</label>
+      <textarea id="cover_letter" name="job_application[cover_letter]" rows="5"></textarea>
+    </div>
+
+    <div class="field">
+      <label for="linkedin">LinkedIn URL</label>
+      <input type="url" id="linkedin" name="job_application[linkedin_url]" />
+    </div>
+
+    <div class="field">
+      <label for="website">Personal Website/Portfolio</label>
+      <input type="url" id="website" name="job_application[website]" />
+    </div>
+
+    <div class="field">
+      <label for="question_1">Why do you want to work at Tech Corp?</label>
+      <textarea id="question_1" name="job_application[answers][0]" rows="4"></textarea>
+    </div>
+
+    <div class="field">
+      <label for="question_2">What's your experience with React?</label>
+      <textarea id="question_2" name="job_application[answers][1]" rows="4"></textarea>
+    </div>
+
+    <button type="submit">Submit Application</button>
+  </div>
+
+  <script>
+    // Simulate form validation
+    document.querySelector('button').addEventListener('click', (e) => {
+      e.preventDefault();
+      const firstName = document.getElementById('first_name').value;
+      const lastName = document.getElementById('last_name').value;
+      const email = document.getElementById('email').value;
+
+      if (!firstName || !lastName || !email) {
+        alert('Please fill required fields');
+        return;
+      }
+
+      alert('Form submitted successfully! (In real app, this would submit to Greenhouse)');
+    });
+  </script>
+</body>
+</html>
