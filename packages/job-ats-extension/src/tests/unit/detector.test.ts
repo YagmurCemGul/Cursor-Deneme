@@ -12,27 +12,42 @@ describe('Field Detector', () => {
 
   it('should detect first name field', () => {
     document.body.innerHTML = `
-      <form>
+      <form style="display: block;">
         <label for="fname">First Name</label>
-        <input type="text" id="fname" />
+        <input type="text" id="fname" style="display: block;" />
       </form>
     `;
 
+    // Manually set offsetParent (happy-dom limitation)
+    const input = document.getElementById('fname') as any;
+    if (input) {
+      Object.defineProperty(input, 'offsetParent', { value: document.body, configurable: true });
+    }
+
     const fields = detectFields();
     expect(fields.length).toBeGreaterThan(0);
-    expect(fields[0].type).toBe('first_name');
+    if (fields.length > 0) {
+      expect(fields[0].type).toBe('first_name');
+    }
   });
 
   it('should detect email field', () => {
     document.body.innerHTML = `
       <form>
-        <input type="email" placeholder="Email Address" />
+        <input type="email" placeholder="Email Address" id="email-field" />
       </form>
     `;
 
+    const input = document.getElementById('email-field') as any;
+    if (input) {
+      Object.defineProperty(input, 'offsetParent', { value: document.body, configurable: true });
+    }
+
     const fields = detectFields();
     expect(fields.length).toBeGreaterThan(0);
-    expect(fields[0].type).toBe('email');
+    if (fields.length > 0) {
+      expect(fields[0].type).toBe('email');
+    }
   });
 
   it('should skip hidden fields', () => {
@@ -50,12 +65,19 @@ describe('Field Detector', () => {
   it('should detect fields by aria-label', () => {
     document.body.innerHTML = `
       <form>
-        <input type="text" aria-label="Phone Number" />
+        <input type="text" aria-label="Phone Number" id="phone-field" />
       </form>
     `;
 
+    const input = document.getElementById('phone-field') as any;
+    if (input) {
+      Object.defineProperty(input, 'offsetParent', { value: document.body, configurable: true });
+    }
+
     const fields = detectFields();
     expect(fields.length).toBeGreaterThan(0);
-    expect(fields[0].type).toBe('phone');
+    if (fields.length > 0) {
+      expect(fields[0].type).toBe('phone');
+    }
   });
 });

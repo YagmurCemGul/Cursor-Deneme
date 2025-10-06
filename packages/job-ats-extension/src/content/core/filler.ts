@@ -116,7 +116,9 @@ export function showFileUploadGuidance(element: HTMLInputElement, fileName: stri
   }, 5000);
 
   // Click to focus
-  element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  if (element.scrollIntoView) {
+    element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
   element.focus();
 }
 
