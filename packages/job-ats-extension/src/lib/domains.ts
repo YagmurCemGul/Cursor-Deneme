@@ -4,7 +4,7 @@
  * Note: Default domains are defined in src/content/allowlist.ts
  */
 
-import { ADAPTER_ALLOWLIST, getCustomDomains, type AdapterId } from '../content/allowlist';
+import { ADAPTER_ALLOWLIST } from '../content/allowlist';
 
 export interface AdapterConfig {
   id: string;
@@ -18,77 +18,77 @@ export const ATS_DOMAINS: Record<string, AdapterConfig> = {
   workday: {
     id: 'workday',
     name: 'Workday',
-    domains: ADAPTER_ALLOWLIST.workday,
+    domains: [...ADAPTER_ALLOWLIST.workday],
     customDomains: [],
     enabled: true,
   },
   greenhouse: {
     id: 'greenhouse',
     name: 'Greenhouse',
-    domains: ADAPTER_ALLOWLIST.greenhouse,
+    domains: [...ADAPTER_ALLOWLIST.greenhouse],
     customDomains: [],
     enabled: true,
   },
   lever: {
     id: 'lever',
     name: 'Lever',
-    domains: ADAPTER_ALLOWLIST.lever,
+    domains: [...ADAPTER_ALLOWLIST.lever],
     customDomains: [],
     enabled: true,
   },
   ashby: {
     id: 'ashby',
     name: 'Ashby',
-    domains: ADAPTER_ALLOWLIST.ashby,
+    domains: [...ADAPTER_ALLOWLIST.ashby],
     customDomains: [],
     enabled: true,
   },
   smartrecruiters: {
     id: 'smartrecruiters',
     name: 'SmartRecruiters',
-    domains: ADAPTER_ALLOWLIST.smartrecruiters,
+    domains: [...ADAPTER_ALLOWLIST.smartrecruiters],
     customDomains: [],
     enabled: true,
   },
   successfactors: {
     id: 'successfactors',
     name: 'SAP SuccessFactors',
-    domains: ADAPTER_ALLOWLIST.successfactors,
+    domains: [...ADAPTER_ALLOWLIST.successfactors],
     customDomains: [],
     enabled: true,
   },
   workable: {
     id: 'workable',
     name: 'Workable',
-    domains: ADAPTER_ALLOWLIST.workable,
+    domains: [...ADAPTER_ALLOWLIST.workable],
     customDomains: [],
     enabled: true,
   },
   icims: {
     id: 'icims',
     name: 'iCIMS',
-    domains: ADAPTER_ALLOWLIST.icims,
+    domains: [...ADAPTER_ALLOWLIST.icims],
     customDomains: [],
     enabled: true,
   },
   linkedin: {
     id: 'linkedin',
     name: 'LinkedIn',
-    domains: ADAPTER_ALLOWLIST.linkedin,
+    domains: [...ADAPTER_ALLOWLIST.linkedin],
     customDomains: [],
     enabled: true,
   },
   indeed: {
     id: 'indeed',
     name: 'Indeed',
-    domains: ADAPTER_ALLOWLIST.indeed,
+    domains: [...ADAPTER_ALLOWLIST.indeed],
     customDomains: [],
     enabled: true,
   },
   glassdoor: {
     id: 'glassdoor',
     name: 'Glassdoor',
-    domains: ADAPTER_ALLOWLIST.glassdoor,
+    domains: [...ADAPTER_ALLOWLIST.glassdoor],
     customDomains: [],
     enabled: true,
   },

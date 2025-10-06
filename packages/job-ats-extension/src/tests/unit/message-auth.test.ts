@@ -2,7 +2,7 @@
  * Unit tests for message authentication
  */
 
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect } from 'vitest';
 
 describe('Message Authentication', () => {
   it('should verify sender is from extension', () => {
