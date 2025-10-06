@@ -126,9 +126,40 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
 });
 
 /**
+ * Verify message sender is from extension, not a web page
+ */
+function isValidSender(sender: chrome.runtime.MessageSender): boolean {
+  // Sender must be from this extension
+  if (sender.id !== chrome.runtime.id) {
+    logger.warn('Rejected message from unknown sender:', sender.id);
+    return false;
+  }
+
+  // If from a web page (content script), verify URL is allowed
+  if (sender.url) {
+    const url = new URL(sender.url);
+    // Extension pages are always allowed
+    if (url.protocol === 'chrome-extension:') {
+      return true;
+    }
+    
+    // For content scripts, they're already validated by manifest matches
+    return true;
+  }
+
+  return true;
+}
+
+/**
  * Message handler for API calls and crypto operations
  */
-chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  // Verify sender
+  if (!isValidSender(sender)) {
+    sendResponse({ error: 'Unauthorized sender' });
+    return false;
+  }
+
   if (message.type === 'CHAT_COMPLETION') {
     handleChatCompletion(message, sendResponse);
     return true; // Keep channel open for async

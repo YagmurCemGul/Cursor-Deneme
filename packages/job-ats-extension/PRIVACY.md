@@ -138,16 +138,40 @@ The extension requires the following Chrome permissions:
 
 - Data is kept **indefinitely on your local device** until you delete it
 - No server-side retention (we don't have your data)
+- Cached job descriptions are retained for offline access
+- Application tracking data persists until manually deleted
 
 ### How to Delete Your Data
 
 You can delete your data at any time:
 
-1. **Delete specific items**: Use the in-app delete buttons (jobs, applications)
-2. **Clear all data**: 
+1. **Delete specific items**: 
+   - Use the in-app delete buttons (jobs, applications)
+   - Remove individual tracked jobs from Tracker page
+   - Clear job cache from Jobs page
+
+2. **Clear all data** (Nuclear Option):
+   - Settings → Data Management → "Wipe All Data"
+   - Type "DELETE ALL DATA" to confirm
+   - This deletes ALL extension data (profile, settings, tracked jobs, cache)
+   - **This action cannot be undone**
+
+3. **Uninstall extension**:
    - Chrome → Extensions → Job ATS Extension → Remove
-   - Or use "Clear all data" in extension Settings (if implemented)
-3. **Clear browser data**: Chrome Settings → Privacy → Clear browsing data → Hosted app data
+   - All extension data is automatically deleted
+
+4. **Clear browser data**:
+   - Chrome Settings → Privacy → Clear browsing data → Hosted app data
+   - Select "Job ATS Extension" if prompted
+
+### Data Deletion Guarantees
+
+When you delete data:
+- ✅ Removed from Chrome Storage immediately
+- ✅ Removed from IndexedDB immediately
+- ✅ Cannot be recovered by us (we have no backup)
+- ✅ May remain in browser cache temporarily (cleared on restart)
+- ✅ Encrypted data is securely deleted (key destroyed)
 
 ## Your Rights
 
