@@ -32,6 +32,10 @@
     "skipLibCheck": true,
     "noEmitOnError": false,
     "forceConsistentCasingInFileNames": true,
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./src/*"]
+    },
     
     // Emit
     "outDir": "./dist",
