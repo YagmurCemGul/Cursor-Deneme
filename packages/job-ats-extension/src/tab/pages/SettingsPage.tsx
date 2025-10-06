@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
-import { Save, Key, Globe, Lock, Download, Upload } from 'lucide-react';
+import { Save, Key, Globe, Lock, Download, Upload, Wrench, Bug } from 'lucide-react';
 import { getSettings, saveSettings, type Settings } from '../../lib/storage';
+import { ATS_DOMAINS, setAdapterEnabled, loadAdapterSettings } from '../../lib/domains';
+import { logger } from '../../lib/logger';
 
 export default function SettingsPage() {
   const [settings, setSettings] = useState<Settings>({
@@ -11,10 +13,17 @@ export default function SettingsPage() {
 
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [adapters, setAdapters] = useState(Object.values(ATS_DOMAINS));
 
   useEffect(() => {
     loadSettings();
+    loadAdapters();
   }, []);
+
+  async function loadAdapters() {
+    await loadAdapterSettings();
+    setAdapters(Object.values(ATS_DOMAINS));
+  }
 
   async function loadSettings() {
     const data = await getSettings();
@@ -25,6 +34,12 @@ export default function SettingsPage() {
     setSaving(true);
     try {
       await saveSettings(settings);
+      
+      // Update logger if debug setting changed
+      if (settings.debugLogs !== undefined) {
+        logger.setDebugEnabled(settings.debugLogs);
+      }
+      
       setSaved(true);
       setTimeout(() => setSaved(false), 3000);
     } finally {
@@ -140,6 +155,67 @@ export default function SettingsPage() {
             </span>
           </div>
         )}
+      </div>
+
+      {/* Debug Settings */}
+      <div className="card" style={{ marginBottom: '1.5rem' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem' }}>
+          <Bug size={20} />
+          <h2 style={{ marginBottom: 0 }}>Developer Options</h2>
+        </div>
+
+        <div className="form-group">
+          <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
+            <input
+              type="checkbox"
+              checked={settings.debugLogs || false}
+              onChange={(e) => setSettings({ ...settings, debugLogs: e.target.checked })}
+            />
+            <span>Enable debug logs</span>
+          </label>
+          <span className="form-hint">
+            Show detailed logs in browser console. Useful for troubleshooting.
+          </span>
+        </div>
+      </div>
+
+      {/* Adapters */}
+      <div className="card" style={{ marginBottom: '1.5rem' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem' }}>
+          <Wrench size={20} />
+          <h2 style={{ marginBottom: 0 }}>ATS Platform Adapters</h2>
+        </div>
+
+        <p style={{ fontSize: '0.875rem', color: 'var(--color-text-secondary)', marginBottom: '1rem' }}>
+          Enable or disable specific ATS platform adapters. Disabling unused adapters improves performance.
+        </p>
+
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '0.75rem' }}>
+          {adapters.map(adapter => (
+            <label
+              key={adapter.id}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.5rem',
+                padding: '0.75rem',
+                background: 'var(--color-bg-secondary)',
+                borderRadius: 'var(--radius-md)',
+                cursor: 'pointer',
+              }}
+            >
+              <input
+                type="checkbox"
+                checked={adapter.enabled}
+                onChange={async (e) => {
+                  await setAdapterEnabled(adapter.id, e.target.checked);
+                  await loadAdapters();
+                }}
+              />
+              <span style={{ fontSize: '0.875rem' }}>{adapter.name}</span>
+            </label>
+          ))}
+        </div>
       </div>
 
       {/* Import/Export */}

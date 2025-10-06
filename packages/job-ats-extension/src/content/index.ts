@@ -8,6 +8,7 @@ import { batchFillFields } from './core/filler';
 import { extractJobDescription, extractKeywords } from './core/extract-jd';
 import { getProfile, addTrackedJob } from '../lib/storage';
 import { jobCache } from '../lib/idb';
+import { logger } from '../lib/logger';
 
 // Import adapters
 import * as workday from './adapters/workday';
@@ -19,7 +20,7 @@ import * as workable from './adapters/workable';
 import * as successfactors from './adapters/successfactors';
 import * as icims from './adapters/icims';
 
-console.log('🦉 Job ATS Extension content script loaded');
+logger.info('🦉 Job ATS Extension content script loaded');
 
 /**
  * Detect which ATS platform is being used
@@ -78,10 +79,10 @@ async function handleAutofill() {
     }
 
     const ats = detectATS();
-    console.log('Detected ATS:', ats || 'generic');
+    logger.debug('Detected ATS:', ats || 'generic');
 
     const fields = getFieldsForATS(ats);
-    console.log('Detected fields:', fields.length);
+    logger.debug('Detected fields:', fields.length);
 
     // Map fields to values
     const fillData = fields.map(field => {
@@ -298,28 +299,54 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
 /**
  * Observe DOM changes for multi-step forms
  */
-const observer = new MutationObserver((mutations) => {
-  for (const mutation of mutations) {
-    if (mutation.addedNodes.length > 0) {
-      // Check if new form fields were added
-      const hasNewInputs = Array.from(mutation.addedNodes).some(node => {
-        if (node instanceof HTMLElement) {
-          return node.querySelector('input, textarea, select') !== null;
-        }
-        return false;
-      });
+let observer: MutationObserver | null = null;
+let observerActive = false;
 
-      if (hasNewInputs) {
-        console.log('New form fields detected');
+function startObserver() {
+  if (observerActive || observer) return;
+
+  observer = new MutationObserver((mutations) => {
+    for (const mutation of mutations) {
+      if (mutation.addedNodes.length > 0) {
+        // Check if new form fields were added
+        const hasNewInputs = Array.from(mutation.addedNodes).some(node => {
+          if (node instanceof HTMLElement) {
+            return node.querySelector('input, textarea, select') !== null;
+          }
+          return false;
+        });
+
+        if (hasNewInputs) {
+          logger.debug('New form fields detected');
+        }
       }
     }
+  });
+
+  observer.observe(document.body, {
+    childList: true,
+    subtree: true,
+  });
+
+  observerActive = true;
+  logger.debug('MutationObserver started');
+}
+
+function stopObserver() {
+  if (observer) {
+    observer.disconnect();
+    observer = null;
+    observerActive = false;
+    logger.debug('MutationObserver stopped');
   }
-});
+}
 
 // Start observing
-observer.observe(document.body, {
-  childList: true,
-  subtree: true,
+startObserver();
+
+// Cleanup on page unload
+window.addEventListener('beforeunload', () => {
+  stopObserver();
 });
 
 // Auto-detect and cache job description on job pages
@@ -327,7 +354,7 @@ if (window.location.href.includes('job') || window.location.href.includes('caree
   setTimeout(() => {
     const jd = extractJobDescription();
     if (jd && jd.title) {
-      console.log('Job description detected:', jd.title);
+      logger.info('Job description detected:', jd.title);
       
       // Cache it
       jobCache.save({

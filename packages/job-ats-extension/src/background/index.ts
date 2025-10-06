@@ -240,4 +240,6 @@ async function handleDecryption(message: any, sendResponse: (response: any) => v
   }
 }
 
-console.log('🦉 Job ATS Extension background worker initialized');
+import { logger } from '../lib/logger';
+
+logger.info('🦉 Job ATS Extension background worker initialized');

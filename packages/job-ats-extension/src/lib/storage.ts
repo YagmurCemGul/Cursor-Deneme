@@ -8,6 +8,7 @@ export interface Settings {
   encryptionEnabled: boolean;
   encryptionPassword?: string;
   apiKey?: string;
+  debugLogs?: boolean;
 }
 
 export interface Profile {
