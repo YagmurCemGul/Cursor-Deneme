@@ -1,0 +1,26 @@
+#!/bin/bash
+# Command to create PR (requires gh CLI or manual GitHub web interface)
+
+echo "Creating PR for feat/extension-ats-assistant branch"
+echo ""
+echo "Option 1: Using gh CLI (if available)"
+echo "----------------------------------------"
+echo "gh pr create \\"
+echo "  --title 'feat(extension): MV3 dashboard + adapters, security hardening, tests, store assets' \\"
+echo "  --body-file PR_BODY.md \\"
+echo "  --base main \\"
+echo "  --head feat/extension-ats-assistant"
+echo ""
+echo "Option 2: Manual (GitHub Web UI)"
+echo "----------------------------------------"
+echo "1. Push branch: git push origin feat/extension-ats-assistant"
+echo "2. Go to: https://github.com/YagmurCemGul/ai-cv-optimizer/compare/main...feat/extension-ats-assistant"
+echo "3. Click 'Create Pull Request'"
+echo "4. Copy PR_BODY.md content into description"
+echo "5. Submit PR"
+echo ""
+echo "Option 3: Git command"
+echo "----------------------------------------"
+echo "git push origin feat/extension-ats-assistant"
+echo ""
+
