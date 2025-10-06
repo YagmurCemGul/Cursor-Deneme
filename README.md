@@ -4,6 +4,15 @@ A powerful Chrome Extension that uses AI to optimize your CV and generate ATS-fr
 
 ## 🌟 Features
 
+### 🎯 ATS Auto-Fill (New!)
+- **Smart Form Detection**: Automatically detects and fills job application forms on major ATS platforms
+- **Multi-Platform Support**: Works with Workday, Greenhouse, Lever, Ashby, SmartRecruiters, SAP SuccessFactors, Workable, iCIMS, LinkedIn, Indeed, and Glassdoor
+- **Profile Management**: Save your information once, use it everywhere
+- **Job Tracking**: Track applications and manage your job search
+- **ATS Score Calculator**: Analyze how well your profile matches job requirements
+- **Custom Domains**: Add support for company-specific ATS domains
+- **Privacy-First**: All data stored locally, with optional encryption
+
 ### CV Templates
 - **🎨 8 Professional Templates**: Choose from Classic, Modern, Executive, Creative, Compact, Academic, Tech, and Startup styles
 - **🎯 Industry-Specific**: Templates tailored for different industries and career levels
