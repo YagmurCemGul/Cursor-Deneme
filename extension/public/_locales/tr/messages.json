@@ -1,0 +1,245 @@
+{
+  "extName": {
+    "message": "AI CV & Ön Yazı Optimize Edici"
+  },
+  "extDescription": {
+    "message": "ATS uyumluluğu ile AI destekli CV ve Ön Yazı optimizasyonu"
+  },
+  "country": {
+    "message": "Ülke"
+  },
+  "city": {
+    "message": "Şehir"
+  },
+  "searchCountry": {
+    "message": "Ülke ara..."
+  },
+  "searchCity": {
+    "message": "Şehir ara..."
+  },
+  "noCountries": {
+    "message": "Ülke bulunamadı"
+  },
+  "noCities": {
+    "message": "Şehir bulunamadı"
+  },
+  "optimized": {
+    "message": "Optimize Edildi"
+  },
+  "showOptimizedSection": {
+    "message": "Optimize edilmiş bölümü göster"
+  },
+  "highlightedOptimizedSection": {
+    "message": "Optimize edilmiş bölüm vurgulandı"
+  },
+  "rationale": {
+    "message": "Gerekçe:"
+  },
+  "before": {
+    "message": "Önce:"
+  },
+  "after": {
+    "message": "Sonra:"
+  },
+  "additionalQuestions": {
+    "message": "Ek Sorular"
+  },
+  "question": {
+    "message": "Soru:"
+  },
+  "questionType": {
+    "message": "Soru Tipi:"
+  },
+  "shortText": {
+    "message": "Kısa Metin"
+  },
+  "longText": {
+    "message": "Uzun Metin"
+  },
+  "singleSelect": {
+    "message": "Tek Seçim"
+  },
+  "multiSelect": {
+    "message": "Çoklu Seçim"
+  },
+  "yesNo": {
+    "message": "Evet/Hayır"
+  },
+  "date": {
+    "message": "Tarih"
+  },
+  "file": {
+    "message": "Dosya"
+  },
+  "link": {
+    "message": "Bağlantı"
+  },
+  "number": {
+    "message": "Sayı"
+  },
+  "options": {
+    "message": "Seçenekler:"
+  },
+  "addOption": {
+    "message": "Seçenek Ekle"
+  },
+  "yes": {
+    "message": "Evet"
+  },
+  "no": {
+    "message": "Hayır"
+  },
+  "save": {
+    "message": "Kaydet"
+  },
+  "cancel": {
+    "message": "İptal"
+  },
+  "edit": {
+    "message": "Düzenle"
+  },
+  "delete": {
+    "message": "Sil"
+  },
+  "addQuestion": {
+    "message": "Soru Ekle"
+  },
+  "photoEditor": {
+    "message": "Fotoğraf Düzenleyici"
+  },
+  "uploadPhoto": {
+    "message": "Fotoğraf Yükle"
+  },
+  "brightness": {
+    "message": "Parlaklık"
+  },
+  "contrast": {
+    "message": "Kontrast"
+  },
+  "zoom": {
+    "message": "Yakınlaştırma"
+  },
+  "roundMask": {
+    "message": "Yuvarlak maske"
+  },
+  "backgroundBlur": {
+    "message": "Arka Plan Bulanıklığı"
+  },
+  "aiEnhance": {
+    "message": "AI İyileştirme"
+  },
+  "aiEnhanceWarning": {
+    "message": "AI İyileştirme, görselinizi otomatik iyileştirme için OpenAI'ye gönderecektir."
+  },
+  "processing": {
+    "message": "İşleniyor..."
+  },
+  "cvTemplates": {
+    "message": "CV Şablonları"
+  },
+  "modern": {
+    "message": "Modern"
+  },
+  "classic": {
+    "message": "Klasik"
+  },
+  "minimal": {
+    "message": "Minimal"
+  },
+  "ats": {
+    "message": "ATS"
+  },
+  "coverLetterTemplates": {
+    "message": "Ön Yazı Şablonları"
+  },
+  "standard": {
+    "message": "Standart"
+  },
+  "short": {
+    "message": "Kısa"
+  },
+  "star": {
+    "message": "STAR"
+  },
+  "concise": {
+    "message": "Özet"
+  },
+  "managerial": {
+    "message": "Yönetsel"
+  },
+  "generateCoverLetter": {
+    "message": "Ön Yazı Oluştur"
+  },
+  "aiSettings": {
+    "message": "AI Ayarları"
+  },
+  "provider": {
+    "message": "Sağlayıcı"
+  },
+  "model": {
+    "message": "Model"
+  },
+  "temperature": {
+    "message": "Sıcaklık"
+  },
+  "apiKey": {
+    "message": "API Anahtarı"
+  },
+  "testConnection": {
+    "message": "Bağlantıyı Test Et"
+  },
+  "connectionSuccess": {
+    "message": "Bağlantı başarılı!"
+  },
+  "connectionFailed": {
+    "message": "Bağlantı başarısız"
+  },
+  "googleIntegration": {
+    "message": "Google Entegrasyonu"
+  },
+  "connect": {
+    "message": "Bağlan"
+  },
+  "disconnect": {
+    "message": "Bağlantıyı Kes"
+  },
+  "connected": {
+    "message": "Bağlandı"
+  },
+  "exportToDocs": {
+    "message": "Google Docs'a Aktar"
+  },
+  "exportToSheets": {
+    "message": "Google Sheets'e Aktar"
+  },
+  "exportToSlides": {
+    "message": "Google Slides'a Aktar"
+  },
+  "uploadToDrive": {
+    "message": "Drive'a Yükle"
+  },
+  "createGmailDraft": {
+    "message": "Gmail Taslağı Oluştur"
+  },
+  "experience": {
+    "message": "Deneyim"
+  },
+  "education": {
+    "message": "Eğitim"
+  },
+  "skills": {
+    "message": "Yetenekler"
+  },
+  "projects": {
+    "message": "Projeler"
+  },
+  "licenses": {
+    "message": "Lisanslar & Sertifikalar"
+  },
+  "present": {
+    "message": "Günümüz"
+  },
+  "professionalSummary": {
+    "message": "Profesyonel Özet"
+  }
+}
