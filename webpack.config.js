@@ -105,7 +105,33 @@ module.exports = (env, argv) => {
         patterns: [
           {
             from: 'extension/manifest.json',
-            to: 'manifest.json'
+            to: 'manifest.json',
+            transform(content) {
+              const m = JSON.parse(content.toString());
+              // Fix paths to match Webpack output
+              if (m.background) {
+                m.background.service_worker = 'background.js';
+                m.background.type = 'module';
+              }
+              if (m.action?.default_popup) {
+                m.action.default_popup = 'popup.html';
+              }
+              if (m.options_page) {
+                m.options_page = 'options.html';
+              }
+              if (m.chrome_url_overrides?.newtab) {
+                m.chrome_url_overrides.newtab = 'newtab.html';
+              }
+              // Fix content scripts
+              if (Array.isArray(m.content_scripts)) {
+                for (const cs of m.content_scripts) {
+                  if (cs.js) {
+                    cs.js = ['content.js'];
+                  }
+                }
+              }
+              return Buffer.from(JSON.stringify(m, null, 2));
+            }
           },
           {
             from: 'extension/icons',
