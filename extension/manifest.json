@@ -54,7 +54,27 @@
     "https://www.linkedin.com/*",
     "https://*.indeed.com/*",
     "https://*.glassdoor.com/*",
-    "https://*.remote.co/*"
+    "https://*.remote.co/*",
+    "https://*.myworkdayjobs.com/*",
+    "https://*.workday.com/*",
+    "https://*.greenhouse.io/*",
+    "https://boards.greenhouse.io/*",
+    "https://*.lever.co/*",
+    "https://jobs.lever.co/*",
+    "https://*.ashbyhq.com/*",
+    "https://jobs.ashbyhq.com/*",
+    "https://*.smartrecruiters.com/*",
+    "https://jobs.smartrecruiters.com/*",
+    "https://*.successfactors.com/*",
+    "https://*.successfactors.eu/*",
+    "https://*.workable.com/*",
+    "https://apply.workable.com/*",
+    "https://*.icims.com/*",
+    "https://careers.icims.com/*",
+    "https://*.indeed.co.uk/*",
+    "https://*.indeed.ca/*",
+    "https://*.glassdoor.co.uk/*",
+    "https://api.openai.com/*"
   ],
   "content_scripts": [
     {
@@ -65,16 +85,44 @@
         "https://*.remote.co/*",
         "https://*.weworkremotely.com/*"
       ],
-      "js": ["content.js"],
+      "js": ["src/content/content.ts"],
+      "run_at": "document_idle"
+    },
+    {
+      "matches": [
+        "https://*.myworkdayjobs.com/*",
+        "https://*.workday.com/*",
+        "https://*.greenhouse.io/*",
+        "https://boards.greenhouse.io/*",
+        "https://*.lever.co/*",
+        "https://jobs.lever.co/*",
+        "https://*.ashbyhq.com/*",
+        "https://jobs.ashbyhq.com/*",
+        "https://*.smartrecruiters.com/*",
+        "https://jobs.smartrecruiters.com/*",
+        "https://*.successfactors.com/*",
+        "https://*.successfactors.eu/*",
+        "https://*.workable.com/*",
+        "https://apply.workable.com/*",
+        "https://*.icims.com/*",
+        "https://careers.icims.com/*",
+        "https://*.linkedin.com/*",
+        "https://*.indeed.com/*",
+        "https://*.indeed.co.uk/*",
+        "https://*.indeed.ca/*",
+        "https://*.glassdoor.com/*",
+        "https://*.glassdoor.co.uk/*"
+      ],
+      "js": ["src/ats/content/index.ts"],
       "run_at": "document_idle"
     }
   ],
   "background": {
-    "service_worker": "background.js",
+    "service_worker": "src/background/index.ts",
     "type": "module"
   },
   "action": {
-    "default_popup": "popup.html",
+    "default_popup": "src/popup/index.html",
     "default_icon": {
       "16": "icons/icon16.png",
       "48": "icons/icon48.png",
@@ -82,14 +130,14 @@
     }
   },
   "chrome_url_overrides": {
-    "newtab": "newtab.html"
+    "newtab": "src/newtab/index.html"
   },
   "icons": {
     "16": "icons/icon16.png",
     "48": "icons/icon48.png",
     "128": "icons/icon128.png"
   },
-  "options_page": "options.html",
+  "options_page": "src/options/index.html",
   "content_security_policy": {
     "extension_pages": "script-src 'self'; object-src 'self'"
   }
