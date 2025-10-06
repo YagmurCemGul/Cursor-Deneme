@@ -1,0 +1,26 @@
+{
+  "extensionName": {
+    "message": "İş Başvuru Otomasyonu & ATS Asistanı",
+    "description": "Eklenti adı"
+  },
+  "extensionDescription": {
+    "message": "Yapay zeka destekli iş başvuru otomasyonu, ATS eşleşme skoru ve takip",
+    "description": "Eklenti açıklaması"
+  },
+  "openDashboard": {
+    "message": "Panoyu Aç",
+    "description": "Panoyu açmak için araç ipucu"
+  },
+  "commandAutofill": {
+    "message": "Formu otomatik doldur",
+    "description": "Form otomatik doldurma komutu"
+  },
+  "commandScore": {
+    "message": "ATS skorunu hesapla",
+    "description": "ATS eşleşme skoru hesaplama komutu"
+  },
+  "commandPanel": {
+    "message": "Yan paneli aç/kapat",
+    "description": "Yan paneli açma/kapatma komutu"
+  }
+}
