@@ -30,6 +30,11 @@ class Logger {
   }
 
   debug(...args: any[]) {
+    // Strip debug logs in production unless explicitly enabled
+    if (typeof __DEBUG__ !== 'undefined' && !__DEBUG__ && !this.debugEnabled) {
+      return;
+    }
+    
     if (this.level <= LogLevel.DEBUG && this.debugEnabled) {
       console.debug('[ATS DEBUG]', ...args);
     }

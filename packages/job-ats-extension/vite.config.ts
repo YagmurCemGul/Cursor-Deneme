@@ -4,7 +4,7 @@ import { crx } from '@crxjs/vite-plugin';
 import manifest from './public/manifest.json';
 import path from 'path';
 
-export default defineConfig({
+export default defineConfig(({ mode }) => ({
   plugins: [
     react(),
     crx({ manifest: manifest as any }),
@@ -22,6 +22,10 @@ export default defineConfig({
         popup: 'src/popup/index.html',
       },
     },
+    minify: mode === 'production',
+  },
+  define: {
+    __DEBUG__: mode !== 'production',
   },
   server: {
     port: 5173,
@@ -30,4 +34,4 @@ export default defineConfig({
       port: 5173,
     },
   },
-});
+}));
