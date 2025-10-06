@@ -1,0 +1,41 @@
+<svg width="256" height="256" viewBox="0 0 256 256" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Owl body -->
+  <circle cx="128" cy="140" r="80" fill="#4F46E5"/>
+  
+  <!-- Owl head -->
+  <circle cx="128" cy="100" r="60" fill="#6366F1"/>
+  
+  <!-- Left ear -->
+  <path d="M 85 60 L 75 30 L 95 50 Z" fill="#4F46E5"/>
+  
+  <!-- Right ear -->
+  <path d="M 171 60 L 181 30 L 161 50 Z" fill="#4F46E5"/>
+  
+  <!-- Left eye background -->
+  <circle cx="108" cy="95" r="18" fill="white"/>
+  
+  <!-- Right eye background -->
+  <circle cx="148" cy="95" r="18" fill="white"/>
+  
+  <!-- Left pupil -->
+  <circle cx="108" cy="95" r="10" fill="#1E293B"/>
+  
+  <!-- Right pupil -->
+  <circle cx="148" cy="95" r="10" fill="#1E293B"/>
+  
+  <!-- Beak -->
+  <path d="M 128 105 L 120 115 L 136 115 Z" fill="#F59E0B"/>
+  
+  <!-- Wings -->
+  <ellipse cx="80" cy="150" rx="25" ry="40" fill="#4338CA" opacity="0.8"/>
+  <ellipse cx="176" cy="150" rx="25" ry="40" fill="#4338CA" opacity="0.8"/>
+  
+  <!-- ATS Text -->
+  <text x="128" y="205" font-family="Arial, sans-serif" font-size="28" font-weight="bold" fill="white" text-anchor="middle">ATS</text>
+  
+  <!-- Document icon overlay (small) -->
+  <rect x="155" y="165" width="30" height="35" rx="3" fill="white" opacity="0.9"/>
+  <line x1="160" y1="172" x2="180" y2="172" stroke="#4F46E5" stroke-width="2"/>
+  <line x1="160" y1="180" x2="180" y2="180" stroke="#4F46E5" stroke-width="2"/>
+  <line x1="160" y1="188" x2="175" y2="188" stroke="#4F46E5" stroke-width="2"/>
+</svg>
